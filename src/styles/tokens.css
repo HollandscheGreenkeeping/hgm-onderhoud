@@ -1,0 +1,53 @@
+/* Design tokens – de enige plek voor kleuren, lettertype en maten.
+   Huisstijl "2a – Clubhuis wit" (HGM Onderhoud.dc.html). Afgeleid van het HGM-logo:
+   donker olijf + grasgroen, slab-serif koppen. Laagkleuren op de kaart staan in src/kaart/stijl.ts. */
+
+:root {
+  /* Merk */
+  --kleur-primair: #2a3520;        /* donker olijf (logo-tekst) – actieve nav, primaire knop */
+  --kleur-primair-tekst: #ffffff;
+  --kleur-secundair: #2f7d3b;      /* grasgroen (logo-gras) – accenten, schakelaars, staven */
+  --kleur-secundair-tekst: #ffffff;
+
+  /* Lettertypes (laden via index.html, Google Fonts) */
+  --lettertype: 'Public Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --lettertype-kop: 'Zilla Slab', Georgia, serif;
+  --lettertype-mono: 'IBM Plex Mono', ui-monospace, Menlo, monospace;
+
+  /* Neutraal – wit, niet crème */
+  --kleur-achtergrond: #ffffff;
+  --kleur-vlak: #ffffff;
+  --kleur-vlak-zacht: #f1f3ee;     /* segmented controls, chips, tabelkop */
+  --kleur-tekst: #26301c;
+  --kleur-tekst-zacht: #5a6249;
+  --kleur-tekst-label: #687060;    /* kleine hoofdletter-labels */
+  --kleur-rand: #e3e6df;
+  --kleur-rand-sterk: #dadfd5;
+
+  /* Status (tekst op wit ≥ 4.5:1) */
+  --kleur-storing: #c8402f;
+  --kleur-storing-zacht: #f8e3df;
+  --kleur-gepland: #9c6312;
+  --kleur-gepland-zacht: #f6ecdc;
+  --kleur-in-orde: #2f7d3b;
+  --kleur-in-orde-zacht: #e4f0e3;
+
+  /* Categorieën (gelijk aan de kaartlagen) */
+  --kleur-beregening: #2c7fd0;
+  --kleur-drainage: #8a5a3c;
+  --kleur-kabel: #7a3fb0;
+  --kleur-overig: #6b7280;
+
+  /* Leesbaar buiten: min. 16 px tekst, grote raakvlakken (handschoenen) */
+  --tekst-basis: 16px;
+  --tekst-groot: 20px;
+  --tekst-kop: 28px;
+  --tekst-label: 11px;             /* alleen hoofdletter-labels, nooit lopende tekst */
+  --raakvlak-min: 48px;
+  --ruimte: 16px;
+  --radius: 12px;
+  --radius-klein: 8px;
+  --radius-pil: 999px;
+  --schaduw-zwevend: 0 6px 20px rgba(20, 30, 15, .12);
+  --schaduw-klein: 0 1px 2px rgba(20, 30, 15, .10);
+}
