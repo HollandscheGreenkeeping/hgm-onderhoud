@@ -405,12 +405,6 @@ a.teller:hover { border-color: var(--kleur-rand-sterk); box-shadow: var(--schadu
 .staven { list-style: none; padding: 0; margin: 0; }
 .staven li { display: grid; grid-template-columns: 140px 1fr 40px; gap: 8px; align-items: center; padding: 4px 0; }
 .staaf { display: block; height: 10px; border-radius: 5px; background: var(--kleur-secundair); min-width: 4px; }
-.knop.baan { flex-direction: column; align-items: stretch; gap: 4px; background: var(--kleur-vlak); color: var(--kleur-tekst); border-color: var(--kleur-rand); text-align: left; padding: 14px 16px; }
-.knop.baan:hover { filter: none; border-color: var(--kleur-rand-sterk); box-shadow: var(--schaduw-klein); }
-.knop.baan > :first-child { font: 700 18px var(--lettertype-kop); }
-.baancijfers { display: flex; flex-wrap: wrap; gap: 4px 14px; font-weight: 400; font-size: 14px; color: var(--kleur-tekst-zacht); }
-.baancijfers .rood { color: var(--kleur-storing); font-weight: 700; }
-.baancijfers .oranje { color: var(--kleur-gepland); font-weight: 700; }
 
 /* ── Rapportage ── */
 .rapport-bediening input { width: auto; margin: 0; }
@@ -623,4 +617,113 @@ code.wachtwoord { font: 600 22px var(--lettertype-mono); letter-spacing: 1px; us
   .zijlijst-kop, .zijlijst-voet { display: none; }
   .zijlijst.open .zijlijst-kop { display: flex; padding: 0 16px 12px; }
   .zijlijst.open .zijlijst-kop h2 { display: none; }
+}
+
+/* ── Alle banen "Clubhuis" (LocatieKiezen) ── */
+@keyframes clubhuis-in { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+@keyframes clubhuis-puls { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--kleur-storing) 55%, transparent); } 70% { box-shadow: 0 0 0 9px transparent; } 100% { box-shadow: 0 0 0 0 transparent; } }
+@keyframes clubhuis-glans { from { background-position: -400px 0; } to { background-position: 400px 0; } }
+
+.clubhuis { max-width: 1280px; display: flex; flex-direction: column; gap: 32px; padding-top: 44px; padding-bottom: 64px; }
+.clubhuis-kop { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+.clubhuis-groet { display: flex; flex-direction: column; gap: 10px; animation: clubhuis-in .6s cubic-bezier(.2, .7, .2, 1) both; }
+.clubhuis-datum::first-letter { text-transform: uppercase; }
+.clubhuis-groet h1 { margin: 0; font-size: 48px; line-height: 1; }
+.clubhuis-groet p { margin: 4px 0 0; font-size: 17px; color: var(--kleur-tekst-zacht); text-wrap: pretty; }
+.clubhuis-groet .rood { color: var(--kleur-storing); }
+.clubhuis-tellers { display: flex; gap: 10px; flex-wrap: wrap; animation: clubhuis-in .6s .12s cubic-bezier(.2, .7, .2, 1) both; }
+.clubhuis-tellers > span {
+  display: flex; flex-direction: column; gap: 2px; min-width: 112px; padding: 12px 18px; border-radius: 14px;
+  background: var(--kleur-vlak-zacht); font-size: 13px; font-weight: 600; color: var(--kleur-tekst-zacht);
+  transition: transform .2s;
+}
+.clubhuis-tellers > span:hover { transform: translateY(-2px); }
+.clubhuis-tellers b { font: 700 28px/1 var(--lettertype-kop); color: var(--kleur-tekst); font-variant-numeric: tabular-nums; }
+.clubhuis-tellers .rood { background: var(--kleur-storing-zacht); color: var(--kleur-storing-donker); }
+.clubhuis-tellers .rood b { color: var(--kleur-storing); }
+.clubhuis-tellers .oranje { background: var(--kleur-gepland-zacht); color: var(--kleur-gepland-donker); }
+.clubhuis-tellers .oranje b { color: var(--kleur-gepland); }
+
+.clubhuis-raster { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 480px), 1fr)); gap: 24px; }
+.clubhuis-raster > li { animation: clubhuis-in .6s calc(.2s + var(--i, 0) * .08s) cubic-bezier(.2, .7, .2, 1) both; }
+.clubhuis-skelet {
+  aspect-ratio: 16 / 12; border-radius: 20px;
+  background: linear-gradient(90deg, var(--kleur-vlak-zacht) 0, var(--kleur-vlak) 50%, var(--kleur-vlak-zacht) 100%) 0 0 / 800px 100%;
+  animation: clubhuis-glans 1.4s linear infinite !important;
+}
+.clubhuis-tegel {
+  display: flex; flex-direction: column; height: 100%; border-radius: 20px; overflow: hidden;
+  border: 1px solid var(--kleur-rand); background: var(--kleur-vlak); color: var(--kleur-tekst); text-decoration: none;
+  transition: box-shadow .25s, transform .25s cubic-bezier(.2, .7, .2, 1), border-color .25s;
+}
+.clubhuis-tegel.aandacht { border-color: var(--kleur-storing-zacht); }
+.clubhuis-tegel:hover { transform: translateY(-4px); box-shadow: var(--schaduw-tegel); }
+.clubhuis-tegel:active { transform: translateY(-1px) scale(.995); }
+.clubhuis-tegel:focus-visible { outline: 3px solid var(--kleur-secundair); outline-offset: 3px; }
+
+.clubhuis-beeld { position: relative; aspect-ratio: 16 / 9; overflow: hidden; background: linear-gradient(135deg, var(--kleur-in-orde-zacht), var(--kleur-foto-leeg)); }
+.clubhuis-foto { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transform: scale(1.06); transition: opacity .6s, transform 1.2s cubic-bezier(.2, .7, .2, 1); }
+.clubhuis-foto.geladen { opacity: 1; transform: scale(1); }
+.clubhuis-tegel:hover .clubhuis-foto.geladen { transform: scale(1.05); transition: transform 6s ease-out, opacity .6s; }
+.clubhuis-verloop { position: absolute; inset: auto 0 0 0; height: 62%; background: linear-gradient(to top, var(--kleur-foto-verloop), transparent); }
+.clubhuis-status {
+  position: absolute; top: 18px; right: 18px; display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px;
+  border-radius: var(--radius-pil); background: var(--kleur-vlak); font-size: 14px; font-weight: 700; box-shadow: var(--schaduw-zwevend);
+}
+.clubhuis-status i { width: 9px; height: 9px; border-radius: 50%; background: currentColor; }
+.clubhuis-status.groen { color: var(--kleur-in-orde); }
+.clubhuis-status.rood { color: var(--kleur-storing); }
+.clubhuis-status.rood i { animation: clubhuis-puls 1.8s infinite; }
+.clubhuis-naamblok { position: absolute; left: 24px; right: 24px; bottom: 20px; display: flex; flex-direction: column; align-items: flex-start; gap: 12px; color: var(--kleur-op-foto); }
+.clubhuis-naamblok > span:last-child { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.clubhuis-naamblok strong { font: 700 30px/1.05 var(--lettertype-kop); text-shadow: 0 1px 12px rgba(0, 0, 0, .25); }
+.clubhuis-naamblok > span:last-child > span { font-size: 14px; color: var(--kleur-op-foto-zacht); }
+.clubhuis-logo {
+  height: 56px; min-width: 56px; max-width: 200px; flex: none; border-radius: 12px; background: var(--kleur-vlak); display: grid; place-items: center; padding: 8px 14px;
+  box-shadow: var(--schaduw-zwevend); font: 700 22px var(--lettertype-kop); color: var(--kleur-primair);
+  transition: transform .3s cubic-bezier(.2, .7, .2, 1);
+}
+.clubhuis-logo img { height: 100%; width: auto; max-width: 172px; object-fit: contain; display: block; }
+.clubhuis-tegel:hover .clubhuis-logo { transform: translateY(-3px) rotate(-2deg); }
+
+.clubhuis-cijfers { display: grid; grid-template-columns: repeat(3, 1fr) auto; align-items: center; gap: 12px; padding: 18px 24px; }
+.clubhuis-cijfers > span { display: flex; flex-direction: column; gap: 2px; font-size: 13px; color: var(--kleur-tekst-zacht); }
+.clubhuis-cijfers b { font: 700 24px/1 var(--lettertype-kop); color: var(--kleur-tekst); }
+.clubhuis-cijfers .rood b { color: var(--kleur-storing); }
+.clubhuis-cijfers .nul b { color: var(--kleur-tekst-label); }
+.clubhuis-cijfers .clubhuis-open { flex-direction: row; align-items: center; gap: 8px; font-size: 15px; font-weight: 700; color: var(--kleur-primair); }
+.clubhuis-open span { font-size: 20px; transition: transform .25s cubic-bezier(.2, .7, .2, 1); }
+.clubhuis-tegel:hover .clubhuis-open span { transform: translateX(5px); }
+
+.clubhuis-nieuw-li { grid-column: 1 / -1; }
+.clubhuis-nieuw {
+  display: flex; align-items: center; justify-content: center; gap: 12px; min-height: 88px;
+  border: 2px dashed var(--kleur-rand-sterk); border-radius: 20px; color: var(--kleur-primair); text-decoration: none; font-weight: 700; font-size: 16px;
+  transition: border-color .2s, background .2s;
+}
+.clubhuis-nieuw span { width: 36px; height: 36px; border-radius: 50%; background: var(--kleur-primair); color: var(--kleur-primair-tekst); display: grid; place-items: center; font-size: 20px; transition: transform .3s cubic-bezier(.2, .7, .2, 1); }
+.clubhuis-nieuw:hover { border-color: var(--kleur-secundair); background: var(--kleur-vlak-zacht); }
+.clubhuis-nieuw:hover span { transform: rotate(90deg); }
+
+.baanfoto-voorbeeld { max-width: 420px; aspect-ratio: 16 / 9; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--kleur-rand); margin-bottom: 12px; }
+.baanfoto-voorbeeld img { width: 100%; height: 100%; object-fit: cover; }
+
+@media (max-width: 700px) {
+  .clubhuis { padding-top: 22px; gap: 22px; }
+  .clubhuis-groet h1 { font-size: 32px; }
+  .clubhuis-groet p { font-size: 16px; }
+  .clubhuis-tellers { display: grid; grid-template-columns: 1fr 1fr; width: 100%; }
+  .clubhuis-tellers > span { min-width: 0; }
+  .clubhuis-raster { gap: 16px; }
+  .clubhuis-naamblok { left: 16px; right: 16px; bottom: 14px; gap: 10px; }
+  .clubhuis-naamblok strong { font-size: 22px; }
+  .clubhuis-logo { height: 44px; min-width: 44px; max-width: 150px; padding: 6px 10px; border-radius: 10px; font-size: 17px; }
+  .clubhuis-logo img { max-width: 130px; }
+  .clubhuis-status { top: 12px; right: 12px; font-size: 13px; padding: 6px 12px; }
+  .clubhuis-cijfers { grid-template-columns: repeat(3, 1fr); padding: 14px 16px; }
+  .clubhuis-cijfers .clubhuis-open { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .clubhuis *, .clubhuis *::before, .clubhuis *::after { animation: none !important; transition: none !important; }
+  .clubhuis-foto { opacity: 1; transform: none; }
 }

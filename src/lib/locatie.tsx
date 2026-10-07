@@ -10,6 +10,7 @@ export type Locatie = {
   naam: string
   klantnaam: string | null
   klantlogo_pad: string | null
+  baanfoto_pad: string | null
 }
 
 type LocatieStaat = {
@@ -52,7 +53,7 @@ export default function LocatieLayout() {
   useEffect(() => {
     if (!locatieId) return
     Promise.all([
-      supabase.from('locaties').select('id, naam, klantnaam, klantlogo_pad').eq('id', locatieId).single(),
+      supabase.from('locaties').select('id, naam, klantnaam, klantlogo_pad, baanfoto_pad').eq('id', locatieId).single(),
       supabase.rpc('mijn_rol', { p_locatie: locatieId }),
     ]).then(([l, r]) => {
       if (l.error || !r.data) return setFout('Deze baan bestaat niet of je hebt geen toegang.')

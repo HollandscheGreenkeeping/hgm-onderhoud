@@ -31,6 +31,14 @@
   --kleur-gepland-zacht: #f6ecdc;
   --kleur-in-orde: #2f7d3b;
   --kleur-in-orde-zacht: #e4f0e3;
+  --kleur-storing-donker: #8a2a1e;  /* tekst op --kleur-storing-zacht */
+  --kleur-gepland-donker: #7a4808;  /* tekst op --kleur-gepland-zacht */
+
+  /* Tekst en verloop op baanfoto's (tegels "Alle banen") */
+  --kleur-op-foto: #ffffff;
+  --kleur-op-foto-zacht: #e4eadb;
+  --kleur-foto-verloop: rgba(18, 26, 12, .8);
+  --kleur-foto-leeg: #9fb58c;      /* groene achtergrond zonder foto */
 
   /* Categorieën (gelijk aan de kaartlagen) */
   --kleur-beregening: #2c7fd0;
@@ -50,4 +58,5 @@
   --radius-pil: 999px;
   --schaduw-zwevend: 0 6px 20px rgba(20, 30, 15, .12);
   --schaduw-klein: 0 1px 2px rgba(20, 30, 15, .10);
+  --schaduw-tegel: 0 18px 40px rgba(20, 30, 15, .14);
 }

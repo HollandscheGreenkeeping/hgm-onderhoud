@@ -346,12 +346,16 @@ select tests.fout('om kan geen locatie aanmaken',
   $$insert into locaties (naam) values ('Nieuwe baan')$$);
 select tests.is('om kan instellingen niet wijzigen',
   tests.rijen($$update instellingen set waarde = 'true' where sleutel = 'mfa_verplicht'$$), 0);
+select tests.is('om kan baanfoto niet wijzigen',
+  tests.rijen($$update locaties set baanfoto_pad = 'baanfotos/x.jpg'$$), 0);
 reset role;
 
 -- ── Beheer: alles, en tweestapsverificatie als die verplicht is ────────────
 
 select tests.als('beheer@test.nl');
 insert into locaties (naam) values ('Nieuwe baan');
+select tests.is('beheer kan baanfoto zetten',
+  tests.rijen($$update locaties set baanfoto_pad = 'baanfotos/x.jpg' where naam = 'Nieuwe baan'$$), 1);
 select tests.is('beheer ziet alle testlocaties',
   (select count(*) from locaties where naam like 'Testbaan%' or naam = 'Nieuwe baan'), 3::bigint);
 insert into instellingen (sleutel, waarde) values ('mfa_verplicht', 'true')

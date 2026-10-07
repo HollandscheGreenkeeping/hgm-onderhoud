@@ -2,8 +2,9 @@ import { useCallback, useEffect, useState, type ChangeEvent, type FormEvent } fr
 import { huisstijlUrl, supabase } from '../lib/supabase'
 import { useLocatie } from '../lib/locatie'
 import type { Lijst } from '../lib/keuzelijst'
+import BaanfotoInstelling from '../components/BaanfotoInstelling'
 
-// Beheer: klantlogo en lussen van deze baan, en de keuzelijsten (gelden voor alle banen,
+// Beheer: klantlogo, baanfoto en lussen van deze baan, en de keuzelijsten (gelden voor alle banen,
 // of per waarde voor gekozen banen).
 export default function Instellingen() {
   const { isBeheer } = useLocatie()
@@ -12,6 +13,7 @@ export default function Instellingen() {
     <main>
       <h1>Instellingen</h1>
       <Klantlogo />
+      <BaanfotoInstelling />
       <Lussen />
       <Keuzelijsten />
     </main>
