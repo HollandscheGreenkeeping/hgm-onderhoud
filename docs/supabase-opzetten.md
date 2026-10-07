@@ -27,7 +27,13 @@ Authentication → Sign In / Providers:
 - Authentication → URL Configuration: Site URL = productie-URL (bijv. `https://onderhoud.hgmgolf.nl`),
   plus `http://localhost:5173` bij Redirect URLs.
 - Authentication → Multi-Factor: TOTP aan.
-- E-mailsjablonen kun je vertalen naar het Nederlands.
+- Authentication → Email Templates: per mail het onderwerp en de HTML uit `supabase/templates/` plakken
+  (onderwerpen staan in `supabase/config.toml`): Magic Link → `magic-link.html`, Invite user → `invite.html`,
+  Reset Password → `recovery.html`, Change Email Address → `email-change.html`.
+  Laat `{{ .ConfirmationURL }}`, `{{ .Email }}` en `{{ .NewEmail }}` staan. Het logo komt van
+  `https://onderhoud.hgmgolf.nl/hgm-logo.png` (de app zelf), dus dat domein moet live zijn.
+- Authentication → SMTP Settings: eigen SMTP met afzender `noreply@hgmgolf.nl`, naam "HGM Golf Onderhoud"
+  (de ingebouwde Supabase-mail haalt maar een paar mails per uur).
 
 ## 4. Eerste beheerder
 1. Authentication → Users → Invite user → je eigen e-mailadres.

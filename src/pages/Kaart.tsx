@@ -67,6 +67,8 @@ export default function Kaart() {
   const navigeer = useNavigate()
   const { storingen, herlaad: herlaadStoringen } = useStoringen(locatie.id, 'alle')
   const [zijFilter, setZijFilter] = useState<'alle' | 'open' | 'in_behandeling' | 'opgelost'>('open')
+  const [lijstOpen, setLijstOpen] = useState(false) // telefoon: storingenlijst omhoog geveegd
+  const veegStart = useRef<number | null>(null)
   const [hoogteStatus, setHoogteStatus] = useState<HoogteStatus>({ status: 'uit' })
   const [hoogteHier, setHoogteHier] = useState<number | null>(null)
   const hoogteRef = useRef<{ grid: Hoogtegrid | null; aan: boolean; op: 'baan' | 'beeld' }>({ grid: null, aan: false, op: 'beeld' })
@@ -502,7 +504,18 @@ export default function Kaart() {
       )}
     </div>
 
-    <aside className="zijlijst geen-print" aria-label="Storingen">
+    <aside className={`zijlijst geen-print ${lijstOpen ? 'open' : ''} ${melden || selectie || correctie || tekenen ? 'bezig' : ''}`}
+           aria-label="Storingen">
+      {/* Telefoon: onderpaneel met greep; tik of veeg omhoog/omlaag */}
+      <button type="button" className="zijlijst-greep" aria-expanded={lijstOpen} onClick={() => setLijstOpen((o) => !o)}
+              onTouchStart={(e) => { veegStart.current = e.touches[0].clientY }}
+              onTouchEnd={(e) => {
+                const dy = e.changedTouches[0].clientY - (veegStart.current ?? e.changedTouches[0].clientY)
+                if (Math.abs(dy) > 30) { e.preventDefault(); setLijstOpen(dy < 0) }
+                veegStart.current = null
+              }}>
+        Storingen · {aantalOpen} open
+      </button>
       <div className="zijlijst-kop">
         <h2>Storingen <small>{aantalOpen} open · {aantalOpgelost} opgelost</small></h2>
         <div className="schakelaar filterbalk">
@@ -514,7 +527,7 @@ export default function Kaart() {
       <div className="zijlijst-rijen">
         {storingen && zichtbareStoringen.length === 0 && <p className="zacht">Geen storingen.</p>}
         {zichtbareStoringen.map((s) => (
-          <StoringRij key={s.id} storing={s} kies={() => toonStoring(s)} hover={(aan) => oplichten(s, aan)} />
+          <StoringRij key={s.id} storing={s} kies={() => { setLijstOpen(false); toonStoring(s) }} hover={(aan) => oplichten(s, aan)} />
         ))}
       </div>
       {magRegistreren && (

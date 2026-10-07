@@ -84,7 +84,7 @@ export default function NieuweBaan() {
   return (
     <>
       <Kopbalk titel="Nieuwe baan" />
-      <main className="nieuwe-baan">
+      <main className="nieuwe-baan zonder-menubalk">
         <h1>Nieuwe baan</h1>
         <p className="zacht">
           Daarna kom je bij de instellingen van de baan: logo, lussen en holes. Teken de baan vervolgens met de knop
@@ -133,7 +133,7 @@ export default function NieuweBaan() {
           </fieldset>
 
           {fout && <div className="melding fout">{fout}</div>}
-          <div className="knoppenrij">
+          <div className="actiebalk">
             <button className="knop" disabled={bezig || !naam.trim()}>{bezig ? 'Bezig…' : 'Baan aanmaken'}</button>
             <button type="button" className="knop tweede" onClick={() => navigeer('/')}>Annuleren</button>
           </div>

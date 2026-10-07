@@ -90,6 +90,7 @@ export default function MachineDetail() {
         <h1>{machineNaam(m)}</h1>
         {openDefect && <span className="label storing">Defect</span>}
         {m.gearchiveerd_op && <span className="label">Gearchiveerd</span>}
+        {magPlannen && !modus && <button type="button" className="tekstlink" onClick={() => setModus('bewerken')}>Bewerken</button>}
       </div>
       {melding && <div className={`melding ${melding.soort}`}>{melding.tekst}</div>}
 
@@ -112,11 +113,11 @@ export default function MachineDetail() {
             {m.aanschafjaar && <div><dt>Aanschafjaar</dt><dd>{m.aanschafjaar}</dd></div>}
             {m.standplaats && <div><dt>Standplaats</dt><dd>{m.standplaats}</dd></div>}
           </dl>
-          <div className="knoppenrij">
-            {magRegistreren && !m.gearchiveerd_op && <button className="knop" onClick={() => setModus('defect')}>Defect melden</button>}
-            {magPlannen && <button className="knop tweede" onClick={() => setModus('bewerken')}>Bewerken</button>}
-            {magPlannen && <button className="knop tweede" onClick={archiveer}>{m.gearchiveerd_op ? 'Terugzetten' : 'Archiveren'}</button>}
-          </div>
+          {magPlannen && (
+            <div className="knoppenrij">
+              <button className="knop tweede" onClick={archiveer}>{m.gearchiveerd_op ? 'Terugzetten' : 'Archiveren'}</button>
+            </div>
+          )}
         </section>
       )}
 
@@ -164,6 +165,13 @@ export default function MachineDetail() {
           ))}
         </ul>
       </section>
+
+      {/* Hoofdactie; op de telefoon vast onderaan */}
+      {!modus && magRegistreren && !m.gearchiveerd_op && (
+        <div className="actiebalk">
+          <button className="knop melden" onClick={() => setModus('defect')}>Defect melden</button>
+        </div>
+      )}
     </main>
   )
 }

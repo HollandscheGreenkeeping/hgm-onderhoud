@@ -19,6 +19,7 @@ import MachineDetail from './pages/MachineDetail'
 import Rapportage from './pages/Rapportage'
 import Gebruikers from './pages/Gebruikers'
 import Wachtwoord from './pages/Wachtwoord'
+import Meer from './pages/Meer'
 
 // De kaartbibliotheek is groot; pas laden als de kaart echt nodig is (sneller inlogscherm).
 const Kaart = lazy(() => import('./pages/Kaart'))
@@ -55,6 +56,7 @@ export default function App() {
         <Route path="rapportage" element={<Rapportage />} />
         <Route path="gebruikers" element={<Gebruikers />} />
         <Route path="instellingen" element={<Instellingen />} />
+        <Route path="meer" element={<Meer />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

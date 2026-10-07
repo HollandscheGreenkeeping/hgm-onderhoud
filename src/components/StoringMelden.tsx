@@ -42,6 +42,11 @@ export default function StoringMelden({ doel, plek, klaar, annuleer }: {
 
   // Elke stap begint bovenaan (het paneel kan halverwege gescrold staan).
   useEffect(() => { wortel.current?.closest('.paneel')?.scrollTo({ top: 0 }) }, [stap])
+  // Tijdens melden geen menubalk op de telefoon; de actiebalk zakt dan naar de onderrand.
+  useEffect(() => {
+    document.body.classList.add('melden-open')
+    return () => document.body.classList.remove('melden-open')
+  }, [])
 
   async function verstuur() {
     const positie = doel.soort === 'plek' ? plek?.() : null
@@ -153,7 +158,7 @@ export default function StoringMelden({ doel, plek, klaar, annuleer }: {
       )}
 
       {fout && <div className="melding fout">{fout}</div>}
-      <div className="meldflow-voet">
+      <div className="meldflow-voet actiebalk">
         {stap < 3
           ? <button type="button" className="knop breed groot" onClick={() => { setFout(null); setStap(stap + 1) }}>
               Volgende: {stap === 1 ? 'wat is er aan de hand' : 'urgentie'}

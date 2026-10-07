@@ -36,7 +36,7 @@ export default function Wachtwoord() {
   return (
     <>
       <Kopbalk titel="HGM Golf Onderhoud" />
-      <main>
+      <main className="zonder-menubalk">
         <h1>{verplicht ? 'Kies je eigen wachtwoord' : 'Wachtwoord wijzigen'}</h1>
         {verplicht && <p>Je bent ingelogd met een tijdelijk wachtwoord. Kies nu een eigen wachtwoord van minstens 10 tekens.</p>}
         <form className="kaart" onSubmit={opslaan}>
@@ -46,7 +46,7 @@ export default function Wachtwoord() {
           <label htmlFor="herhaal">Herhaal nieuw wachtwoord</label>
           <input id="herhaal" type="password" autoComplete="new-password" required value={herhaal} onChange={(e) => setHerhaal(e.target.value)} />
           {fout && <div className="melding fout">{fout}</div>}
-          <div className="knoppenrij">
+          <div className="actiebalk">
             <button className="knop" disabled={bezig}>{bezig ? 'Opslaan…' : 'Opslaan'}</button>
             {!verplicht && <button type="button" className="knop tweede" onClick={() => navigeer(-1)}>Annuleren</button>}
           </div>

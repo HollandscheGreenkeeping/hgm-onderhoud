@@ -505,3 +505,122 @@ code.wachtwoord { font: 600 22px var(--lettertype-mono); letter-spacing: 1px; us
 .nieuwe-baan .lus-rij { align-items: center; }
 .nieuwe-baan fieldset { margin-top: 16px; }
 .knop.links { justify-content: flex-start; text-align: left; }
+
+/* ── Inlogscherm (nieuw) – ontwerp: Inloggen.dc.html ── */
+.inlog { min-height: 100dvh; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); background: var(--kleur-achtergrond); }
+.inlog-kolom { display: flex; flex-direction: column; padding: 28px clamp(20px, 5vw, 64px); }
+.inlog-logo { height: 64px; width: auto; }
+.inlog-midden { flex: 1; display: flex; flex-direction: column; justify-content: center; width: 100%; max-width: 440px; margin: 0 auto; padding: 48px 0; }
+.inlog-titel { font-size: 44px; line-height: 1.05; margin: 10px 0 8px; }
+.inlog-intro { margin: 0 0 28px; text-wrap: pretty; }
+.inlog-schakelaar { margin-bottom: 24px; }
+.inlog-schakelaar .knop { min-height: 44px; font-size: 15px; }
+.inlog-form { display: flex; flex-direction: column; gap: 18px; }
+.inlog-form input { min-height: 56px; font-size: 17px; margin: 0; }
+.inlog-form label { font-size: 15px; margin-bottom: 6px; }
+.inlog-labelrij { display: flex; justify-content: space-between; align-items: baseline; }
+.inlog-labelrij a { font-size: 14px; font-weight: 500; }
+.inlog-ww { position: relative; }
+.inlog-ww input { padding-right: 92px; }
+.inlog-ww button {
+  position: absolute; right: 6px; top: 6px; bottom: 6px; padding: 0 14px; border: 0; border-radius: var(--radius-klein);
+  background: var(--kleur-vlak-zacht); color: var(--kleur-tekst); font: 600 14px var(--lettertype); cursor: pointer;
+}
+.inlog-knop { min-height: 56px; font-size: 17px; margin-top: 4px; }
+.inlog-verstuurd { display: flex; flex-direction: column; gap: 10px; padding: 22px; border-radius: 14px; }
+.inlog-verstuurd strong { font: 700 24px/1.2 var(--lettertype-kop); }
+.inlog-verstuurd p { margin: 0; }
+.inlog-verstuurd .knop { align-self: flex-start; }
+.label-klein.groen { color: var(--kleur-secundair); }
+.inlog-voetnoot { margin: 28px 0 0; padding-top: 20px; border-top: 1px solid var(--kleur-rand); }
+.inlog-voet { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-size: 13px; color: var(--kleur-tekst-label); }
+.inlog-voet a { color: inherit; }
+.inlog-beeld { position: relative; margin: 16px; border-radius: 20px; overflow: hidden; background: var(--kleur-in-orde-zacht); }
+.inlog-beeld img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.inlog-pil {
+  position: absolute; left: 20px; bottom: 20px; background: var(--kleur-vlak); border-radius: var(--radius-pil); padding: 8px 14px;
+  font: 600 13px var(--lettertype); box-shadow: var(--schaduw-zwevend);
+}
+@media (max-width: 900px) { .inlog { grid-template-columns: 1fr; } .inlog-beeld { display: none; } }
+
+/* ── Mobiel (≤ 700 px) – ontwerp: HGM Mobiel.dc.html ── */
+.menubalk { display: none; }
+.menulijst { display: flex; flex-direction: column; border: 1px solid var(--kleur-rand); border-radius: 14px; overflow: hidden; margin-bottom: 16px; }
+.menulijst a, .menulijst button {
+  display: flex; align-items: center; justify-content: space-between; min-height: 52px; padding: 0 16px;
+  font: 600 17px var(--lettertype); color: var(--kleur-tekst); text-decoration: none; background: var(--kleur-vlak);
+  border: 0; border-bottom: 1px solid var(--kleur-vlak-zacht); text-align: left; cursor: pointer;
+}
+.menulijst a::after { content: '›'; color: var(--kleur-tekst-label); font-weight: 400; }
+.menulijst > :last-child { border-bottom: 0; }
+.menulijst .uitloggen { color: var(--kleur-storing); }
+.meer .label-klein { display: block; margin: 4px 0 8px; }
+/* Hoofdactie: op desktop een gewone knoppenrij, op de telefoon vast onderaan (zie hieronder) */
+.actiebalk { display: flex; gap: 8px; flex-wrap: wrap; margin-top: var(--ruimte); }
+.tekstlink {
+  min-height: 48px; padding: 0 4px; border: 0; background: none; cursor: pointer;
+  font: 600 16px var(--lettertype); color: var(--kleur-secundair); text-decoration: underline;
+}
+.zijlijst-greep { display: none; }
+.melden-open .menubalk { display: none; }                          /* tijdens storing melden */
+
+@media (max-width: 700px) {
+  :root { --menubalk-hoogte: calc(64px + env(safe-area-inset-bottom)); }
+  .menu.onder { display: none; }                                   /* pillenmenu vervangen door menubalk */
+  .scherm .kopbalk .knop { display: none; }                        /* binnen een baan: Uitloggen staat onder Meer */
+  .kopbalk .hgm-logo { height: 42px; }
+  .kopbalk .beheer-door { display: flex; padding: 0; border: 0; }
+  .kopbalk .baan-label { display: none; }
+  .scherm { padding-bottom: var(--menubalk-hoogte); }
+
+  .menubalk {
+    display: grid; grid-template-columns: repeat(5, 1fr); position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
+    background: var(--kleur-vlak); border-top: 1px solid var(--kleur-rand);
+    padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
+  }
+  .menubalk a {
+    position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+    min-height: 52px; font: 500 15px var(--lettertype); color: var(--kleur-tekst-zacht); text-decoration: none;
+  }
+  .menubalk a::before { content: ''; width: 28px; height: 4px; border-radius: 2px; background: transparent; }
+  .menubalk a.active { color: var(--kleur-tekst); font-weight: 700; }
+  .menubalk a.active::before { background: var(--kleur-secundair); }
+  .menubalk .teller-bol { position: absolute; top: 0; right: 2px; min-width: 20px; text-align: center; }
+
+  /* Hoofdactie vast onderaan (Storing detail, Machine, Melden, Rapportage, Nieuwe baan) */
+  .actiebalk {
+    position: sticky; bottom: var(--menubalk-hoogte); z-index: 10; display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 10px;
+    margin: 16px calc(-1 * var(--ruimte)) 0; padding: 12px var(--ruimte); background: var(--kleur-vlak); border-top: 1px solid var(--kleur-rand);
+  }
+  .actiebalk .knop { min-height: 56px; font-size: 17px; }
+  .zonder-menubalk .actiebalk { bottom: 0; padding-bottom: calc(12px + env(safe-area-inset-bottom)); }
+
+  main { padding: 18px 16px; }
+  main h1 { font-size: 30px; }
+  .kop-met-knop .knop { min-height: 48px; }
+  .filterbalk { flex-wrap: nowrap; overflow-x: auto; margin-right: calc(-1 * var(--ruimte)); scrollbar-width: none; }
+  .filterbalk .knop { flex: none; min-height: 44px; }
+  .tellers { grid-template-columns: 1fr 1fr; }
+  .rij strong { font-size: 17px; }
+  .planregel .vink.groot input { width: 32px; height: 32px; }
+  .melden-open .scherm { padding-bottom: 0; }
+  .melden-open .actiebalk { bottom: 0; padding-bottom: calc(12px + env(safe-area-inset-bottom)); }
+
+  /* Kaart: storingenlijst als onderpaneel (3 rijen), omhoog vegen of tikken voor meer */
+  .kaart-indeling { grid-template-rows: minmax(0, 1fr) auto; }
+  .kaart-indeling .meldknop { left: 16px; right: 16px; bottom: 34px; justify-content: center; }
+  .zijlijst {
+    display: flex; position: relative; z-index: 3; margin-top: -18px; max-height: min(340px, 45dvh);
+    border-left: 0; border-top: 1px solid var(--kleur-rand); border-radius: 18px 18px 0 0; box-shadow: var(--schaduw-zwevend);
+  }
+  .zijlijst.open { max-height: 75dvh; }
+  .zijlijst.bezig { display: none; }                                /* detail, melden of tekenen gebruikt de ruimte */
+  .zijlijst-greep {
+    display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%; min-height: 56px; padding: 8px 20px 10px;
+    border: 0; background: none; cursor: pointer; font: 700 20px var(--lettertype-kop); color: var(--kleur-tekst);
+  }
+  .zijlijst-greep::before { content: ''; width: 40px; height: 5px; border-radius: 3px; background: var(--kleur-rand-sterk); }
+  .zijlijst-kop, .zijlijst-voet { display: none; }
+  .zijlijst.open .zijlijst-kop { display: flex; padding: 0 16px 12px; }
+  .zijlijst.open .zijlijst-kop h2 { display: none; }
+}

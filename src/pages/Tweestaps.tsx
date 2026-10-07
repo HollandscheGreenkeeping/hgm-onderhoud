@@ -42,7 +42,7 @@ export default function Tweestaps() {
   return (
     <>
       <Kopbalk titel="Tweestapsverificatie" />
-      <main>
+      <main className="zonder-menubalk">
         <h1>Tweestapsverificatie</h1>
         {fout && <div className="melding fout">{fout}</div>}
         <form className="kaart" onSubmit={bevestig}>
@@ -55,7 +55,9 @@ export default function Tweestaps() {
           <label htmlFor="code">Code uit de app</label>
           <input id="code" inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={code}
                  onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))} />
-          <button className="knop breed" disabled={code.length !== 6}>Bevestigen</button>
+          <div className="actiebalk">
+            <button className="knop breed" disabled={code.length !== 6}>Bevestigen</button>
+          </div>
         </form>
       </main>
     </>

@@ -107,7 +107,6 @@ function Klantrapport() {
     <>
       <div className="knoppenrij geen-print rapport-bediening">
         <input type="month" aria-label="Maand" value={maand} max={vandaag().slice(0, 7)} onChange={(e) => e.target.value && setMaand(e.target.value)} />
-        <button className="knop" onClick={() => window.print()} disabled={laden}>Opslaan als PDF / afdrukken</button>
       </div>
       <p className="zacht klein-tekst geen-print">Kies in het afdrukvenster "Opslaan als PDF" als printer.</p>
 
@@ -198,6 +197,10 @@ function Klantrapport() {
           </>
         )}
       </article>
+
+      <div className="actiebalk geen-print">
+        <button className="knop" onClick={() => window.print()} disabled={laden}>Rapport als PDF</button>
+      </div>
     </>
   )
 }

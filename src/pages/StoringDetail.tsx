@@ -108,24 +108,6 @@ export default function StoringDetail() {
         </dl>
       </section>
 
-      {/* Acties voor uitvoerders */}
-      {isOpen && magUitvoeren && !oplossenOpen && (
-        <div className="knoppenrij acties">
-          {(!s.toegewezen_aan || (vanMij && s.status !== 'in_behandeling')) && (
-            <button className="knop" disabled={bezig}
-                    onClick={() => wijzig({ toegewezen_aan: mij, status: 'in_behandeling' })}>
-              Ik pak dit op
-            </button>
-          )}
-          {s.toegewezen_aan && s.status !== 'in_behandeling' && magPlannen && !vanMij && (
-            <button className="knop tweede" disabled={bezig} onClick={() => wijzig({ status: 'in_behandeling' })}>
-              In behandeling
-            </button>
-          )}
-          <button className="knop" onClick={() => setOplossenOpen(true)}>Opgelost…</button>
-        </div>
-      )}
-
       {oplossenOpen && (
         <Oplossen storing={s} sluit={() => setOplossenOpen(false)} klaar={() => { setOplossenOpen(false); laad() }} />
       )}
@@ -183,6 +165,24 @@ export default function StoringDetail() {
           </>
         )}
       </section>
+
+      {/* Acties voor uitvoerders; op de telefoon vast onderaan */}
+      {isOpen && magUitvoeren && !oplossenOpen && (
+        <div className="actiebalk">
+          {(!s.toegewezen_aan || (vanMij && s.status !== 'in_behandeling')) && (
+            <button className="knop tweede" disabled={bezig}
+                    onClick={() => wijzig({ toegewezen_aan: mij, status: 'in_behandeling' })}>
+              Ik pak dit op
+            </button>
+          )}
+          {s.toegewezen_aan && s.status !== 'in_behandeling' && magPlannen && !vanMij && (
+            <button className="knop tweede" disabled={bezig} onClick={() => wijzig({ status: 'in_behandeling' })}>
+              In behandeling
+            </button>
+          )}
+          <button className="knop groen" onClick={() => setOplossenOpen(true)}>Opgelost…</button>
+        </div>
+      )}
     </main>
   )
 }

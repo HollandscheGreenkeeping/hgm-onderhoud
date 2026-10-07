@@ -244,10 +244,22 @@ otp_expiry = 3600
 # admin_email = "admin@email.com"
 # sender_name = "Admin"
 
-# Uncomment to customize email template
-# [auth.email.template.invite]
-# subject = "You have been invited"
-# content_path = "./supabase/templates/invite.html"
+# Inlogmails in huisstijl 2a. Productie: zelfde tekst in Dashboard → Authentication → Email Templates.
+[auth.email.template.magic_link]
+subject = "Je inloglink voor HGM Golf Onderhoud"
+content_path = "./supabase/templates/magic-link.html"
+
+[auth.email.template.invite]
+subject = "Je bent uitgenodigd voor HGM Golf Onderhoud"
+content_path = "./supabase/templates/invite.html"
+
+[auth.email.template.recovery]
+subject = "Nieuw wachtwoord instellen"
+content_path = "./supabase/templates/recovery.html"
+
+[auth.email.template.email_change]
+subject = "Bevestig je nieuwe e-mailadres"
+content_path = "./supabase/templates/email-change.html"
 
 # Uncomment to customize notification email template
 # [auth.email.notification.password_changed]

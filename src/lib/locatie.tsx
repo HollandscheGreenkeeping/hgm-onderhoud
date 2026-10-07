@@ -3,6 +3,7 @@ import { NavLink, Outlet, useLocation, useParams } from 'react-router'
 import { huisstijlUrl, supabase, type Rol } from './supabase'
 import { openStoringStatussen } from './teksten'
 import Kopbalk from '../components/Kopbalk'
+import Menubalk from '../components/Menubalk'
 
 export type Locatie = {
   id: string
@@ -111,6 +112,7 @@ export default function LocatieLayout() {
         </Kopbalk>
         {menu('onder')}
         <Outlet />
+        <Menubalk basis={basis} openStoringen={openStoringen} />
       </div>
     </LocatieContext.Provider>
   )
