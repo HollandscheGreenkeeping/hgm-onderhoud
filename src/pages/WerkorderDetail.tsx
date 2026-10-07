@@ -10,7 +10,8 @@ import {
 } from '../lib/werkplaats'
 import FotoKiezer from '../components/FotoKiezer'
 
-type Regel = { id: string; omschrijving: string; aantal: number; eenheid: string | null; bedrag: number | null }
+type Regel = { id: string; omschrijving: string; aantal: number; eenheid: string | null; bedrag: number | null; product_id: string | null }
+type Onderdeel = { id: string; naam: string; eenheid: string; prijs: number | null }
 type Uur = { id: string; datum: string; minuten: number; notitie: string | null; medewerker: { naam: string | null } | null }
 
 // Volgende stappen per status (de knoppen onderaan). Annuleren kan zolang de werkorder open is.
@@ -39,6 +40,7 @@ export default function WerkorderDetail() {
   const [uren, setUren] = useState<Uur[]>([])
   const [fotos, setFotos] = useState<Foto[]>([])
   const [vervangers, setVervangers] = useState<{ id: string; naam: string; baan: string }[]>([])
+  const [onderdelen, setOnderdelen] = useState<Onderdeel[]>([])
   const [nieuweFotos, setNieuweFotos] = useState<File[]>([])
   const [bevindingen, setBevindingen] = useState('')
   const [bezig, setBezig] = useState(false)
@@ -47,7 +49,7 @@ export default function WerkorderDetail() {
   const laad = useCallback(async () => {
     const [wo, rg, ur, ft] = await Promise.all([
       supabase.from('werkorders').select(werkorderVelden).eq('id', werkorderId!).single(),
-      supabase.from('werkorder_regels').select('id, omschrijving, aantal, eenheid, bedrag').eq('werkorder_id', werkorderId!).order('aangemaakt_op'),
+      supabase.from('werkorder_regels').select('id, omschrijving, aantal, eenheid, bedrag, product_id').eq('werkorder_id', werkorderId!).order('aangemaakt_op'),
       supabase.from('uren').select('id, datum, minuten, notitie, medewerker:profielen(naam)')
         .eq('bron_tabel', 'werkorders').eq('bron_id', werkorderId!).order('datum'),
       fotosVan('werkorders', werkorderId!),
@@ -61,6 +63,12 @@ export default function WerkorderDetail() {
     setFotos(ft)
   }, [werkorderId])
   useEffect(() => { laad() }, [laad])
+
+  // Onderdelen en materialen uit de catalogus (boeken af van de werkplaatsvoorraad).
+  useEffect(() => {
+    supabase.from('producten').select('id, naam, eenheid, prijs').in('categorie', ['onderdeel', 'materiaal'])
+      .is('gearchiveerd_op', null).order('naam').then(({ data }) => setOnderdelen(data ?? []))
+  }, [])
 
   // Vervangend materieel: machines van andere banen of de werkplaats die nu thuis staan.
   useEffect(() => {
@@ -85,9 +93,13 @@ export default function WerkorderDetail() {
     e.preventDefault()
     const f = new FormData(e.currentTarget)
     const bedrag = String(f.get('bedrag') ?? '').replace(',', '.')
+    const product = onderdelen.find((o) => o.id === f.get('product_id'))
+    if (!product && !f.get('omschrijving')) return setFout('Kies een onderdeel of typ een omschrijving.')
+    // Uit de catalogus: prijs berekent de database (prijs × aantal) als je geen bedrag invult.
     const { error } = await supabase.from('werkorder_regels').insert({
-      werkorder_id: werkorderId, omschrijving: f.get('omschrijving'),
-      aantal: Number(String(f.get('aantal') || '1').replace(',', '.')), eenheid: f.get('eenheid') || null,
+      werkorder_id: werkorderId, product_id: product?.id ?? null,
+      omschrijving: f.get('omschrijving') || product?.naam,
+      aantal: Number(String(f.get('aantal') || '1').replace(',', '.')), eenheid: f.get('eenheid') || product?.eenheid || null,
       bedrag: bedrag ? Number(bedrag) : null,
     })
     if (error) return setFout('Onderdeel opslaan mislukt.')
@@ -131,7 +143,7 @@ export default function WerkorderDetail() {
   const open = !['terug_op_locatie', 'geannuleerd'].includes(w.status)
   const huidigeStap = werkorderStappen.indexOf(w.status)
   const minuten = uren.reduce((t, u) => t + u.minuten, 0)
-  const onderdelen = regels.reduce((t, r) => t + Number(r.bedrag ?? 0), 0)
+  const onderdelenTotaal = regels.reduce((t, r) => t + Number(r.bedrag ?? 0), 0)
 
   return (
     <div className="werkorder">
@@ -250,9 +262,16 @@ export default function WerkorderDetail() {
             </table>
           </div>
         )}
-        {onderdelen > 0 && <p className="zacht">Onderdelen totaal € {onderdelen.toLocaleString('nl-NL', { minimumFractionDigits: 2 })}</p>}
+        {onderdelenTotaal > 0 && <p className="zacht">Onderdelen totaal € {onderdelenTotaal.toLocaleString('nl-NL', { minimumFractionDigits: 2 })}</p>}
+        {regels.some((r) => r.product_id) && <p className="zacht klein-tekst">Onderdelen uit de catalogus gaan van de werkplaatsvoorraad af.</p>}
         <form className="lus-rij" onSubmit={regelToevoegen}>
-          <input name="omschrijving" aria-label="Onderdeel" placeholder="Onderdeel, bijv. bovenmes" required />
+          {onderdelen.length > 0 && (
+            <select name="product_id" aria-label="Uit de catalogus" defaultValue="">
+              <option value="">— uit de catalogus —</option>
+              {onderdelen.map((o) => <option key={o.id} value={o.id}>{o.naam}{o.prijs != null ? ` (€ ${o.prijs})` : ''}</option>)}
+            </select>
+          )}
+          <input name="omschrijving" aria-label="Onderdeel" placeholder={onderdelen.length ? 'of omschrijving' : 'Onderdeel, bijv. bovenmes'} />
           <input name="aantal" aria-label="Aantal" placeholder="Aantal" inputMode="decimal" className="smal" />
           <input name="eenheid" aria-label="Eenheid" placeholder="st / l" className="smal" />
           <input name="bedrag" aria-label="Kosten in euro" placeholder="€ kosten" inputMode="decimal" className="smal" />

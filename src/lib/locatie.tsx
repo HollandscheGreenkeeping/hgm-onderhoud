@@ -116,6 +116,7 @@ export default function LocatieLayout() {
       {magPlannen && <NavLink to={`${basis}/voorstellen`}>Voorstellen</NavLink>}
       <NavLink to={`${basis}/overzicht`}>Dashboard</NavLink>
       <NavLink to={`${basis}/rapportage`}>Rapportage</NavLink>
+      {(magPlannen || staat.rol === 'monteur') && <NavLink to={`/inkoop/voorraad?locatie=${locatie.id}`}>Voorraad</NavLink>}
       {extraKlasse === 'onder' && <NavLink to="/banen" className="rechts">Alle banen</NavLink>}
     </nav>
   )

@@ -29,6 +29,7 @@ export default function Meer() {
         <Link to="/">Overzicht alle banen</Link>
         <Link to="/banen">Andere baan</Link>
         {(isGlobaal || rol === 'monteur') && <Link to="/werkplaats">Werkplaats</Link>}
+        {(magPlannen || rol === 'monteur') && <Link to={`/inkoop/voorraad?locatie=${locatie.id}`}>Inkoop en voorraad</Link>}
         {isGlobaal && <Link to="/beheer">Beheer</Link>}
       </nav>
       <nav className="menulijst">

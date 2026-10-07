@@ -5,7 +5,7 @@ import { useSessie } from '../lib/sessie'
 import Kopbalk from './Kopbalk'
 import Menubalk from './Menubalk'
 
-// Alles buiten één baan: Overzicht (alle banen samen) · Banen (baan kiezen) · Werkplaats · Beheer.
+// Alles buiten één baan: Overzicht (alle banen samen) · Banen (baan kiezen) · Werkplaats · Inkoop · Beheer.
 // Wie maar op één baan werkt en geen HGM-brede rol heeft, gaat meteen door naar die baan.
 export default function HoofdLayout() {
   const { profiel } = useSessie()
@@ -19,7 +19,9 @@ export default function HoofdLayout() {
   }, [])
 
   if (!banen || !profiel) return <main className="zacht">Laden…</main>
-  if (!magWerkplaats && banen.length === 1 && !pathname.startsWith('/beheer')) {
+  // Inkoop: ook voor de hoofd-greenkeeper (eigen baan).
+  const magInkoop = magWerkplaats || banen.some((b) => b.rol === 'hoofdgreenkeeper')
+  if (!magWerkplaats && banen.length === 1 && !pathname.startsWith('/beheer') && !pathname.startsWith('/inkoop')) {
     return <Navigate to={`/locatie/${banen[0].locatie_id}`} replace />
   }
 
@@ -28,6 +30,7 @@ export default function HoofdLayout() {
       <NavLink to="/" end>Overzicht</NavLink>
       <NavLink to="/banen">Banen</NavLink>
       {magWerkplaats && <NavLink to="/werkplaats">Werkplaats</NavLink>}
+      {magInkoop && <NavLink to="/inkoop">Inkoop</NavLink>}
       {isGlobaal && <NavLink to="/beheer">Beheer</NavLink>}
     </>
   )

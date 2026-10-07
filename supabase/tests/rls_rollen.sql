@@ -457,6 +457,113 @@ select tests.is('om plant werkorder in',
 select tests.is('om ziet kosten van alle banen', (select count(*) from machine_kosten()) >= 2, true);
 reset role;
 
+-- ── Inkoop en voorraad ─────────────────────────────────────────────────────
+
+insert into keuzelijst_waarden (id, lijst, naam, eenheid) values ('4d000000-0000-0000-0000-000000000001', 'middel', 'Testmest', 'kg');
+
+select tests.als('om@test.nl');
+insert into leveranciers (id, naam, email) values ('1e000000-0000-0000-0000-000000000001', 'Testleverancier', 'verkoop@test.nl');
+insert into producten (id, naam, categorie, leverancier_id, eenheid, prijs, middel_id)
+  values ('9d000000-0000-0000-0000-000000000001', 'Testmest 25 kg', 'meststof', '1e000000-0000-0000-0000-000000000001', 'kg', 2.50, '4d000000-0000-0000-0000-000000000001');
+insert into producten (id, naam, categorie, leverancier_id, eenheid, prijs)
+  values ('9d000000-0000-0000-0000-000000000002', 'Bovenmes', 'onderdeel', '1e000000-0000-0000-0000-000000000001', 'st', 85);
+reset role;
+
+select tests.als('hgk.a@test.nl');
+select tests.is('hgk.a ziet de catalogus', (select count(*) from producten), 2::bigint);
+select tests.fout('hgk.a kan geen product toevoegen',
+  $$insert into producten (naam, categorie, eenheid) values ('x', 'zand', 'ton')$$);
+insert into bestellingen (id, locatie_id, leverancier_id) values ('b0000000-0000-0000-0000-000000000001', 'aaaaaaaa-0000-0000-0000-000000000000', '1e000000-0000-0000-0000-000000000001');
+insert into bestelregels (bestelling_id, product_id, aantal) values ('b0000000-0000-0000-0000-000000000001', '9d000000-0000-0000-0000-000000000001', 100);
+select tests.is('bestelregel krijgt prijs uit de catalogus',
+  (select prijs from bestelregels where bestelling_id = 'b0000000-0000-0000-0000-000000000001'), 2.50::numeric);
+select tests.fout('hgk.a kan eigen aanvraag niet goedkeuren',
+  $$update bestellingen set status = 'goedgekeurd' where id = 'b0000000-0000-0000-0000-000000000001'$$);
+select tests.fout('hgk.a kan geen bestelling voor B doen',
+  $$insert into bestellingen (locatie_id, leverancier_id) values ('bbbbbbbb-0000-0000-0000-000000000000', '1e000000-0000-0000-0000-000000000001')$$);
+reset role;
+
+select tests.als('gk.a@test.nl');
+select tests.is('gk.a ziet geen catalogus', (select count(*) from producten), 0::bigint);
+select tests.is('gk.a ziet geen bestellingen', (select count(*) from bestellingen), 0::bigint);
+select tests.fout('gk.a kan geen bestelling doen',
+  $$insert into bestellingen (locatie_id, leverancier_id) values ('aaaaaaaa-0000-0000-0000-000000000000', '1e000000-0000-0000-0000-000000000001')$$);
+reset role;
+
+select tests.als('om@test.nl');
+update bestellingen set status = 'goedgekeurd' where id = 'b0000000-0000-0000-0000-000000000001';
+select tests.is('om keurt goed', (select beoordeeld_door from bestellingen where id = 'b0000000-0000-0000-0000-000000000001'),
+  '00000000-0000-0000-0000-000000000002'::uuid);
+select tests.fout('ontvangen kan niet vóór bestellen',
+  $$insert into voorraadmutaties (locatie_id, product_id, aantal, soort, bron_tabel, bron_id)
+    select locatie_id, product_id, 10, 'ontvangst', 'bestelregels', id from bestelregels where bestelling_id = 'b0000000-0000-0000-0000-000000000001'$$);
+update bestellingen set status = 'besteld' where id = 'b0000000-0000-0000-0000-000000000001';
+reset role;
+
+select tests.als('hgk.a@test.nl');
+insert into voorraadmutaties (locatie_id, product_id, aantal, soort, bron_tabel, bron_id)
+  select locatie_id, product_id, 60, 'ontvangst', 'bestelregels', id from bestelregels where bestelling_id = 'b0000000-0000-0000-0000-000000000001';
+select tests.is('deels ontvangen', (select status::text from bestellingen where id = 'b0000000-0000-0000-0000-000000000001'), 'deels_ontvangen');
+insert into voorraadmutaties (locatie_id, product_id, aantal, soort, bron_tabel, bron_id)
+  select locatie_id, product_id, 40, 'ontvangst', 'bestelregels', id from bestelregels where bestelling_id = 'b0000000-0000-0000-0000-000000000001';
+select tests.is('volledig ontvangen', (select status::text from bestellingen where id = 'b0000000-0000-0000-0000-000000000001'), 'ontvangen');
+select tests.is('voorraad 100 kg', (select stand from voorraad where locatie_id = 'aaaaaaaa-0000-0000-0000-000000000000' and product_id = '9d000000-0000-0000-0000-000000000001'), 100::numeric);
+insert into voorraad_minimum (locatie_id, product_id, minimum) values ('aaaaaaaa-0000-0000-0000-000000000000', '9d000000-0000-0000-0000-000000000001', 80);
+select tests.fout('hgk.a kan geen verbruik met de hand boeken',
+  $$insert into voorraadmutaties (locatie_id, product_id, aantal, soort) values ('aaaaaaaa-0000-0000-0000-000000000000', '9d000000-0000-0000-0000-000000000001', -5, 'verbruik')$$);
+select tests.is('mutaties zijn niet te wijzigen', tests.rijen($$update voorraadmutaties set aantal = 1$$), 0);
+-- Klaargezet werk met middel voor gk.a
+insert into werkzaamheden (id, locatie_id, activiteit_id, medewerker_id, uitgevoerd)
+  values ('3e000000-0000-0000-0000-000000000002', 'aaaaaaaa-0000-0000-0000-000000000000', (select id from keuzelijst_waarden where lijst = 'activiteit' order by volgorde limit 1),
+          '00000000-0000-0000-0000-000000000004', false);
+insert into middelen_gebruik (werkzaamheid_id, middel_id, hoeveelheid_totaal, eenheid) values ('3e000000-0000-0000-0000-000000000002', '4d000000-0000-0000-0000-000000000001', 30, 'kg');
+reset role;
+
+select tests.is('klaargezet werk boekt nog niet af', (select stand from voorraad where locatie_id = 'aaaaaaaa-0000-0000-0000-000000000000' and product_id = '9d000000-0000-0000-0000-000000000001'), 100::numeric);
+select tests.als('gk.a@test.nl');
+select tests.is('gk.a ziet geen voorraad', (select count(*) from voorraad), 0::bigint);
+update werkzaamheden set uitgevoerd = true where id = '3e000000-0000-0000-0000-000000000002';
+update middelen_gebruik set hoeveelheid_totaal = 25 where werkzaamheid_id = '3e000000-0000-0000-0000-000000000002';
+reset role;
+select tests.is('uitgevoerd werk boekt middel af', (select stand from voorraad where locatie_id = 'aaaaaaaa-0000-0000-0000-000000000000' and product_id = '9d000000-0000-0000-0000-000000000001'), 75::numeric);
+select tests.is('onder minimum gemeld',
+  (select onder_minimum from voorraad where locatie_id = 'aaaaaaaa-0000-0000-0000-000000000000' and product_id = '9d000000-0000-0000-0000-000000000001'), true);
+
+select tests.als('monteur@test.nl');
+insert into voorraadmutaties (locatie_id, product_id, aantal, soort, notitie) values (werkplaats_id(), '9d000000-0000-0000-0000-000000000002', 5, 'correctie', 'Beginvoorraad');
+insert into werkorder_regels (werkorder_id, product_id, omschrijving, aantal)
+  select id, '9d000000-0000-0000-0000-000000000002', 'Bovenmes', 2 from werkorders where bron = 'onderhoud';
+select tests.is('werkorderregel krijgt prijs uit de catalogus',
+  (select bedrag from werkorder_regels where product_id = '9d000000-0000-0000-0000-000000000002'), 170.00::numeric);
+select tests.is('onderdeel afgeboekt van de werkplaats', (select stand from voorraad where locatie_id = werkplaats_id() and product_id = '9d000000-0000-0000-0000-000000000002'), 3::numeric);
+delete from werkorder_regels where product_id = '9d000000-0000-0000-0000-000000000002';
+select tests.is('regel weg: onderdeel terug op voorraad', (select stand from voorraad where locatie_id = werkplaats_id() and product_id = '9d000000-0000-0000-0000-000000000002'), 5::numeric);
+select tests.is('monteur ziet geen budget', (select count(*) from budgetten), 0::bigint);
+select tests.is('monteur ziet geen kosten per maand', (select count(*) from kosten_per_maand(extract(year from current_date)::int)), 0::bigint);
+reset role;
+
+select tests.als('om@test.nl');
+insert into budgetten (locatie_id, jaar, bedrag) values ('aaaaaaaa-0000-0000-0000-000000000000', extract(year from current_date)::int, 12000);
+reset role;
+
+select tests.als('hgk.a@test.nl');
+select tests.is('hgk.a ziet budget eigen baan', (select count(*) from budgetten), 1::bigint);
+select tests.is('inkoop deze maand 250 euro',
+  (select inkoop from kosten_per_maand(extract(year from current_date)::int, 'aaaaaaaa-0000-0000-0000-000000000000') where maand = extract(month from current_date)), 250.00::numeric);
+select tests.is('jaarbudget verdeeld over 12 maanden',
+  (select budget from kosten_per_maand(extract(year from current_date)::int, 'aaaaaaaa-0000-0000-0000-000000000000') where maand = 1), 1000.00::numeric);
+select tests.is('hgk.a ziet geen kosten van B', (select count(*) from kosten_per_maand(extract(year from current_date)::int, 'bbbbbbbb-0000-0000-0000-000000000000')), 0::bigint);
+select tests.fout('hgk.a kan geen budget zetten',
+  $$insert into budgetten (locatie_id, jaar, bedrag) values ('aaaaaaaa-0000-0000-0000-000000000000', 2030, 1)$$);
+reset role;
+
+select tests.als('bm.a@test.nl');
+select tests.is('bm.a ziet geen bestellingen', (select count(*) from bestellingen), 0::bigint);
+select tests.is('bm.a ziet geen voorraad', (select count(*) from voorraad), 0::bigint);
+select tests.is('bm.a ziet geen budget', (select count(*) from budgetten), 0::bigint);
+select tests.is('bm.a ziet geen leveranciers', (select count(*) from leveranciers), 0::bigint);
+reset role;
+
 -- ── Beheer: alles, en tweestapsverificatie als die verplicht is ────────────
 
 select tests.als('beheer@test.nl');

@@ -19,6 +19,10 @@ Volledig plan, rechtenmatrix en fasering: [docs/plan.md](docs/plan.md).
   `heeft_toegang(loc)` (alle rollen), `mag_registreren(loc)` (niet baanmanager),
   `mag_plannen(loc)` (hoofd-greenkeeper en hoger), `is_globaal()` (beheer, onderhoudsmanager), `is_beheer()`,
   `is_monteur()`, `mag_werkplaats()` (beheer, onderhoudsmanager, monteur).
+  Inkoop: `is_inkoper()` (catalogus inzien), `mag_bestellen(loc)` (hoofd-greenkeeper eigen baan, monteur, globaal).
+- **Voorraad = som van `voorraadmutaties`** (view `voorraad`, security_invoker). Mutaties nooit wijzigen; corrigeren
+  met een nieuwe mutatie. Verbruik boekt de database zelf af (middelengebruik bij uitgevoerd werk via
+  `producten.middel_id`, onderdelen op werkorders van de werkplaats).
 - **Monteur** is een HGM-brede rol (`profielen.globale_rol`) maar telt níet als globaal: geen gebruikersbeheer,
   geen kosten, geen tweestapsplicht. Op elke locatie is `mijn_rol` = monteur (mag registreren, niet plannen).
 - **Werkplaats** is één locatie met `soort = 'werkplaats'`. Banenlijsten en dashboards filteren op `soort = 'baan'`.
