@@ -537,6 +537,12 @@ code.wachtwoord { font: 600 22px var(--lettertype-mono); letter-spacing: 1px; us
 .inlog-voet a { color: inherit; }
 .inlog-beeld { position: relative; margin: 16px; border-radius: 20px; overflow: hidden; background: var(--kleur-in-orde-zacht); }
 .inlog-beeld img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.inlog-film { position: absolute; inset: 0; overflow: hidden; container-type: size; opacity: 0; transition: opacity .4s; pointer-events: none; }
+.inlog-film.speelt { opacity: 1; }
+.inlog-film iframe {                                                  /* film vult het vak (zoals object-fit: cover) */
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) scale(1.15); border: 0;
+  width: max(100cqw, 177.78cqh); height: max(100cqh, 56.25cqw);
+}
 .inlog-pil {
   position: absolute; left: 20px; bottom: 20px; background: var(--kleur-vlak); border-radius: var(--radius-pil); padding: 8px 14px;
   font: 600 13px var(--lettertype); box-shadow: var(--schaduw-zwevend);

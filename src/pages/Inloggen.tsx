@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { Navigate } from 'react-router'
 import { supabase } from '../lib/supabase'
 import { useSessie } from '../lib/sessie'
+import InlogFilm from '../components/InlogFilm'
 
 // Huisstijl 2a – inlogscherm. Ontwerp: Inloggen.dc.html. Klassen staan onderaan app.css (".inlog-…").
 export default function Inloggen() {
@@ -101,7 +102,7 @@ export default function Inloggen() {
       </div>
 
       <div className="inlog-beeld">
-        <img src="/inlog-baan.jpg" alt="" />
+        <InlogFilm />
         <span className="inlog-pil">Gemaakt voor buiten — ook met handschoenen</span>
       </div>
     </div>
