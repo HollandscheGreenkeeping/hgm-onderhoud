@@ -1,14 +1,14 @@
 import { lazy, Suspense, type ReactNode } from 'react'
-import { Navigate, Route, Routes } from 'react-router'
+import { Navigate, Route, Routes, useParams } from 'react-router'
 import { useSessie } from './lib/sessie'
 import LocatieLayout from './lib/locatie'
+import HoofdLayout from './components/HoofdLayout'
 import Inloggen from './pages/Inloggen'
 import Tweestaps from './pages/Tweestaps'
 import LocatieKiezen from './pages/LocatieKiezen'
 import NieuweBaan from './pages/NieuweBaan'
 import Overzicht from './pages/Overzicht'
 import Voorstellen from './pages/Voorstellen'
-import Instellingen from './pages/Instellingen'
 import Storingen from './pages/Storingen'
 import StoringDetail from './pages/StoringDetail'
 import Taken from './pages/Taken'
@@ -17,9 +17,14 @@ import Onderhoud from './pages/Onderhoud'
 import Materieel from './pages/Materieel'
 import MachineDetail from './pages/MachineDetail'
 import Rapportage from './pages/Rapportage'
-import Gebruikers from './pages/Gebruikers'
 import Wachtwoord from './pages/Wachtwoord'
 import Meer from './pages/Meer'
+import HoofdOverzicht from './pages/HoofdOverzicht'
+import Beheer, { AlleenBeheer } from './pages/Beheer'
+import BeheerGebruikers from './pages/BeheerGebruikers'
+import BeheerBanen from './pages/BeheerBanen'
+import BaanInstellingen from './pages/BaanInstellingen'
+import Keuzelijsten from './pages/Keuzelijsten'
 
 // De kaartbibliotheek is groot; pas laden als de kaart echt nodig is (sneller inlogscherm).
 const Kaart = lazy(() => import('./pages/Kaart'))
@@ -34,14 +39,31 @@ function Beveiligd({ children }: { children: ReactNode }) {
   return children
 }
 
+// Oude adressen (gebruikers en instellingen stonden vroeger per baan) naar Beheer.
+function NaarBaanInstellingen() {
+  const { locatieId } = useParams()
+  return <Navigate to={`/beheer/banen/${locatieId}`} replace />
+}
+
 export default function App() {
   return (
     <Routes>
       <Route path="/inloggen" element={<Inloggen />} />
       <Route path="/tweestaps" element={<Tweestaps />} />
       <Route path="/wachtwoord" element={<Wachtwoord />} />
-      <Route path="/" element={<Beveiligd><LocatieKiezen /></Beveiligd>} />
-      <Route path="/nieuwe-baan" element={<Beveiligd><NieuweBaan /></Beveiligd>} />
+      <Route path="/" element={<Beveiligd><HoofdLayout /></Beveiligd>}>
+        <Route index element={<HoofdOverzicht />} />
+        <Route path="banen" element={<LocatieKiezen />} />
+        <Route path="beheer" element={<Beheer />}>
+          <Route index element={<Navigate to="gebruikers" replace />} />
+          <Route path="gebruikers" element={<BeheerGebruikers />} />
+          <Route path="banen" element={<AlleenBeheer><BeheerBanen /></AlleenBeheer>} />
+          <Route path="banen/nieuw" element={<AlleenBeheer><NieuweBaan /></AlleenBeheer>} />
+          <Route path="banen/:locatieId" element={<AlleenBeheer><BaanInstellingen /></AlleenBeheer>} />
+          <Route path="keuzelijsten" element={<AlleenBeheer><Keuzelijsten /></AlleenBeheer>} />
+        </Route>
+      </Route>
+      <Route path="/nieuwe-baan" element={<Navigate to="/beheer/banen/nieuw" replace />} />
       <Route path="/locatie/:locatieId" element={<Beveiligd><LocatieLayout /></Beveiligd>}>
         <Route index element={<Suspense fallback={<main className="zacht">Kaart laden…</main>}><Kaart /></Suspense>} />
         <Route path="overzicht" element={<Overzicht />} />
@@ -54,8 +76,8 @@ export default function App() {
         <Route path="materieel" element={<Materieel />} />
         <Route path="materieel/:machineId" element={<MachineDetail />} />
         <Route path="rapportage" element={<Rapportage />} />
-        <Route path="gebruikers" element={<Gebruikers />} />
-        <Route path="instellingen" element={<Instellingen />} />
+        <Route path="gebruikers" element={<Navigate to="/beheer/gebruikers" replace />} />
+        <Route path="instellingen" element={<NaarBaanInstellingen />} />
         <Route path="meer" element={<Meer />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />

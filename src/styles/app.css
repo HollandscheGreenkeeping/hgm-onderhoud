@@ -561,14 +561,14 @@ code.wachtwoord { font: 600 22px var(--lettertype-mono); letter-spacing: 1px; us
 @media (max-width: 700px) {
   :root { --menubalk-hoogte: calc(64px + env(safe-area-inset-bottom)); }
   .menu.onder { display: none; }                                   /* pillenmenu vervangen door menubalk */
-  .scherm .kopbalk .knop { display: none; }                        /* binnen een baan: Uitloggen staat onder Meer */
+  .scherm.baan .kopbalk .knop { display: none; }                   /* binnen een baan: Uitloggen staat onder Meer */
   .kopbalk .hgm-logo { height: 42px; }
   .kopbalk .beheer-door { display: flex; padding: 0; border: 0; }
   .kopbalk .baan-label { display: none; }
   .scherm { padding-bottom: var(--menubalk-hoogte); }
 
   .menubalk {
-    display: grid; grid-template-columns: repeat(5, 1fr); position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
+    display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
     background: var(--kleur-vlak); border-top: 1px solid var(--kleur-rand);
     padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
   }
@@ -727,3 +727,38 @@ code.wachtwoord { font: 600 22px var(--lettertype-mono); letter-spacing: 1px; us
   .clubhuis *, .clubhuis *::before, .clubhuis *::after { animation: none !important; transition: none !important; }
   .clubhuis-foto { opacity: 1; transform: none; }
 }
+
+/* ── Overzicht · Banen · Beheer (HoofdLayout) ── */
+.kopbalk .menu.kort { display: flex; flex: 0 1 auto; }                /* drie items: past altijd in de kopbalk */
+@media (max-width: 700px) { .kopbalk .menu.kort { display: none; } }  /* telefoon: menubalk onderaan */
+.overzicht-kolommen { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px 32px; align-items: start; }
+.overzicht-kolommen h2 { margin-top: 0; }
+.overzicht-kolommen section > h2 ~ h2 { margin-top: 24px; }
+@media (max-width: 1000px) { .overzicht-kolommen { grid-template-columns: 1fr; } }
+.tabel td.rood { color: var(--kleur-storing); font-weight: 700; }
+.tabel td.oranje { color: var(--kleur-gepland); font-weight: 700; }
+
+main.beheer { max-width: 960px; }
+main.beheer > .label-klein { display: block; margin-bottom: 8px; }
+.beheer-titel { font-size: var(--tekst-kop); margin: 0; }
+.beheer-baan { flex-direction: row; align-items: center; gap: 16px; text-decoration: none; color: var(--kleur-tekst); }
+.beheer-baan > span:last-child { margin-left: auto; font-size: 24px; color: var(--kleur-tekst-label); }
+.beheer-baan-logo {
+  display: flex; align-items: center; justify-content: center; flex: none; width: 120px; height: 56px; padding: 6px;
+  border: 1px solid var(--kleur-rand); border-radius: var(--radius-klein); background: var(--kleur-vlak); font-size: 13px;
+}
+.beheer-baan-logo img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.beheer-baan-tekst { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.beheer-baan-tekst > span:last-child { color: var(--kleur-gepland); }
+
+.gebruikers-filter { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0 var(--ruimte); }
+.gebruikers-filter select, .gebruikers-filter input { flex: 1 1 240px; margin: 0; }
+.rij.gebruiker { padding: 0; }
+.gebruiker-kop {
+  display: flex; flex-direction: column; gap: 4px; width: 100%; min-height: var(--raakvlak-min); padding: 12px 14px;
+  border: 0; background: none; font: inherit; color: inherit; text-align: left; cursor: pointer;
+}
+.gebruiker-banen { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.gebruiker-banen .chip { min-height: 0; min-width: 0; padding: 3px 10px; font-size: 14px; font-weight: 500; cursor: default; }
+.gebruiker-detail { display: flex; flex-direction: column; gap: 10px; padding: 0 14px 14px; border-top: 1px solid var(--kleur-rand); padding-top: 12px; }
+.gebruiker-baan { flex: 1 1 160px; font-weight: 600; }

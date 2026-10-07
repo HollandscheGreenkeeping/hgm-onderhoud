@@ -2,9 +2,10 @@ import { Link, useNavigate } from 'react-router'
 import { supabase } from '../lib/supabase'
 import { useLocatie } from '../lib/locatie'
 
-// "Meer"-scherm voor de telefoon: alle menu-items die niet in de menubalk passen.
+// "Meer"-scherm voor de telefoon: alle menu-items van de baan die niet in de menubalk passen,
+// en de weg terug naar Overzicht, Banen en Beheer.
 export default function Meer() {
-  const { locatie, magPlannen, isBeheer, isGlobaal } = useLocatie()
+  const { locatie, magPlannen, isGlobaal } = useLocatie()
   const navigeer = useNavigate()
   const basis = `/locatie/${locatie.id}`
 
@@ -23,17 +24,13 @@ export default function Meer() {
         {magPlannen && <Link to={`${basis}/voorstellen`}>Voorstellen</Link>}
         <Link to={`${basis}/rapportage`}>Rapportage</Link>
       </nav>
-      {(isGlobaal || isBeheer) && (
-        <>
-          <span className="label-klein">Beheer</span>
-          <nav className="menulijst">
-            {isGlobaal && <Link to={`${basis}/gebruikers`}>Gebruikers</Link>}
-            {isBeheer && <Link to={`${basis}/instellingen`}>Instellingen</Link>}
-          </nav>
-        </>
-      )}
+      <span className="label-klein">HGM</span>
       <nav className="menulijst">
-        <Link to="/">Andere baan</Link>
+        <Link to="/">Overzicht alle banen</Link>
+        <Link to="/banen">Andere baan</Link>
+        {isGlobaal && <Link to="/beheer">Beheer</Link>}
+      </nav>
+      <nav className="menulijst">
         <Link to="/wachtwoord">Wachtwoord wijzigen</Link>
         <button type="button" className="uitloggen" onClick={uitloggen}>Uitloggen</button>
       </nav>

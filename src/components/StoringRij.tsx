@@ -6,8 +6,10 @@ import {
 
 // Storing als wit kaartje: code · hole en status, titel, categorie · melder · tijd.
 // Met 'naar' een link; met 'kies' een knop (bijv. in de lijst naast de kaart).
-export default function StoringRij({ storing: s, naar, kies, hover }: {
+// 'baan' toont de baannaam voor de code (lijsten over meerdere banen).
+export default function StoringRij({ storing: s, baan, naar, kies, hover }: {
   storing: Storing
+  baan?: string
   naar?: string
   kies?: () => void
   hover?: (aan: boolean) => void
@@ -17,7 +19,7 @@ export default function StoringRij({ storing: s, naar, kies, hover }: {
   const inhoud = (
     <>
       <span className="rij-hoofd">
-        <span className="rij-id">{storingCode(s)}{hole != null ? ` · hole ${hole}` : ''}</span>
+        <span className="rij-id">{baan ? `${baan} · ` : ''}{storingCode(s)}{hole != null ? ` · hole ${hole}` : ''}</span>
         <span className={`label ${storingStatusKlasse(s.status)}`}>{storingStatus[s.status]}</span>
       </span>
       <strong>{storingTitel(s)}</strong>

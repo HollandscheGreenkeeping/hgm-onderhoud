@@ -42,7 +42,7 @@ Authentication → Sign In / Providers:
    update profielen set globale_rol = 'beheer', naam = 'Jesse Weevers'
    where email = '<jouw e-mail>';
    ```
-3. Alle andere gebruikers maak je in de app aan: kies een baan → **Gebruikers** → Gebruiker toevoegen.
+3. Alle andere gebruikers maak je in de app aan: **Beheer → Gebruikers** → Gebruiker toevoegen (kies daar de baan).
    Dat loopt via de Edge Function `supabase/functions/gebruikers` (de service-sleutel blijft op de
    server). Een nieuw account krijgt een tijdelijk wachtwoord dat je zelf doorgeeft; bij de eerste
    keer inloggen kiest de gebruiker een eigen wachtwoord.
