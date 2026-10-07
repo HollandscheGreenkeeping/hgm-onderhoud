@@ -2,20 +2,24 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { supabase } from '../lib/supabase'
 import { useSessie } from '../lib/sessie'
-import { datum } from '../lib/teksten'
+import { datum, urgentieNamen } from '../lib/teksten'
+import { Chip, DataTabel, FilterKeuze, PaginaKop, useUrlParam, useZoekfilter, Weergaven, Werkbalk, Zoekveld, type Kolom } from '../components/tabel'
 import WerkorderAanvragen from '../components/WerkorderAanvragen'
 import {
   openWerkorderStatussen, werkorderCode, werkorderDoel, werkorderKlasse, werkorderStatus, werkorderVelden, type Werkorder,
 } from '../lib/werkplaats'
 
 type Filter = 'open' | 'mijn' | 'afgerond' | 'alle'
+const urgentieVolgorde = ['laag', 'normaal', 'hoog', 'spoed']
 
-// Werkplaats → Werkorders: alle werkorders over alle banen, dringendste eerst.
+// Werkplaats → Werkorders: alle werkorders over alle banen. Weergave, baan en zoekterm in de URL;
+// elke werkorder opent /werkplaats/werkorders/:id.
 export default function Werkorders() {
   const { sessie, profiel } = useSessie()
   const isMonteur = profiel?.globale_rol === 'monteur'
-  const [filter, setFilter] = useState<Filter>(isMonteur ? 'mijn' : 'open')
-  const [baan, setBaan] = useState('')
+  const [filterTekst] = useUrlParam('weergave', isMonteur ? 'mijn' : 'open')
+  const filter = filterTekst as Filter
+  const [baan] = useUrlParam('baan')
   const [banen, setBanen] = useState<{ id: string; naam: string }[]>([])
   const [werkorders, setWerkorders] = useState<Werkorder[] | null>(null)
 
@@ -25,40 +29,44 @@ export default function Werkorders() {
   }, [])
 
   useEffect(() => {
+    setWerkorders(null)
     let q = supabase.from('werkorders').select(werkorderVelden)
     if (filter === 'open' || filter === 'mijn') q = q.in('status', openWerkorderStatussen)
     if (filter === 'mijn') q = q.eq('monteur_id', sessie!.user.id)
     if (filter === 'afgerond') q = q.in('status', ['terug_op_locatie', 'geannuleerd'])
     if (baan) q = q.eq('locatie_id', baan)
-    q.order(filter === 'afgerond' ? 'afgerond_op' : 'aangevraagd_op', { ascending: filter !== 'afgerond' }).limit(200)
+    q.order(filter === 'afgerond' ? 'afgerond_op' : 'aangevraagd_op', { ascending: filter !== 'afgerond' }).limit(300)
       .then(({ data }) => setWerkorders((data ?? []) as unknown as Werkorder[]))
   }, [filter, baan, sessie])
 
-  // Spoed en hoog eerst, daarna op aanvraagdatum (de query sorteert al op datum).
-  const urgentie = ['spoed', 'hoog', 'normaal', 'laag']
-  const lijst = filter === 'afgerond' ? werkorders : werkorders && [...werkorders].sort((a, b) => urgentie.indexOf(a.urgentie) - urgentie.indexOf(b.urgentie))
+  const rijen = useZoekfilter(werkorders, (w) => [werkorderCode(w), werkorderDoel(w), w.omschrijving, w.locatie?.naam, w.monteur?.naam])
+  const kolommen: Kolom<Werkorder>[] = [
+    { sleutel: 'doel', kop: 'Werkorder', sorteer: werkorderDoel, cel: (w) => <>{werkorderDoel(w)}<span className="sub">{w.omschrijving}</span></> },
+    { sleutel: 'code', kop: 'Nummer', klasse: 'mono smal', sorteer: (w) => w.nummer, cel: werkorderCode },
+    { sleutel: 'baan', kop: 'Baan', sorteer: (w) => w.locatie?.naam ?? '', cel: (w) => w.locatie?.naam },
+    { sleutel: 'urgentie', kop: 'Urgentie', sorteer: (w) => urgentieVolgorde.indexOf(w.urgentie), cel: (w) => (
+      <span className={w.urgentie === 'spoed' || w.urgentie === 'hoog' ? 'urgent' : ''}>{urgentieNamen[w.urgentie]}</span>
+    ) },
+    { sleutel: 'monteur', kop: 'Monteur', sorteer: (w) => w.monteur?.naam ?? '', cel: (w) => w.monteur?.naam ?? <span className="zacht">Nog niemand</span> },
+    { sleutel: 'gepland', kop: 'Gepland', klasse: 'mono smal', sorteer: (w) => w.gepland_op, cel: (w) => datum(w.gepland_op) },
+    { sleutel: 'status', kop: 'Status', sorteer: (w) => w.status, cel: (w) => <Chip klasse={werkorderKlasse(w.status)}>{werkorderStatus[w.status]}</Chip> },
+  ]
 
   return (
     <>
-      <div className="kop-met-knop">
-        <h1>Werkorders</h1>
-        <Link className="knop" to="/werkplaats/werkorders/nieuw">+ Werkorder</Link>
-      </div>
-      <div className="schakelaar filterbalk">
-        {([['open', 'Open'], ['mijn', 'Mijn werk'], ['afgerond', 'Afgerond'], ['alle', 'Alles']] as const).map(([f, n]) => (
-          <button key={f} className={`knop ${filter === f ? '' : 'tweede'}`} onClick={() => setFilter(f)}>{n}</button>
-        ))}
-      </div>
-      <select aria-label="Baan" value={baan} onChange={(e) => setBaan(e.target.value)}>
-        <option value="">Alle banen</option>
-        {banen.map((b) => <option key={b.id} value={b.id}>{b.naam}</option>)}
-      </select>
-
-      {lijst === null && <p className="zacht">Laden…</p>}
-      {lijst?.length === 0 && <p className="zacht">Geen werkorders.</p>}
-      <ul className="lijst">
-        {lijst?.map((w) => <li key={w.id}><WerkorderRij werkorder={w} /></li>)}
-      </ul>
+      <PaginaKop titel="Werkorders" telling={rijen?.length}>
+        <Link className="knop" to="/werkplaats/werkorders/nieuw">Werkorder aanmaken</Link>
+      </PaginaKop>
+      <Werkbalk>
+        <Weergaven standaard={isMonteur ? 'mijn' : 'open'} opties={[
+          { waarde: 'open', naam: 'Open' }, { waarde: 'mijn', naam: 'Mijn werk' }, { waarde: 'afgerond', naam: 'Afgerond' }, { waarde: 'alle', naam: 'Alles' },
+        ]} />
+        <Zoekveld placeholder="Zoek nummer, machine of monteur" />
+        <FilterKeuze param="baan" label="Baan" opties={banen.map((b) => [b.id, b.naam])} />
+      </Werkbalk>
+      <DataTabel kolommen={kolommen} rijen={rijen} sleutel={(w) => w.id} naar={(w) => `/werkplaats/werkorders/${w.id}`}
+                 regelKlasse={(w) => (w.urgentie === 'spoed' && openWerkorderStatussen.includes(w.status) ? 'let-op' : '')}
+                 leeg="Geen werkorders in deze weergave." />
     </>
   )
 }

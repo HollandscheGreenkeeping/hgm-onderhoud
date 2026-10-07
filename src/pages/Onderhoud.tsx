@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
-import { Link } from 'react-router'
+import { Link, useNavigate, useParams } from 'react-router'
 import { supabase } from '../lib/supabase'
 import { useLocatie } from '../lib/locatie'
 import { useTeam } from '../lib/keuzelijst'
 import { datum, objectTitel, vandaag } from '../lib/teksten'
+import { Chip, DataTabel, PaginaKop, useUrlParam, useZoekfilter, Weergaven, Werkbalk, Zoekveld, type Kolom } from '../components/tabel'
 
 type Eenheid = 'dagen' | 'weken' | 'maanden' | 'jaren' | 'draaiuren'
 
@@ -48,18 +49,21 @@ function volgende(d: string, s: Pick<Schema, 'interval_waarde' | 'interval_eenhe
   return x.toISOString().slice(0, 10)
 }
 
-type Weergave = 'kalender' | 'schemas' | 'verlopen'
-
+// Gepland onderhoud. Weergave (kalender, schema's, verlopen) en maand staan in de URL;
+// elk schema heeft een eigen pagina (/onderhoud/schemas/:id).
 export default function Onderhoud() {
-  const [weergave, setWeergave] = useState<Weergave>('kalender')
+  const { magPlannen } = useLocatie()
+  const [weergave] = useUrlParam('weergave', 'kalender')
+  const { locatie } = useLocatie()
   return (
-    <main>
-      <h1>Gepland onderhoud</h1>
-      <div className="schakelaar filterbalk">
-        {([['kalender', 'Kalender'], ['schemas', "Schema's"], ['verlopen', 'Verlopen']] as [Weergave, string][]).map(([w, n]) => (
-          <button key={w} className={`knop ${weergave === w ? '' : 'tweede'}`} onClick={() => setWeergave(w)}>{n}</button>
-        ))}
-      </div>
+    <main className="breed">
+      <PaginaKop titel="Gepland onderhoud">
+        {magPlannen && <Link className="knop" to={`/locatie/${locatie.id}/onderhoud/schemas/nieuw`}>Nieuw schema</Link>}
+      </PaginaKop>
+      <Werkbalk>
+        <Weergaven standaard="kalender" opties={[{ waarde: 'kalender', naam: 'Kalender' }, { waarde: 'schemas', naam: "Schema's" }, { waarde: 'verlopen', naam: 'Verlopen' }]} />
+        {weergave === 'schemas' && <Zoekveld placeholder="Zoek schema" />}
+      </Werkbalk>
       {weergave === 'kalender' && <Kalender />}
       {weergave === 'schemas' && <Schemas />}
       {weergave === 'verlopen' && <Verlopen />}
@@ -72,8 +76,8 @@ export default function Onderhoud() {
 function Schemas() {
   const { locatie, magPlannen } = useLocatie()
   const [schemas, setSchemas] = useState<Schema[] | null>(null)
-  const [bewerk, setBewerk] = useState<Schema | 'nieuw' | null>(null)
   const [melding, setMelding] = useState<string | null>(null)
+  const basis = `/locatie/${locatie.id}`
 
   const laad = useCallback(() => {
     supabase.from('onderhoudsschemas').select(schemaVelden).eq('locatie_id', locatie.id)
@@ -84,54 +88,61 @@ function Schemas() {
 
   async function nuAanmaken() {
     const { data, error } = await supabase.rpc('genereer_taken_uit_schemas', { p_locatie: locatie.id })
-    setMelding(error ? 'Aanmaken mislukt.' : data ? `${data} taak/taken aangemaakt. Zie Taken.` : 'Er zijn nu geen taken aan de beurt.')
+    setMelding(error ? 'Aanmaken mislukt.' : data ? `${data} taak/taken of werkorder(s) aangemaakt.` : 'Er is nu niets aan de beurt.')
     laad()
   }
+
+  const rijen = useZoekfilter(schemas, (s) => [s.omschrijving, doelTekst(s), s.uitvoerder?.naam])
+  const kolommen: Kolom<Schema>[] = [
+    { sleutel: 'omschrijving', kop: 'Schema', sorteer: (s) => s.omschrijving, cel: (s) => <>{s.omschrijving}<span className="sub">{doelTekst(s)}</span></> },
+    { sleutel: 'interval', kop: 'Interval', sorteer: (s) => intervalTekst(s), cel: intervalTekst },
+    { sleutel: 'volgende', kop: 'Volgende', klasse: 'mono smal', sorteer: (s) => s.volgende_datum ?? s.volgende_draaiuren,
+      cel: (s) => (s.interval_eenheid === 'draaiuren' ? `${s.volgende_draaiuren} u` : datum(s.volgende_datum)) },
+    { sleutel: 'uitvoerder', kop: 'Uitvoerder', sorteer: (s) => (s.via_werkplaats ? 'werkplaats' : s.uitvoerder?.naam ?? ''),
+      cel: (s) => (s.via_werkplaats ? 'Werkplaats' : s.uitvoerder?.naam ?? <span className="zacht">Later</span>) },
+    { sleutel: 'status', kop: 'Status', sorteer: (s) => (s.actief ? 0 : 1), cel: (s) => <Chip klasse={s.actief ? 'in-orde' : ''}>{s.actief ? 'Actief' : 'Gepauzeerd'}</Chip> },
+  ]
 
   return (
     <section>
       <p className="zacht">
-        Een schema maakt automatisch een taak aan, elke nacht, zodra de vervaldatum binnen de ingestelde
-        termijn valt. Daarna schuift de volgende datum op met het interval.
+        Een schema maakt automatisch een taak (of een werkorder voor de werkplaats) aan zodra de vervaldatum binnen
+        de ingestelde termijn valt. Daarna schuift de volgende datum op met het interval.
       </p>
-      {magPlannen && !bewerk && (
-        <div className="knoppenrij acties">
-          <button className="knop" onClick={() => setBewerk('nieuw')}>Nieuw schema</button>
-          <button className="knop tweede" onClick={nuAanmaken}>Taken nu aanmaken</button>
-        </div>
-      )}
+      {magPlannen && <div className="knoppenrij acties"><button className="knop tweede" onClick={nuAanmaken}>Wat aan de beurt is nu aanmaken</button></div>}
       {melding && <div className="melding info">{melding}</div>}
-      {bewerk && (
-        <SchemaFormulier schema={bewerk === 'nieuw' ? null : bewerk}
-                         klaar={() => { setBewerk(null); laad() }} annuleer={() => setBewerk(null)} />
-      )}
-      {schemas?.length === 0 && <p className="zacht">Nog geen onderhoudsschema's.</p>}
-      <ul className="lijst">
-        {schemas?.map((s) => (
-          <li key={s.id} className={`rij ${s.actief ? '' : 'inactief'}`}>
-            <span className="rij-hoofd">
-              <strong>{s.omschrijving}</strong>
-              <span className="label">{s.actief ? intervalTekst(s) : 'Gepauzeerd'}</span>
-            </span>
-            <span className="zacht">
-              {[
-                doelTekst(s),
-                s.interval_eenheid === 'draaiuren'
-                  ? `volgende bij ${s.volgende_draaiuren} draaiuren`
-                  : s.volgende_datum ? `volgende ${datum(s.volgende_datum)}` : null,
-                s.via_werkplaats ? 'via de werkplaats' : s.uitvoerder?.naam,
-                s.intern ? 'intern' : null,
-              ].filter(Boolean).join(' · ')}
-            </span>
-            {magPlannen && (
-              <div className="knoppenrij">
-                <button className="knop tweede klein" onClick={() => setBewerk(s)}>Bewerken</button>
-              </div>
-            )}
-          </li>
-        ))}
-      </ul>
+      <DataTabel kolommen={kolommen} rijen={rijen} sleutel={(s) => s.id} naar={(s) => `${basis}/onderhoud/schemas/${s.id}`}
+                 regelKlasse={(s) => (s.actief ? '' : 'gedempt')} leeg="Nog geen onderhoudsschema's." />
     </section>
+  )
+}
+
+// /onderhoud/schemas/:schemaId en /onderhoud/schemas/nieuw
+export function SchemaPagina() {
+  const { schemaId } = useParams()
+  const { locatie, magPlannen } = useLocatie()
+  const navigeer = useNavigate()
+  const [schema, setSchema] = useState<Schema | null | undefined>(schemaId === 'nieuw' ? null : undefined)
+  const terug = () => navigeer(`/locatie/${locatie.id}/onderhoud?weergave=schemas`)
+
+  useEffect(() => {
+    if (schemaId === 'nieuw') return setSchema(null)
+    supabase.from('onderhoudsschemas').select(schemaVelden).eq('id', schemaId!).single()
+      .then(({ data }) => setSchema((data ?? null) as unknown as Schema | null))
+  }, [schemaId])
+
+  if (schema === undefined) return <main className="zacht">Laden…</main>
+  if (!magPlannen) return (
+    <main>
+      <PaginaKop titel={schema?.omschrijving ?? 'Schema'} sub={schema ? `${doelTekst(schema)} · ${intervalTekst(schema)}` : undefined} />
+      <p className="zacht">Alleen de hoofd-greenkeeper en hoger wijzigen schema's.</p>
+    </main>
+  )
+  return (
+    <main>
+      <PaginaKop titel={schema ? schema.omschrijving : 'Nieuw onderhoudsschema'} sub={schema ? doelTekst(schema) : undefined} />
+      <SchemaFormulier schema={schema} klaar={terug} annuleer={terug} />
+    </main>
   )
 }
 
@@ -282,7 +293,7 @@ type KalenderItem = { datum: string; tekst: string; soort: 'taak' | 'verlopen' |
 
 function Kalender() {
   const { locatie } = useLocatie()
-  const [maand, setMaand] = useState(() => vandaag().slice(0, 7))
+  const [maand, setMaand] = useUrlParam('maand', vandaag().slice(0, 7))
   const [items, setItems] = useState<KalenderItem[]>([])
 
   useEffect(() => {
@@ -302,7 +313,7 @@ function Kalender() {
         datum: (x.gepland_op ?? x.deadline)!,
         tekst: x.omschrijving,
         soort: x.status === 'afgerond' ? 'gedaan' : (x.deadline && x.deadline < vandaag()) ? 'verlopen' : 'taak',
-        link: `/locatie/${locatie.id}/taken`,
+        link: `/locatie/${locatie.id}/taken/${x.id}`,
       }))
       // Toekomstige keren van een schema (nog geen taak) als voorspelling tonen.
       for (const sch of (s.data ?? []) as Pick<Schema, 'omschrijving' | 'interval_waarde' | 'interval_eenheid' | 'volgende_datum'>[]) {
@@ -378,7 +389,7 @@ function Verlopen() {
           const dagenTe = Math.round((Date.parse(vandaag()) - Date.parse(t.deadline)) / 864e5)
           return (
             <li key={t.id}>
-              <Link className="rij verlopen" to={`/locatie/${locatie.id}/taken`}>
+              <Link className="rij verlopen" to={`/locatie/${locatie.id}/taken/${t.id}`}>
                 <span className="rij-hoofd"><strong>{t.omschrijving}</strong><span className="label storing">{dagenTe} dag(en) te laat</span></span>
                 <span className="zacht">Uiterlijk {datum(t.deadline)}{t.uitvoerder?.naam ? ` · ${t.uitvoerder.naam}` : ' · niet toegewezen'}</span>
               </Link>

@@ -11,9 +11,9 @@ export default function Beheer() {
 
   return (
     <main className="beheer">
-      <span className="label-klein">Beheer</span>
+      <span className="label-klein subnav">Beheer</span>
       {rol === 'beheer' && (
-        <nav className="schakelaar filterbalk" aria-label="Beheer">
+        <nav className="schakelaar filterbalk subnav" aria-label="Beheer">
           <NavLink to="/beheer/gebruikers" className={tab}>Gebruikers</NavLink>
           <NavLink to="/beheer/banen" className={tab}>Banen</NavLink>
           <NavLink to="/beheer/keuzelijsten" className={tab}>Keuzelijsten</NavLink>

@@ -4,6 +4,7 @@ import { huisstijlUrl, supabase, type Rol } from './supabase'
 import { openStoringStatussen } from './teksten'
 import Kopbalk from '../components/Kopbalk'
 import Menubalk from '../components/Menubalk'
+import AppSchil from '../components/AppSchil'
 
 export type Locatie = {
   id: string
@@ -73,8 +74,8 @@ export function LocatieProvider({ locatieId, children }: { locatieId: string; ch
   return <LocatieContext.Provider value={staat}>{children}</LocatieContext.Provider>
 }
 
-// Kopbalk + menu voor de werkschermen binnen één baan. Beheer (gebruikers, instellingen) staat
-// los hiervan onder /beheer.
+// Schil (zijbalk, kopregel; op de telefoon kopbalk en menubalk) voor de werkschermen binnen één baan.
+// Beheer (gebruikers, instellingen) staat los hiervan onder /beheer.
 export default function LocatieLayout() {
   const { locatieId } = useParams()
   const { staat, fout, teller } = useLocatieStaat(locatieId)
@@ -99,51 +100,34 @@ export default function LocatieLayout() {
   }
   if (!staat) return <main className="zacht">Laden…</main>
 
-  const { locatie, magPlannen } = staat
+  const { locatie } = staat
   const logo = locatie.klantlogo_pad ? huisstijlUrl(locatie.klantlogo_pad) : null
   const basis = `/locatie/${locatie.id}`
 
-  const menu = (extraKlasse = '') => (
-    <nav className={`menu geen-print ${extraKlasse}`}>
-      <NavLink to={basis} end>Kaart</NavLink>
-      <NavLink to={`${basis}/storingen`}>
-        Storingen{openStoringen > 0 && <span className="teller-bol">{openStoringen}</span>}
-      </NavLink>
-      <NavLink to={`${basis}/taken`}>Taken</NavLink>
-      <NavLink to={`${basis}/werk`}>Werk</NavLink>
-      <NavLink to={`${basis}/onderhoud`}>Onderhoud</NavLink>
-      <NavLink to={`${basis}/materieel`}>Materieel</NavLink>
-      {magPlannen && <NavLink to={`${basis}/voorstellen`}>Voorstellen</NavLink>}
-      <NavLink to={`${basis}/overzicht`}>Dashboard</NavLink>
-      <NavLink to={`${basis}/rapportage`}>Rapportage</NavLink>
-      {(magPlannen || staat.rol === 'monteur') && <NavLink to={`/inkoop/voorraad?locatie=${locatie.id}`}>Voorraad</NavLink>}
-      {extraKlasse === 'onder' && <NavLink to="/banen" className="rechts">Alle banen</NavLink>}
-    </nav>
-  )
-
-  // Wat niet in de vijf vakken van de menubalk past, staat onder "Meer".
+  // Wat niet in de vijf vakken van de menubalk (telefoon) past, staat onder "Meer".
   const meerPaden = ['onderhoud', 'materieel', 'voorstellen', 'overzicht', 'rapportage', 'meer']
   const opMeer = meerPaden.some((p) => pathname.startsWith(`${basis}/${p}`))
 
   return (
     <LocatieContext.Provider value={staat}>
-      <div className="scherm baan">
-        <Kopbalk titel={locatie.naam} titelLink="/banen" klantlogo={logo}
-                 logoLink={staat.isBeheer ? `/beheer/banen/${locatie.id}` : undefined}>
-          {menu()}
-        </Kopbalk>
-        {menu('onder')}
+      <AppSchil
+        baan={{ id: locatie.id, naam: locatie.naam, logo, magRegistreren: staat.magRegistreren, magPlannen: staat.magPlannen, openStoringen }}
+        magInkoop={staat.magPlannen || staat.rol === 'monteur'}
+        mobielKop={<Kopbalk titel={locatie.naam} titelLink="/banen" klantlogo={logo}
+                            logoLink={staat.isBeheer ? `/beheer/banen/${locatie.id}` : undefined} />}
+        mobielMenu={
+          <Menubalk>
+            <NavLink to={basis} end>Kaart</NavLink>
+            <NavLink to={`${basis}/storingen`}>
+              Storingen{openStoringen > 0 && <span className="teller-bol">{openStoringen}</span>}
+            </NavLink>
+            <NavLink to={`${basis}/taken`}>Taken</NavLink>
+            <NavLink to={`${basis}/werk`}>Werk</NavLink>
+            <NavLink to={`${basis}/meer`} className={opMeer ? 'active' : ''}>Meer</NavLink>
+          </Menubalk>
+        }>
         <Outlet />
-        <Menubalk>
-          <NavLink to={basis} end>Kaart</NavLink>
-          <NavLink to={`${basis}/storingen`}>
-            Storingen{openStoringen > 0 && <span className="teller-bol">{openStoringen}</span>}
-          </NavLink>
-          <NavLink to={`${basis}/taken`}>Taken</NavLink>
-          <NavLink to={`${basis}/werk`}>Werk</NavLink>
-          <NavLink to={`${basis}/meer`} className={opMeer ? 'active' : ''}>Meer</NavLink>
-        </Menubalk>
-      </div>
+      </AppSchil>
     </LocatieContext.Provider>
   )
 }

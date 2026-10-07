@@ -17,8 +17,8 @@ export default function Inkoop() {
 
   return (
     <main className="inkoop">
-      <span className="label-klein geen-print">Inkoop en voorraad</span>
-      <nav className="schakelaar filterbalk geen-print" aria-label="Inkoop">
+      <span className="label-klein subnav geen-print">Inkoop en voorraad</span>
+      <nav className="schakelaar filterbalk subnav geen-print" aria-label="Inkoop">
         <NavLink to="/inkoop/bestellingen" className={tab}>Bestellingen</NavLink>
         <NavLink to="/inkoop/voorraad" className={tab}>Voorraad</NavLink>
         <NavLink to="/inkoop/producten" className={tab}>Producten</NavLink>

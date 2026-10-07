@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router'
 import { supabase } from '../lib/supabase'
 import { datum } from '../lib/teksten'
+import { Chip, DataTabel, FilterKeuze, PaginaKop, useUrlParam, useZoekfilter, Weergaven, Werkbalk, Zoekveld, type Kolom } from '../components/tabel'
 import {
   bestelCode, bestelKlasse, bestelStatus, bestellingVelden, bestelTotaal, euro, useInkoopLocaties, useMagGoedkeuren,
   type BestelStatus, type Bestelling, type Leverancier,
@@ -11,61 +12,55 @@ type Filter = 'beoordelen' | 'open' | 'afgerond' | 'alle'
 const open: BestelStatus[] = ['aanvraag', 'goedgekeurd', 'besteld', 'deels_ontvangen']
 const afgerond: BestelStatus[] = ['ontvangen', 'afgewezen', 'geannuleerd']
 
-// Inkoop → Bestellingen. Beheer en onderhoudsmanager beginnen bij "Te beoordelen".
+// Inkoop → Bestellingen. Weergave, locatie en zoekterm in de URL; elke bestelling opent een eigen pagina.
+// Beheer en onderhoudsmanager beginnen bij "Te beoordelen".
 export default function Bestellingen() {
   const goedkeurder = useMagGoedkeuren()
   const locaties = useInkoopLocaties()
-  const [filter, setFilter] = useState<Filter>(goedkeurder ? 'beoordelen' : 'open')
-  const [locatie, setLocatie] = useState('')
+  const [filterTekst] = useUrlParam('weergave', goedkeurder ? 'beoordelen' : 'open')
+  const filter = filterTekst as Filter
+  const [locatie] = useUrlParam('locatie')
   const [bestellingen, setBestellingen] = useState<Bestelling[] | null>(null)
 
   useEffect(() => {
+    setBestellingen(null)
     let q = supabase.from('bestellingen').select(bestellingVelden)
     if (filter === 'beoordelen') q = q.eq('status', 'aanvraag')
     if (filter === 'open') q = q.in('status', open)
     if (filter === 'afgerond') q = q.in('status', afgerond)
     if (locatie) q = q.eq('locatie_id', locatie)
-    q.order('aangevraagd_op', { ascending: false }).limit(200)
+    q.order('aangevraagd_op', { ascending: false }).limit(300)
       .then(({ data }) => setBestellingen((data ?? []) as unknown as Bestelling[]))
   }, [filter, locatie])
 
+  const rijen = useZoekfilter(bestellingen, (b) => [bestelCode(b), b.leverancier?.naam, b.locatie?.naam, b.aanvrager?.naam, ...b.regels.map((r) => r.product?.naam)])
+  const kolommen: Kolom<Bestelling>[] = [
+    { sleutel: 'leverancier', kop: 'Bestelling', sorteer: (b) => b.leverancier?.naam ?? '', cel: (b) => (
+      <>{b.leverancier?.naam}<span className="sub">{b.regels.map((r) => r.product?.naam).join(', ') || 'Nog geen regels'}</span></>
+    ) },
+    { sleutel: 'nummer', kop: 'Nummer', klasse: 'mono smal', sorteer: (b) => b.nummer, cel: bestelCode },
+    { sleutel: 'voor', kop: 'Voor', sorteer: (b) => b.locatie?.naam ?? '', cel: (b) => b.locatie?.naam },
+    { sleutel: 'aanvrager', kop: 'Aanvrager', sorteer: (b) => b.aanvrager?.naam ?? '', cel: (b) => b.aanvrager?.naam },
+    { sleutel: 'totaal', kop: 'Totaal', klasse: 'mono rechts smal', sorteer: bestelTotaal, cel: (b) => euro(bestelTotaal(b)) },
+    { sleutel: 'datum', kop: 'Aangevraagd', klasse: 'mono smal', sorteer: (b) => b.aangevraagd_op, cel: (b) => datum(b.aangevraagd_op) },
+    { sleutel: 'status', kop: 'Status', sorteer: (b) => b.status, cel: (b) => <Chip klasse={bestelKlasse(b.status)}>{bestelStatus[b.status]}</Chip> },
+  ]
+
   return (
     <>
-      <div className="kop-met-knop">
-        <h1>Bestellingen</h1>
-        <Link className="knop" to="/inkoop/bestellingen/nieuw">+ Bestelaanvraag</Link>
-      </div>
-      <div className="schakelaar filterbalk">
-        {([...(goedkeurder ? [['beoordelen', 'Te beoordelen']] : []), ['open', 'Open'], ['afgerond', 'Afgerond'], ['alle', 'Alles']] as [Filter, string][])
-          .map(([f, n]) => <button key={f} className={`knop ${filter === f ? '' : 'tweede'}`} onClick={() => setFilter(f)}>{n}</button>)}
-      </div>
-      {(locaties?.length ?? 0) > 1 && (
-        <select aria-label="Locatie" value={locatie} onChange={(e) => setLocatie(e.target.value)}>
-          <option value="">Alle locaties</option>
-          {locaties!.map((l) => <option key={l.id} value={l.id}>{l.naam}</option>)}
-        </select>
-      )}
-      {bestellingen === null && <p className="zacht">Laden…</p>}
-      {bestellingen?.length === 0 && <p className="zacht">{filter === 'beoordelen' ? 'Niets te beoordelen.' : 'Geen bestellingen.'}</p>}
-      <ul className="lijst">
-        {bestellingen?.map((b) => (
-          <li key={b.id}>
-            <Link className="rij" to={`/inkoop/bestellingen/${b.id}`}>
-              <span className="rij-hoofd">
-                <span className="rij-id">{bestelCode(b)} · {b.locatie?.naam}</span>
-                <span className={`label ${bestelKlasse(b.status)}`}>{bestelStatus[b.status]}</span>
-              </span>
-              <strong>{b.leverancier?.naam}: {b.regels.map((r) => r.product?.naam).join(', ') || 'nog geen regels'}</strong>
-              <span className="rij-meta">
-                <span>{b.aanvrager?.naam}</span>
-                <span>·</span>
-                <span>{euro(bestelTotaal(b))}</span>
-                <span className="mono" style={{ marginLeft: 'auto' }}>{datum(b.aangevraagd_op)}</span>
-              </span>
-            </Link>
-          </li>
-        ))}
-      </ul>
+      <PaginaKop titel="Bestellingen" telling={rijen?.length}>
+        <Link className="knop" to="/inkoop/bestellingen/nieuw">Bestelaanvraag</Link>
+      </PaginaKop>
+      <Werkbalk>
+        <Weergaven standaard={goedkeurder ? 'beoordelen' : 'open'} opties={[
+          ...(goedkeurder ? [{ waarde: 'beoordelen', naam: 'Te beoordelen' }] : []),
+          { waarde: 'open', naam: 'Open' }, { waarde: 'afgerond', naam: 'Afgerond' }, { waarde: 'alle', naam: 'Alles' },
+        ]} />
+        <Zoekveld placeholder="Zoek nummer, leverancier of product" />
+        {(locaties?.length ?? 0) > 1 && <FilterKeuze param="locatie" label="Locatie" opties={locaties!.map((l) => [l.id, l.naam])} />}
+      </Werkbalk>
+      <DataTabel kolommen={kolommen} rijen={rijen} sleutel={(b) => b.id} naar={(b) => `/inkoop/bestellingen/${b.id}`}
+                 leeg={filter === 'beoordelen' ? 'Niets te beoordelen.' : 'Geen bestellingen in deze weergave.'} />
     </>
   )
 }

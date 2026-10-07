@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { supabase } from '../lib/supabase'
+import { DataTabel, FilterKeuze, PaginaKop, useUrlParam, useZoekfilter, Weergaven, Werkbalk, Zoekveld, type Kolom } from '../components/tabel'
 import { categorieNamen, euro, productVelden, useMagGoedkeuren, type Leverancier, type Product, type ProductCategorie } from '../lib/inkoop'
 
 // Inkoop → Producten: de catalogus. Beheer en onderhoudsmanager beheren hem, de rest kijkt mee.
@@ -8,63 +9,53 @@ import { categorieNamen, euro, productVelden, useMagGoedkeuren, type Leverancier
 export default function Producten() {
   const beheerder = useMagGoedkeuren()
   const [producten, setProducten] = useState<Product[] | null>(null)
-  const [categorie, setCategorie] = useState<ProductCategorie | ''>('')
-  const [archief, setArchief] = useState(false)
-  const [bewerken, setBewerken] = useState<Product | 'nieuw' | null>(null)
+  const [categorie] = useUrlParam('soort')
+  const [weergave] = useUrlParam('weergave', 'gebruik')
+  const [bewerk, zetBewerk] = useUrlParam('bewerk')
 
   const laad = useCallback(() => {
+    setProducten(null)
     let q = supabase.from('producten').select(productVelden).order('naam')
-    q = archief ? q.not('gearchiveerd_op', 'is', null) : q.is('gearchiveerd_op', null)
+    q = weergave === 'archief' ? q.not('gearchiveerd_op', 'is', null) : q.is('gearchiveerd_op', null)
     if (categorie) q = q.eq('categorie', categorie)
     q.then(({ data }) => setProducten((data ?? []) as unknown as Product[]))
-  }, [categorie, archief])
+  }, [categorie, weergave])
   useEffect(laad, [laad])
+
+  const rijen = useZoekfilter(producten, (p) => [p.naam, p.artikelnummer, p.leverancier?.naam, p.ctgb_nummer, p.middel?.naam])
+  const bewerkt = bewerk && bewerk !== 'nieuw' ? producten?.find((p) => p.id === bewerk) : undefined
+  const kolommen: Kolom<Product>[] = [
+    { sleutel: 'naam', kop: 'Product', sorteer: (p) => p.naam, cel: (p) => <>{p.naam}{p.middel && <span className="sub">Boekt af bij middel {p.middel.naam}</span>}</> },
+    { sleutel: 'soort', kop: 'Soort', sorteer: (p) => categorieNamen[p.categorie], cel: (p) => categorieNamen[p.categorie] },
+    { sleutel: 'leverancier', kop: 'Leverancier', sorteer: (p) => p.leverancier?.naam ?? '', cel: (p) => p.leverancier?.naam ?? '–' },
+    { sleutel: 'art', kop: 'Art.nr.', klasse: 'mono', sorteer: (p) => p.artikelnummer ?? '', cel: (p) => p.artikelnummer ?? '–' },
+    { sleutel: 'ctgb', kop: 'Ctgb', klasse: 'mono', cel: (p) => p.ctgb_nummer ?? '–' },
+    { sleutel: 'prijs', kop: 'Prijs', klasse: 'mono rechts smal', sorteer: (p) => p.prijs, cel: (p) => (p.prijs != null ? `${euro(p.prijs)} / ${p.eenheid}` : '–') },
+  ]
 
   return (
     <>
-      <div className="kop-met-knop">
-        <h1>Producten</h1>
-        {beheerder && !bewerken && <button className="knop" onClick={() => setBewerken('nieuw')}>+ Product</button>}
-      </div>
-      {bewerken && (
-        <ProductFormulier product={bewerken === 'nieuw' ? undefined : bewerken}
-                          klaar={() => { setBewerken(null); laad() }} annuleer={() => setBewerken(null)} />
+      <PaginaKop titel="Producten" telling={rijen?.length}>
+        {beheerder && !bewerk && <button className="knop" onClick={() => zetBewerk('nieuw')}>Product toevoegen</button>}
+      </PaginaKop>
+      {beheerder && (bewerk === 'nieuw' || bewerkt) && (
+        <>
+          <ProductFormulier key={bewerk} product={bewerkt} klaar={() => { zetBewerk(''); laad() }} annuleer={() => zetBewerk('')} />
+          {bewerkt && (
+            <p><button className="knop tweede klein" onClick={async () => {
+              await supabase.from('producten').update({ gearchiveerd_op: bewerkt.gearchiveerd_op ? null : new Date().toISOString() }).eq('id', bewerkt.id)
+              zetBewerk(''); laad()
+            }}>{bewerkt.gearchiveerd_op ? 'Terugzetten' : 'Product archiveren'}</button></p>
+          )}
+        </>
       )}
-      <div className="gebruikers-filter">
-        <select aria-label="Soort" value={categorie} onChange={(e) => setCategorie(e.target.value as ProductCategorie | '')}>
-          <option value="">Alle soorten</option>
-          {Object.entries(categorieNamen).map(([w, n]) => <option key={w} value={w}>{n}</option>)}
-        </select>
-        <div className="schakelaar">
-          <button className={`knop ${archief ? 'tweede' : ''}`} onClick={() => setArchief(false)}>In gebruik</button>
-          <button className={`knop ${archief ? '' : 'tweede'}`} onClick={() => setArchief(true)}>Gearchiveerd</button>
-        </div>
-      </div>
-      {producten === null && <p className="zacht">Laden…</p>}
-      {producten?.length === 0 && <p className="zacht">Geen producten.</p>}
-      <ul className="lijst">
-        {producten?.map((p) => (
-          <li key={p.id} className="rij">
-            <span className="rij-hoofd">
-              <strong>{p.naam}</strong>
-              <span className="label">{categorieNamen[p.categorie]}</span>
-            </span>
-            <span className="zacht">
-              {[p.leverancier?.naam, p.artikelnummer && `art. ${p.artikelnummer}`, p.prijs != null && `${euro(p.prijs)} per ${p.eenheid}`,
-                p.ctgb_nummer && `Ctgb ${p.ctgb_nummer}`, p.middel && `gekoppeld aan middel ${p.middel.naam}`].filter(Boolean).join(' · ')}
-            </span>
-            {beheerder && (
-              <div className="knoppenrij">
-                <button className="knop tweede klein" onClick={() => setBewerken(p)}>Bewerken</button>
-                <button className="knop tweede klein" onClick={async () => {
-                  await supabase.from('producten').update({ gearchiveerd_op: p.gearchiveerd_op ? null : new Date().toISOString() }).eq('id', p.id)
-                  laad()
-                }}>{p.gearchiveerd_op ? 'Terugzetten' : 'Archiveren'}</button>
-              </div>
-            )}
-          </li>
-        ))}
-      </ul>
+      <Werkbalk>
+        <Weergaven standaard="gebruik" opties={[{ waarde: 'gebruik', naam: 'In gebruik' }, { waarde: 'archief', naam: 'Gearchiveerd' }]} />
+        <Zoekveld placeholder="Zoek naam, artikelnummer of Ctgb" />
+        <FilterKeuze param="soort" label="Soort" opties={Object.entries(categorieNamen) as [ProductCategorie, string][]} />
+      </Werkbalk>
+      <DataTabel kolommen={kolommen} rijen={rijen} sleutel={(p) => p.id} naar={beheerder ? (p) => `/inkoop/producten?bewerk=${p.id}` : undefined}
+                 leeg="Geen producten." />
     </>
   )
 }

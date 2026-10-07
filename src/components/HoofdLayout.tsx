@@ -4,6 +4,7 @@ import { supabase, type MijnLocatie } from '../lib/supabase'
 import { useSessie } from '../lib/sessie'
 import Kopbalk from './Kopbalk'
 import Menubalk from './Menubalk'
+import AppSchil from './AppSchil'
 
 // Alles buiten één baan: Overzicht (alle banen samen) · Banen (baan kiezen) · Werkplaats · Inkoop · Beheer.
 // Wie maar op één baan werkt en geen HGM-brede rol heeft, gaat meteen door naar die baan.
@@ -36,12 +37,8 @@ export default function HoofdLayout() {
   )
 
   return (
-    <div className="scherm hoofd">
-      <Kopbalk titel="HGM Golf Onderhoud">
-        <nav className="menu kort geen-print">{links}</nav>
-      </Kopbalk>
+    <AppSchil magInkoop={magInkoop} mobielKop={<Kopbalk titel="HGM Golf Onderhoud" />} mobielMenu={<Menubalk>{links}</Menubalk>}>
       <Outlet />
-      <Menubalk>{links}</Menubalk>
-    </div>
+    </AppSchil>
   )
 }

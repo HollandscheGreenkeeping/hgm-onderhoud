@@ -8,20 +8,20 @@ import Tweestaps from './pages/Tweestaps'
 import LocatieKiezen from './pages/LocatieKiezen'
 import NieuweBaan from './pages/NieuweBaan'
 import Overzicht from './pages/Overzicht'
-import Voorstellen from './pages/Voorstellen'
+import Voorstellen, { VoorstelDetail } from './pages/Voorstellen'
 import Storingen from './pages/Storingen'
 import StoringDetail from './pages/StoringDetail'
-import Taken from './pages/Taken'
-import Werk from './pages/Werk'
-import Onderhoud from './pages/Onderhoud'
-import Materieel from './pages/Materieel'
+import Taken, { TaakDetail, TaakNieuw } from './pages/Taken'
+import Werk, { WerkDetail, WerkNieuw } from './pages/Werk'
+import Onderhoud, { SchemaPagina } from './pages/Onderhoud'
+import Materieel, { MachineNieuw } from './pages/Materieel'
 import MachineDetail from './pages/MachineDetail'
 import Rapportage from './pages/Rapportage'
 import Wachtwoord from './pages/Wachtwoord'
 import Meer from './pages/Meer'
 import HoofdOverzicht from './pages/HoofdOverzicht'
 import Beheer, { AlleenBeheer } from './pages/Beheer'
-import BeheerGebruikers from './pages/BeheerGebruikers'
+import BeheerGebruikers, { GebruikerDetail, GebruikerNieuw } from './pages/BeheerGebruikers'
 import BeheerBanen from './pages/BeheerBanen'
 import BaanInstellingen from './pages/BaanInstellingen'
 import Keuzelijsten from './pages/Keuzelijsten'
@@ -89,6 +89,8 @@ export default function App() {
         <Route path="beheer" element={<Beheer />}>
           <Route index element={<Navigate to="gebruikers" replace />} />
           <Route path="gebruikers" element={<BeheerGebruikers />} />
+          <Route path="gebruikers/nieuw" element={<GebruikerNieuw />} />
+          <Route path="gebruikers/:profielId" element={<GebruikerDetail />} />
           <Route path="banen" element={<AlleenBeheer><BeheerBanen /></AlleenBeheer>} />
           <Route path="banen/nieuw" element={<AlleenBeheer><NieuweBaan /></AlleenBeheer>} />
           <Route path="banen/:locatieId" element={<AlleenBeheer><BaanInstellingen /></AlleenBeheer>} />
@@ -100,12 +102,19 @@ export default function App() {
         <Route index element={<Suspense fallback={<main className="zacht">Kaart laden…</main>}><Kaart /></Suspense>} />
         <Route path="overzicht" element={<Overzicht />} />
         <Route path="voorstellen" element={<Voorstellen />} />
+        <Route path="voorstellen/:voorstelId" element={<VoorstelDetail />} />
         <Route path="storingen" element={<Storingen />} />
         <Route path="storingen/:storingId" element={<StoringDetail />} />
         <Route path="taken" element={<Taken />} />
+        <Route path="taken/nieuw" element={<TaakNieuw />} />
+        <Route path="taken/:taakId" element={<TaakDetail />} />
         <Route path="werk" element={<Werk />} />
+        <Route path="werk/nieuw" element={<WerkNieuw />} />
+        <Route path="werk/:werkId" element={<WerkDetail />} />
         <Route path="onderhoud" element={<Onderhoud />} />
+        <Route path="onderhoud/schemas/:schemaId" element={<SchemaPagina />} />
         <Route path="materieel" element={<Materieel />} />
+        <Route path="materieel/nieuw" element={<MachineNieuw />} />
         <Route path="materieel/:machineId" element={<MachineDetail />} />
         <Route path="rapportage" element={<Rapportage />} />
         <Route path="gebruikers" element={<Navigate to="/beheer/gebruikers" replace />} />

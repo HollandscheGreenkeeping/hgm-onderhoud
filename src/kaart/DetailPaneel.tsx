@@ -165,7 +165,7 @@ export default function DetailPaneel({ selectie, sluit, corrigeerPositie, meldSt
                 </button>
               )}
               {selectie.soort === 'object' && magPlannen && (
-                <Link className="knop tweede" to={`${basis}/taken?nieuw=1&object=${selectie.id}`}>Taak plannen</Link>
+                <Link className="knop tweede" to={`${basis}/taken/nieuw?object=${selectie.id}`}>Taak plannen</Link>
               )}
               {selectie.soort === 'object' && magRegistreren && (
                 <button className="knop tweede" onClick={corrigeerPositie}>Positie corrigeren</button>

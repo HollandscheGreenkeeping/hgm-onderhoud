@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { supabase } from '../lib/supabase'
 import { useMagGoedkeuren, type Leverancier } from '../lib/inkoop'
+import { DataTabel, PaginaKop, useUrlParam, useZoekfilter, Werkbalk, Zoekveld, type Kolom } from '../components/tabel'
 
 // Inkoop → Leveranciers met contactgegevens en afspraken. Beheer en onderhoudsmanager beheren ze.
 export default function Leveranciers() {
   const beheerder = useMagGoedkeuren()
   const [leveranciers, setLeveranciers] = useState<Leverancier[] | null>(null)
-  const [bewerken, setBewerken] = useState<Leverancier | 'nieuw' | null>(null)
+  const [bewerk, zetBewerk] = useUrlParam('bewerk')
 
   const laad = useCallback(() => {
     supabase.from('leveranciers').select('*').is('gearchiveerd_op', null).order('naam')
@@ -14,40 +15,36 @@ export default function Leveranciers() {
   }, [])
   useEffect(laad, [laad])
 
+  const rijen = useZoekfilter(leveranciers, (l) => [l.naam, l.contactpersoon, l.email, l.klantnummer])
+  const bewerkt = bewerk && bewerk !== 'nieuw' ? leveranciers?.find((l) => l.id === bewerk) : undefined
+  const kolommen: Kolom<Leverancier>[] = [
+    { sleutel: 'naam', kop: 'Leverancier', sorteer: (l) => l.naam, cel: (l) => <>{l.naam}{l.afspraken && <span className="sub">{l.afspraken}</span>}</> },
+    { sleutel: 'contact', kop: 'Contactpersoon', sorteer: (l) => l.contactpersoon ?? '', cel: (l) => l.contactpersoon ?? '–' },
+    { sleutel: 'email', kop: 'E-mail', cel: (l) => (l.email ? <a href={`mailto:${l.email}`}>{l.email}</a> : '–') },
+    { sleutel: 'tel', kop: 'Telefoon', klasse: 'mono', cel: (l) => (l.telefoon ? <a href={`tel:${l.telefoon}`}>{l.telefoon}</a> : '–') },
+    { sleutel: 'klant', kop: 'Ons klantnr.', klasse: 'mono', cel: (l) => l.klantnummer ?? '–' },
+  ]
+
   return (
     <>
-      <div className="kop-met-knop">
-        <h1>Leveranciers</h1>
-        {beheerder && !bewerken && <button className="knop" onClick={() => setBewerken('nieuw')}>+ Leverancier</button>}
-      </div>
-      {bewerken && (
-        <LeverancierFormulier leverancier={bewerken === 'nieuw' ? undefined : bewerken}
-                              klaar={() => { setBewerken(null); laad() }} annuleer={() => setBewerken(null)} />
+      <PaginaKop titel="Leveranciers" telling={rijen?.length}>
+        {beheerder && !bewerk && <button className="knop" onClick={() => zetBewerk('nieuw')}>Leverancier toevoegen</button>}
+      </PaginaKop>
+      {beheerder && (bewerk === 'nieuw' || bewerkt) && (
+        <>
+          <LeverancierFormulier key={bewerk} leverancier={bewerkt} klaar={() => { zetBewerk(''); laad() }} annuleer={() => zetBewerk('')} />
+          {bewerkt && (
+            <p><button className="knop tweede klein" onClick={async () => {
+              if (!window.confirm(`${bewerkt.naam} archiveren? Oude bestellingen blijven bewaard.`)) return
+              await supabase.from('leveranciers').update({ gearchiveerd_op: new Date().toISOString() }).eq('id', bewerkt.id)
+              zetBewerk(''); laad()
+            }}>Leverancier archiveren</button></p>
+          )}
+        </>
       )}
-      {leveranciers === null && <p className="zacht">Laden…</p>}
-      {leveranciers?.length === 0 && <p className="zacht">Nog geen leveranciers.</p>}
-      <ul className="lijst">
-        {leveranciers?.map((l) => (
-          <li key={l.id} className="rij">
-            <strong>{l.naam}</strong>
-            <span className="zacht">
-              {[l.contactpersoon, l.telefoon, l.klantnummer && `klantnr. ${l.klantnummer}`].filter(Boolean).join(' · ')}
-            </span>
-            {l.email && <a href={`mailto:${l.email}`}>{l.email}</a>}
-            {l.afspraken && <span className="klein-tekst">{l.afspraken}</span>}
-            {beheerder && (
-              <div className="knoppenrij">
-                <button className="knop tweede klein" onClick={() => setBewerken(l)}>Bewerken</button>
-                <button className="knop tweede klein" onClick={async () => {
-                  if (!window.confirm(`${l.naam} archiveren? Oude bestellingen blijven bewaard.`)) return
-                  await supabase.from('leveranciers').update({ gearchiveerd_op: new Date().toISOString() }).eq('id', l.id)
-                  laad()
-                }}>Archiveren</button>
-              </div>
-            )}
-          </li>
-        ))}
-      </ul>
+      <Werkbalk><Zoekveld placeholder="Zoek leverancier, contact of klantnummer" /></Werkbalk>
+      <DataTabel kolommen={kolommen} rijen={rijen} sleutel={(l) => l.id} naar={beheerder ? (l) => `/inkoop/leveranciers?bewerk=${l.id}` : undefined}
+                 leeg="Nog geen leveranciers." />
     </>
   )
 }

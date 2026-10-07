@@ -11,8 +11,8 @@ export default function Werkplaats() {
 
   return (
     <main className="werkplaats">
-      <span className="label-klein">Werkplaats</span>
-      <nav className="schakelaar filterbalk" aria-label="Werkplaats">
+      <span className="label-klein subnav">Werkplaats</span>
+      <nav className="schakelaar filterbalk subnav" aria-label="Werkplaats">
         <NavLink to="/werkplaats/werkorders" className={tab}>Werkorders</NavLink>
         <NavLink to="/werkplaats/planning" className={tab}>Planning</NavLink>
         <NavLink to="/werkplaats/keuringen" className={tab}>Keuringen</NavLink>

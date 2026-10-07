@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
-import { Link } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 import { supabase } from '../lib/supabase'
 import { useLocatie } from '../lib/locatie'
 import { useKeuzelijst } from '../lib/keuzelijst'
+import { Chip, DataTabel, PaginaKop, useUrlParam, useZoekfilter, Weergaven, Werkbalk, Zoekveld, type Kolom } from '../components/tabel'
 
 export type Machine = {
   id: string; naam: string | null; merk: string | null; model: string | null; serienummer: string | null
@@ -30,18 +31,20 @@ export const machineNaam = (m: Pick<Machine, 'naam' | 'merk' | 'model'>) =>
 
 type Status = { storing: boolean; onderhoud: boolean }
 
+// Materieel van de baan als tabel (eigen machines plus vervangend materieel dat hier staat).
+// Weergave en zoekterm in de URL; elke machine opent /materieel/:id.
 export default function Materieel() {
   const { locatie, magPlannen } = useLocatie()
+  const [weergave] = useUrlParam('weergave', 'gebruik')
   const [machines, setMachines] = useState<Machine[] | null>(null)
   const [status, setStatus] = useState<Record<string, Status>>({})
-  const [nieuw, setNieuw] = useState(false)
-  const [archief, setArchief] = useState(false)
+  const basis = `/locatie/${locatie.id}`
 
   const laad = useCallback(async () => {
-    // Eigen machines, plus vervangend materieel dat hier tijdelijk staat.
+    setMachines(null)
     let q = supabase.from('machines').select(machineVelden)
       .or(`locatie_id.eq.${locatie.id},huidige_locatie_id.eq.${locatie.id}`).order('naam')
-    q = archief ? q.not('gearchiveerd_op', 'is', null) : q.is('gearchiveerd_op', null)
+    q = weergave === 'archief' ? q.not('gearchiveerd_op', 'is', null) : q.is('gearchiveerd_op', null)
     const [m, s, t] = await Promise.all([
       q,
       supabase.from('storingen').select('machine_id').eq('locatie_id', locatie.id).not('machine_id', 'is', null)
@@ -54,44 +57,51 @@ export default function Materieel() {
     for (const r of t.data ?? []) st[r.machine_id!] = { ...(st[r.machine_id!] ?? { storing: false }), onderhoud: true }
     setStatus(st)
     setMachines((m.data ?? []) as unknown as Machine[])
-  }, [locatie.id, archief])
+  }, [locatie.id, weergave])
   useEffect(() => { laad() }, [laad])
 
+  const rijen = useZoekfilter(machines, (m) => [machineNaam(m), m.type?.naam, m.merk, m.model, m.serienummer, m.standplaats])
+  const toestand = (m: Machine) => {
+    const s = status[m.id]
+    const elders = machineElders(m, locatie.id)
+    return s?.storing ? { klasse: 'storing', tekst: 'Defect' } : s?.onderhoud ? { klasse: 'gepland', tekst: 'Onderhoud' }
+      : elders ? { klasse: 'gepland', tekst: elders } : { klasse: 'in-orde', tekst: 'In gebruik' }
+  }
+  const kolommen: Kolom<Machine>[] = [
+    { sleutel: 'naam', kop: 'Machine', sorteer: machineNaam, cel: (m) => <>{machineNaam(m)}<span className="sub">{[m.merk, m.model].filter(Boolean).join(' ')}</span></> },
+    { sleutel: 'type', kop: 'Type', sorteer: (m) => m.type?.naam ?? '', cel: (m) => m.type?.naam ?? '–' },
+    { sleutel: 'serie', kop: 'Serienummer', klasse: 'mono', sorteer: (m) => m.serienummer ?? '', cel: (m) => m.serienummer ?? '–' },
+    { sleutel: 'jaar', kop: 'Jaar', klasse: 'mono smal', sorteer: (m) => m.aanschafjaar, cel: (m) => m.aanschafjaar ?? '–' },
+    { sleutel: 'uren', kop: 'Draaiuren', klasse: 'mono rechts smal', sorteer: (m) => Number(m.draaiuren), cel: (m) => Number(m.draaiuren).toLocaleString('nl-NL') },
+    { sleutel: 'standplaats', kop: 'Standplaats', sorteer: (m) => m.standplaats ?? '', cel: (m) => m.standplaats ?? '–' },
+    { sleutel: 'status', kop: 'Status', sorteer: (m) => toestand(m).tekst, cel: (m) => { const t = toestand(m); return <Chip klasse={t.klasse}>{t.tekst}</Chip> } },
+  ]
+
+  return (
+    <main className="breed">
+      <PaginaKop titel="Materieel" telling={rijen?.length}>
+        {magPlannen && <Link className="knop" to={`${basis}/materieel/nieuw`}>Machine toevoegen</Link>}
+      </PaginaKop>
+      <Werkbalk>
+        <Weergaven standaard="gebruik" opties={[{ waarde: 'gebruik', naam: 'In gebruik' }, { waarde: 'archief', naam: 'Gearchiveerd' }]} />
+        <Zoekveld placeholder="Zoek op naam, type, merk of serienummer" />
+      </Werkbalk>
+      <DataTabel kolommen={kolommen} rijen={rijen} sleutel={(m) => m.id} naar={(m) => `${basis}/materieel/${m.id}`}
+                 regelKlasse={(m) => (status[m.id]?.storing ? 'let-op' : '')}
+                 leeg={weergave === 'archief' ? 'Geen gearchiveerde machines.' : 'Nog geen machines.'} />
+    </main>
+  )
+}
+
+// /materieel/nieuw
+export function MachineNieuw() {
+  const { locatie } = useLocatie()
+  const navigeer = useNavigate()
+  const terug = () => navigeer(`/locatie/${locatie.id}/materieel`)
   return (
     <main>
-      <div className="kop-met-knop">
-        <h1>Materieel</h1>
-        {magPlannen && !nieuw && <button className="knop" onClick={() => setNieuw(true)}>Machine toevoegen</button>}
-      </div>
-      {nieuw && <MachineFormulier klaar={() => { setNieuw(false); laad() }} annuleer={() => setNieuw(false)} />}
-      <div className="schakelaar filterbalk">
-        <button className={`knop ${archief ? 'tweede' : ''}`} onClick={() => setArchief(false)}>In gebruik</button>
-        <button className={`knop ${archief ? '' : 'tweede'}`} onClick={() => setArchief(true)}>Gearchiveerd</button>
-      </div>
-      {machines?.length === 0 && <p className="zacht">{archief ? 'Geen gearchiveerde machines.' : 'Nog geen machines.'}</p>}
-      <ul className="lijst">
-        {machines?.map((m) => {
-          const s = status[m.id]
-          const elders = machineElders(m, locatie.id)
-          return (
-            <li key={m.id}>
-              <Link className={`rij ${s?.storing ? 'urgentie-spoed' : s?.onderhoud ? 'urgentie-hoog' : ''}`} to={m.id}>
-                <span className="rij-hoofd">
-                  <strong>{machineNaam(m)}</strong>
-                  {s?.storing ? <span className="label storing">Defect</span>
-                    : s?.onderhoud ? <span className="label gepland">Onderhoud</span>
-                    : elders ? <span className="label">{elders}</span>
-                    : <span className="zacht">{Number(m.draaiuren).toLocaleString('nl-NL')} u</span>}
-                </span>
-                <span className="zacht">
-                  {[(s?.storing || s?.onderhoud) && elders, m.type?.naam, [m.merk, m.model].filter(Boolean).join(' '), m.standplaats]
-                    .filter(Boolean).join(' · ')}
-                </span>
-              </Link>
-            </li>
-          )
-        })}
-      </ul>
+      <PaginaKop titel="Machine toevoegen" />
+      <MachineFormulier klaar={terug} annuleer={terug} />
     </main>
   )
 }

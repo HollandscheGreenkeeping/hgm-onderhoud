@@ -5,6 +5,7 @@ import { useLocatie } from '../lib/locatie'
 import { datum, openStoringStatussen, vandaag } from '../lib/teksten'
 import { storingVelden, type Storing } from '../lib/storingen'
 import StoringRij from '../components/StoringRij'
+import { PaginaKop } from '../components/tabel'
 
 export type Cijfers = {
   locatie_id: string; naam: string; open_storingen: number; spoed_storingen: number; open_taken: number
@@ -46,17 +47,16 @@ export default function Overzicht() {
   }, [locatie.id])
 
   const tegels: [string, number | undefined, string, string?][] = [
-    ['Open storingen', c?.open_storingen, `${basis}/storingen`, c?.spoed_storingen ? `${c.spoed_storingen} met hoge urgentie` : undefined],
-    ['Verlopen taken', c?.verlopen_taken, `${basis}/onderhoud`, c ? `${c.open_taken} taken open` : undefined],
-    ['Werk deze week', c?.werk_deze_week, `${basis}/werk`],
+    ['Open storingen', c?.open_storingen, `${basis}/storingen?weergave=open`, c?.spoed_storingen ? `${c.spoed_storingen} met hoge urgentie` : undefined],
+    ['Verlopen taken', c?.verlopen_taken, `${basis}/onderhoud?weergave=verlopen`, c ? `${c.open_taken} taken open` : undefined],
+    ['Werk deze week', c?.werk_deze_week, `${basis}/werk?weergave=uitgevoerd`],
     ['Machines met onderhoud', c?.machines_onderhoud, `${basis}/materieel`],
     ...(magPlannen ? [['Positievoorstellen', c?.open_voorstellen, `${basis}/voorstellen`] as [string, number | undefined, string]] : []),
   ]
 
   return (
-    <main>
-      <h1>Dashboard</h1>
-      <p className="zacht">{locatie.naam} · jouw rol: {rolNamen[rol]}</p>
+    <main className="breed">
+      <PaginaKop titel="Dashboard" sub={`${locatie.naam}, jouw rol: ${rolNamen[rol].toLowerCase()}`} />
       <div className="tellers">
         {tegels.map(([naam, getal, link, sub]) => (
           <Link key={naam} to={link} className={`teller ${getal && (naam.startsWith('Open') || naam.startsWith('Verlopen')) ? 'aandacht' : ''}`}>
@@ -67,6 +67,8 @@ export default function Overzicht() {
         ))}
       </div>
 
+      <div className="overzicht-kolommen">
+      <div>
       {storingen.length > 0 && (
         <section>
           <h2>Openstaande storingen</h2>
@@ -84,7 +86,7 @@ export default function Overzicht() {
           <ul className="lijst">
             {verlopen.map((t) => (
               <li key={t.id}>
-                <Link className="rij verlopen" to={`${basis}/taken`}>
+                <Link className="rij verlopen" to={`${basis}/taken/${t.id}`}>
                   <span className="rij-hoofd"><strong>{t.omschrijving}</strong><span className="zacht">uiterlijk {datum(t.deadline)}</span></span>
                 </Link>
               </li>
@@ -93,6 +95,7 @@ export default function Overzicht() {
         </section>
       )}
 
+      </div>
       <section>
         <h2>Werk deze week</h2>
         {werk.length === 0 && <p className="zacht">Nog niets geregistreerd deze week.</p>}
@@ -106,6 +109,7 @@ export default function Overzicht() {
           ))}
         </ul>
       </section>
+      </div>
     </main>
   )
 }

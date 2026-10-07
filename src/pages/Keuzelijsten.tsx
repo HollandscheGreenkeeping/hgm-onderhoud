@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { supabase } from '../lib/supabase'
 import type { Lijst } from '../lib/keuzelijst'
+import { useUrlParam } from '../components/tabel'
 
 type Waarde = { id: string; naam: string; eenheid: string | null; volgorde: number; gearchiveerd: boolean; locatie_ids: string[] | null }
 
@@ -15,7 +16,8 @@ const lijsten: [Lijst, string][] = [
 // Beheer → Keuzelijsten: gelden voor alle banen, of per waarde voor gekozen banen. Gearchiveerde waarden
 // verdwijnen uit de keuzelijst maar blijven zichtbaar in oude registraties.
 export default function Keuzelijsten() {
-  const [lijst, setLijst] = useState<Lijst>('storingstype')
+  const [lijstTekst, setLijst] = useUrlParam('lijst', 'storingstype')
+  const lijst = lijstTekst as Lijst
   const [waarden, setWaarden] = useState<Waarde[]>([])
   const [banen, setBanen] = useState<{ id: string; naam: string }[]>([])
   const [naam, setNaam] = useState('')

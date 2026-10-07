@@ -135,7 +135,7 @@ export default function HoofdOverzicht() {
               <ul className="lijst">
                 {verlopen.map((t) => (
                   <li key={t.id}>
-                    <Link className="rij verlopen" to={`/locatie/${t.locatie_id}/taken`}>
+                    <Link className="rij verlopen" to={`/locatie/${t.locatie_id}/taken/${t.id}`}>
                       <span className="rij-hoofd">
                         <span className="rij-id">{t.locatie?.naam}</span>
                         <span className="zacht">uiterlijk {datum(t.deadline)}</span>

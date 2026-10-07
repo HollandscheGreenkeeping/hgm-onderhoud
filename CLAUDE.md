@@ -34,8 +34,14 @@ Volledig plan, rechtenmatrix en fasering: [docs/plan.md](docs/plan.md).
 - **Databasewijzigingen alleen via nieuwe migraties** in `supabase/migrations/` (nooit oude aanpassen
   die al gedraaid hebben). Draai daarna `npm run test:db`.
 - **Sleutels**: alleen de publieke Supabase-sleutel in de frontend. Nooit de service-sleutel.
-- **UI buiten leesbaar**: min. 16 px tekst, raakvlakken min. 48 px, hoog contrast. Kleuren en maten
-  alleen via de tokens in `src/styles/tokens.css`.
+- **UI buiten leesbaar**: op de telefoon (≤ 700 px) min. 16 px tekst en raakvlakken min. 48 px, hoog contrast.
+  Kantoorschermen (desktop) zijn compact in Freshservice-stijl: 15 px in tabellen, bedieningselementen ~38–40 px.
+  Kleuren en maten alleen via de tokens in `src/styles/tokens.css`.
+- **App-schil** (`components/AppSchil.tsx`): links de zijbalk in HGM-olijf (baan + HGM-onderdelen), boven een kruimelpad.
+  Op de telefoon kopbalk + menubalk onderaan. De kaart blijft zoals hij is.
+- **Lijstschermen** bouwen met `components/tabel.tsx` (PaginaKop, Werkbalk, Weergaven, Zoekveld, FilterKeuze, DataTabel).
+  Weergave, filters, zoekterm, sortering en bewerken (`?bewerk=`) staan in de URL; elk item heeft een eigen detail-URL
+  (bijv. `/taken/:id`, `/werk/:id`, `/onderhoud/schemas/:id`, `/voorstellen/:id`, `/beheer/gebruikers/:id`).
 - **Huisstijl "2a – Clubhuis wit"**: witte achtergrond (geen crème, geen dark mode), donker olijf +
   grasgroen, Zilla Slab (koppen), Public Sans (tekst), IBM Plex Mono (codes/tijden). Clublogo links in
   de kopbalk, "beheer door HGM" rechts. Categoriekleur in TSX via de `--c`-variabele, nooit hardcoded.

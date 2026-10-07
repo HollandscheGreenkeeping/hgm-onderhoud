@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 import { supabase } from '../lib/supabase'
 import { useLocatie } from '../lib/locatie'
 import { useSessie } from '../lib/sessie'
 import { plekTekst, plekVelden, useBaan } from '../lib/baan'
 import { datum, vandaag } from '../lib/teksten'
+import { DataTabel, PaginaKop, useUrlParam, useZoekfilter, Weergaven, Werkbalk, Zoekveld, type Kolom } from '../components/tabel'
 import WerkFormulier from '../components/WerkFormulier'
 
 type Werkzaamheid = {
@@ -22,7 +24,6 @@ const werkVelden = `id, datum, uitgevoerd, notitie, medewerker_id, gepland_door,
   ${plekVelden},
   middelen_gebruik(hoeveelheid_totaal, hoeveelheid_per_ha, eenheid, oppervlakte_ha, middel:keuzelijst_waarden(naam))`
 
-type Weergave = 'planning' | 'overzicht' | 'middelen'
 
 const dagErbij = (d: string, n: number) => {
   const x = new Date(d + 'T12:00:00')
@@ -32,41 +33,109 @@ const dagErbij = (d: string, n: number) => {
 const dagNaam = (d: string) =>
   d === vandaag() ? 'Vandaag' : new Date(d + 'T12:00:00').toLocaleDateString('nl-NL', { weekday: 'long', day: 'numeric', month: 'long' })
 
+// Werk: dagplanning (afvinken), uitgevoerd werk en het middelenregister. Weergave, dag en periode
+// staan in de URL; elke registratie heeft een eigen pagina (/werk/:id), nieuw werk is /werk/nieuw.
 export default function Werk() {
-  const { magRegistreren, magPlannen } = useLocatie()
-  const [weergave, setWeergave] = useState<Weergave>('planning')
-  const [formulier, setFormulier] = useState<'registreren' | 'klaarzetten' | null>(null)
-  const [dag, setDag] = useState(vandaag())
-  const [teller, setTeller] = useState(0)
-  const ververs = () => { setFormulier(null); setTeller((t) => t + 1) }
+  const { locatie, magRegistreren, magPlannen } = useLocatie()
+  const [weergave] = useUrlParam('weergave', 'planning')
+  const [dag, setDag] = useUrlParam('datum', vandaag())
+  const basis = `/locatie/${locatie.id}`
 
   return (
-    <main>
-      <div className="kop-met-knop">
-        <h1>Werk</h1>
-        {magRegistreren && !formulier && <button className="knop" onClick={() => setFormulier('registreren')}>Werk registreren</button>}
-      </div>
-      {formulier && (
-        <WerkFormulier planning={formulier === 'klaarzetten'} datumStart={formulier === 'klaarzetten' ? dag : undefined}
-                       klaar={ververs} annuleer={() => setFormulier(null)} />
-      )}
-      <div className="schakelaar filterbalk">
-        {([['planning', 'Dagplanning'], ['overzicht', 'Uitgevoerd werk'], ['middelen', 'Middelenregister']] as [Weergave, string][])
-          .map(([w, n]) => (
-            <button key={w} className={`knop ${weergave === w ? '' : 'tweede'}`} onClick={() => setWeergave(w)}>{n}</button>
-          ))}
-      </div>
-      {weergave === 'planning' && (
-        <Dagplanning key={`${dag}-${teller}`} dag={dag} zetDag={setDag}
-                     klaarzetten={magPlannen && !formulier ? () => setFormulier('klaarzetten') : undefined} />
-      )}
-      {weergave === 'overzicht' && <Overzicht key={teller} />}
-      {weergave === 'middelen' && <Middelenregister key={teller} />}
+    <main className="breed">
+      <PaginaKop titel="Werk">
+        {magPlannen && weergave === 'planning' && <Link className="knop tweede" to={`${basis}/werk/nieuw?klaarzetten=1&datum=${dag}`}>Werk klaarzetten</Link>}
+        {magRegistreren && <Link className="knop" to={`${basis}/werk/nieuw`}>Werk registreren</Link>}
+      </PaginaKop>
+      <Werkbalk>
+        <Weergaven standaard="planning" opties={[
+          { waarde: 'planning', naam: 'Dagplanning' }, { waarde: 'uitgevoerd', naam: 'Uitgevoerd werk' }, { waarde: 'middelen', naam: 'Middelenregister' },
+        ]} />
+        {weergave === 'uitgevoerd' && <Zoekveld placeholder="Zoek activiteit, medewerker of machine" />}
+      </Werkbalk>
+      {weergave === 'planning' && <Dagplanning dag={dag} zetDag={setDag} />}
+      {weergave === 'uitgevoerd' && <Overzicht />}
+      {weergave === 'middelen' && <Middelenregister />}
     </main>
   )
 }
 
-function Dagplanning({ dag, zetDag, klaarzetten }: { dag: string; zetDag: (d: string) => void; klaarzetten?: () => void }) {
+// /werk/nieuw (?klaarzetten=1&datum=…)
+export function WerkNieuw() {
+  const { locatie } = useLocatie()
+  const [zoek] = useSearchParams()
+  const navigeer = useNavigate()
+  const klaarzetten = zoek.has('klaarzetten')
+  const terug = () => navigeer(`/locatie/${locatie.id}/werk${klaarzetten && zoek.get('datum') ? `?datum=${zoek.get('datum')}` : '?weergave=uitgevoerd'}`)
+  return (
+    <main>
+      <PaginaKop titel={klaarzetten ? 'Werk klaarzetten' : 'Werk registreren'} />
+      <WerkFormulier planning={klaarzetten} datumStart={zoek.get('datum') ?? undefined} klaar={terug} annuleer={terug} />
+    </main>
+  )
+}
+
+// /werk/:werkId: één registratie of klaargezet werk.
+export function WerkDetail() {
+  const { werkId } = useParams()
+  const { locatie, magPlannen } = useLocatie()
+  const { sessie } = useSessie()
+  const { holes } = useBaan(locatie.id)
+  const navigeer = useNavigate()
+  const [w, setW] = useState<Werkzaamheid | null>(null)
+  const [fout, setFout] = useState<string | null>(null)
+  const basis = `/locatie/${locatie.id}`
+
+  const laad = useCallback(() => {
+    supabase.from('werkzaamheden').select(werkVelden).eq('id', werkId!).single().then(({ data, error }) => {
+      if (error) return setFout('Deze registratie bestaat niet of je hebt geen toegang.')
+      setW(data as unknown as Werkzaamheid)
+    })
+  }, [werkId])
+  useEffect(laad, [laad])
+
+  if (fout && !w) return <main><div className="melding fout">{fout}</div></main>
+  if (!w) return <main className="zacht">Laden…</main>
+  const magWijzigen = magPlannen || w.medewerker_id === sessie!.user.id
+
+  async function vink() {
+    await supabase.from('werkzaamheden').update({ uitgevoerd: !w!.uitgevoerd }).eq('id', w!.id)
+    laad()
+  }
+  async function verwijder() {
+    if (!window.confirm('Deze registratie verwijderen?')) return
+    const { error } = await supabase.from('werkzaamheden').delete().eq('id', w!.id)
+    if (error) return setFout('Verwijderen mislukt.')
+    navigeer(`${basis}/werk?weergave=uitgevoerd`)
+  }
+
+  return (
+    <main>
+      <PaginaKop titel={w.activiteit?.naam ?? 'Werk'} sub={dagNaam(w.datum)} />
+      {fout && <div className="melding fout">{fout}</div>}
+      <section className="kaart">
+        <dl className="velden">
+          <div><dt>Status</dt><dd>{w.uitgevoerd ? 'Uitgevoerd' : 'Klaargezet, nog niet afgevinkt'}</dd></div>
+          <div><dt>Waar</dt><dd>{plekTekst(w.werkzaamheden_vlakken, holes.length)}</dd></div>
+          <div><dt>Medewerker</dt><dd>{w.medewerker?.naam}</dd></div>
+          {w.machine && <div><dt>Machine</dt><dd>{w.machine.naam ?? [w.machine.merk, w.machine.model].filter(Boolean).join(' ')}</dd></div>}
+          {w.notitie && <div><dt>Notitie</dt><dd>{w.notitie}</dd></div>}
+          {w.middelen_gebruik.map((m, i) => (
+            <div key={i}><dt>{i === 0 ? 'Middelen' : ''}</dt><dd>{m.middel?.naam}: {m.hoeveelheid_totaal ?? '?'} {m.eenheid}{m.hoeveelheid_per_ha != null ? ` (${m.hoeveelheid_per_ha} ${m.eenheid}/ha)` : ''}</dd></div>
+          ))}
+        </dl>
+      </section>
+      {magWijzigen && (
+        <div className="actiebalk">
+          <button className="knop tweede" onClick={vink}>{w.uitgevoerd ? 'Terug naar planning' : 'Afvinken'}</button>
+          <button className="knop tweede" onClick={verwijder}>Verwijderen</button>
+        </div>
+      )}
+    </main>
+  )
+}
+
+function Dagplanning({ dag, zetDag }: { dag: string; zetDag: (d: string) => void }) {
   const { locatie, magPlannen } = useLocatie()
   const { sessie } = useSessie()
   const { holes } = useBaan(locatie.id)
@@ -110,10 +179,7 @@ function Dagplanning({ dag, zetDag, klaarzetten }: { dag: string; zetDag: (d: st
         <input type="date" aria-label="Datum" value={dag} onChange={(e) => e.target.value && zetDag(e.target.value)} />
         <button className="knop tweede" aria-label="Volgende dag" onClick={() => zetDag(dagErbij(dag, 1))}>›</button>
       </div>
-      <div className="kop-met-knop">
-        <h2>{dagNaam(dag)}</h2>
-        {klaarzetten && <button className="knop tweede" onClick={klaarzetten}>+ Werk klaarzetten</button>}
-      </div>
+      <h2>{dagNaam(dag)}</h2>
       {totaal > 0 && <p className="zacht">{gedaan} van {totaal} afgevinkt</p>}
       {werk?.length === 0 && <p className="zacht">Niets gepland of geregistreerd voor deze dag.</p>}
 
@@ -149,41 +215,38 @@ function Dagplanning({ dag, zetDag, klaarzetten }: { dag: string; zetDag: (d: st
 function Overzicht() {
   const { locatie } = useLocatie()
   const { holes } = useBaan(locatie.id)
-  const [van, setVan] = useState(dagErbij(vandaag(), -13))
+  const [van, setVan] = useUrlParam('van', dagErbij(vandaag(), -13))
   const [werk, setWerk] = useState<Werkzaamheid[] | null>(null)
+  const basis = `/locatie/${locatie.id}`
 
   useEffect(() => {
+    setWerk(null)
     supabase.from('werkzaamheden').select(werkVelden).eq('locatie_id', locatie.id).eq('uitgevoerd', true)
       .gte('datum', van).order('datum', { ascending: false }).order('aangemaakt_op', { ascending: false }).limit(500)
       .then(({ data }) => setWerk((data ?? []) as unknown as Werkzaamheid[]))
   }, [locatie.id, van])
 
+  const machine = (w: Werkzaamheid) => (w.machine ? w.machine.naam ?? [w.machine.merk, w.machine.model].filter(Boolean).join(' ') : null)
+  const rijen = useZoekfilter(werk, (w) => [w.activiteit?.naam, w.medewerker?.naam, machine(w), w.notitie])
+  const kolommen: Kolom<Werkzaamheid>[] = [
+    { sleutel: 'activiteit', kop: 'Activiteit', sorteer: (w) => w.activiteit?.naam ?? '', cel: (w) => (
+      <>{w.activiteit?.naam}{w.notitie && <span className="sub">{w.notitie}</span>}</>
+    ) },
+    { sleutel: 'datum', kop: 'Datum', klasse: 'mono smal', sorteer: (w) => w.datum, cel: (w) => datum(w.datum) },
+    { sleutel: 'waar', kop: 'Waar', cel: (w) => plekTekst(w.werkzaamheden_vlakken, holes.length) },
+    { sleutel: 'medewerker', kop: 'Medewerker', sorteer: (w) => w.medewerker?.naam ?? '', cel: (w) => w.medewerker?.naam },
+    { sleutel: 'machine', kop: 'Machine', sorteer: (w) => machine(w) ?? '', cel: (w) => machine(w) ?? '–' },
+    { sleutel: 'middelen', kop: 'Middelen', cel: (w) => w.middelen_gebruik.map((m) => `${m.middel?.naam} ${m.hoeveelheid_totaal ?? '?'} ${m.eenheid}`).join(', ') || '–' },
+  ]
+
   return (
     <section>
-      <label htmlFor="van">Vanaf</label>
-      <input id="van" type="date" value={van} onChange={(e) => e.target.value && setVan(e.target.value)} />
-      {werk?.length === 0 && <p className="zacht">Geen uitgevoerd werk in deze periode.</p>}
-      <ul className="lijst">
-        {werk?.map((w) => (
-          <li key={w.id} className="rij">
-            <span className="rij-hoofd"><strong>{w.activiteit?.naam}</strong><span className="zacht">{datum(w.datum)}</span></span>
-            <span className="zacht">
-              {[
-                plekTekst(w.werkzaamheden_vlakken, holes.length),
-                w.medewerker?.naam,
-                w.machine ? w.machine.naam ?? [w.machine.merk, w.machine.model].filter(Boolean).join(' ') : null,
-              ].filter(Boolean).join(' · ')}
-            </span>
-            {w.middelen_gebruik.map((m, i) => (
-              <span key={i} className="zacht">
-                {m.middel?.naam}: {m.hoeveelheid_totaal ?? '?'} {m.eenheid}
-                {m.hoeveelheid_per_ha != null ? ` (${m.hoeveelheid_per_ha} ${m.eenheid}/ha)` : ''}
-              </span>
-            ))}
-            {w.notitie && <span className="zacht">{w.notitie}</span>}
-          </li>
-        ))}
-      </ul>
+      <div className="lus-rij werk-periode">
+        <label htmlFor="van">Vanaf</label>
+        <input id="van" type="date" value={van} onChange={(e) => e.target.value && setVan(e.target.value)} />
+      </div>
+      <DataTabel kolommen={kolommen} rijen={rijen} sleutel={(w) => w.id} naar={(w) => `${basis}/werk/${w.id}`}
+                 leeg="Geen uitgevoerd werk in deze periode." />
     </section>
   )
 }
@@ -192,9 +255,10 @@ function Overzicht() {
 function Middelenregister() {
   const { locatie } = useLocatie()
   const { holes } = useBaan(locatie.id)
+  const navigeer = useNavigate()
   const jaar = new Date().getFullYear()
-  const [van, setVan] = useState(`${jaar}-01-01`)
-  const [tot, setTot] = useState(vandaag())
+  const [van, setVan] = useUrlParam('van', `${jaar}-01-01`)
+  const [tot, setTot] = useUrlParam('tot', vandaag())
   const [werk, setWerk] = useState<Werkzaamheid[] | null>(null)
 
   useEffect(() => {
@@ -220,12 +284,12 @@ function Middelenregister() {
       {regels.length === 0 && <p className="zacht">Geen middelen geregistreerd in deze periode.</p>}
       {regels.length > 0 && (
         <>
-          <div className="tabel-wrap">
-            <table className="tabel">
+          <div className="datatabel-wrap">
+            <table className="datatabel">
               <thead><tr><th>Datum</th><th>Middel</th><th>Totaal</th><th>Per ha</th><th>Ha</th><th>Waar</th><th>Door</th></tr></thead>
               <tbody>
                 {regels.map(({ w, m, sleutel }) => (
-                  <tr key={sleutel}>
+                  <tr key={sleutel} className="klikbaar" onClick={() => navigeer(`/locatie/${locatie.id}/werk/${w.id}`)}>
                     <td>{datum(w.datum)}</td>
                     <td>{m.middel?.naam}</td>
                     <td>{m.hoeveelheid_totaal ?? '–'} {m.eenheid}</td>

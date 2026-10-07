@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 import { FunctionsHttpError } from '@supabase/supabase-js'
 import { rolNamen, supabase, type Rol } from '../lib/supabase'
 import { useSessie } from '../lib/sessie'
+import { Chip, DataTabel, FilterKeuze, PaginaKop, useUrlParam, useZoekfilter, Werkbalk, Zoekveld, type Kolom } from '../components/tabel'
 
 type Persoon = { id: string; naam: string | null; email: string | null; actief: boolean; globale_rol: Rol | null }
 type Koppeling = { profiel_id: string; locatie_id: string; rol: Rol }
@@ -22,22 +24,10 @@ async function gebruikersFunctie(body: Record<string, string | undefined>) {
   return data as { profiel_id?: string; nieuw?: boolean; wachtwoord?: string }
 }
 
-// Beheer → Gebruikers: iedereen over alle banen. Per persoon de banen met rol; koppelen, rol wijzigen,
-// van een baan halen, nieuw wachtwoord en (de)activeren. Beheer en onderhoudsmanager; alleen beheer
-// kent HGM-brede rollen toe en beheert de accounts van beheer.
-export default function BeheerGebruikers() {
-  const { sessie, profiel } = useSessie()
-  const isBeheer = profiel?.globale_rol === 'beheer'
+function useGebruikersdata() {
   const [personen, setPersonen] = useState<Persoon[] | null>(null)
   const [koppelingen, setKoppelingen] = useState<Koppeling[]>([])
   const [banen, setBanen] = useState<Baan[]>([])
-  const [filter, setFilter] = useState('alle') // 'alle' | 'hgm' | locatie_id
-  const [zoek, setZoek] = useState('')
-  const [open, setOpen] = useState<string | null>(null)
-  const [toevoegen, setToevoegen] = useState(false)
-  const [wachtwoord, setWachtwoord] = useState<NieuwWachtwoord | null>(null)
-  const [fout, setFout] = useState<string | null>(null)
-
   const laad = useCallback(async () => {
     const [p, k, b] = await Promise.all([
       supabase.from('profielen').select('id, naam, email, actief, globale_rol').order('naam'),
@@ -49,6 +39,80 @@ export default function BeheerGebruikers() {
     setBanen(b.data ?? [])
   }, [])
   useEffect(() => { laad() }, [laad])
+  const baanNaam = (id: string) => banen.find((b) => b.id === id)?.naam ?? 'Onbekende baan'
+  const vanPersoon = (id: string) => koppelingen.filter((k) => k.profiel_id === id)
+    .sort((a, b) => baanNaam(a.locatie_id).localeCompare(baanNaam(b.locatie_id)))
+  return { personen, koppelingen, banen, laad, baanNaam, vanPersoon }
+}
+
+// Beheer → Gebruikers: iedereen over alle banen als tabel; baan en zoekterm in de URL.
+// Elke persoon heeft een eigen pagina (/beheer/gebruikers/:id) voor banen, rollen en het account.
+export default function BeheerGebruikers() {
+  const { personen, koppelingen, banen, vanPersoon, baanNaam } = useGebruikersdata()
+  const [baan] = useUrlParam('baan')
+  const zichtbaar = personen?.filter((p) => !baan
+    || (baan === 'hgm' ? p.globale_rol : koppelingen.some((k) => k.profiel_id === p.id && k.locatie_id === baan))) ?? null
+  const rijen = useZoekfilter(zichtbaar, (p) => [p.naam, p.email])
+
+  const kolommen: Kolom<Persoon>[] = [
+    { sleutel: 'naam', kop: 'Naam', sorteer: (p) => p.naam ?? p.email ?? '', cel: (p) => <>{p.naam ?? p.email}<span className="sub">{p.email}</span></> },
+    { sleutel: 'rol', kop: 'Rol en banen', sorteer: (p) => (p.globale_rol ? rolNamen[p.globale_rol] : vanPersoon(p.id)[0]?.rol ?? 'z'), cel: (p) => {
+      const eigen = vanPersoon(p.id)
+      return (
+        <span className="gebruiker-banen">
+          {p.globale_rol ? <span className="chip">{rolNamen[p.globale_rol]} · alle banen</span>
+            : eigen.length === 0 ? <span className="zacht">Nog aan geen baan gekoppeld</span>
+            : eigen.map((k) => <span key={k.locatie_id} className="chip">{baanNaam(k.locatie_id)} · {rolNamen[k.rol]}</span>)}
+        </span>
+      )
+    } },
+    { sleutel: 'status', kop: 'Account', sorteer: (p) => (p.actief ? 0 : 1), cel: (p) => <Chip klasse={p.actief ? 'in-orde' : ''}>{p.actief ? 'Actief' : 'Gedeactiveerd'}</Chip> },
+  ]
+
+  return (
+    <>
+      <PaginaKop titel="Gebruikers" telling={rijen?.length}>
+        <Link className="knop" to="/beheer/gebruikers/nieuw">Gebruiker toevoegen</Link>
+      </PaginaKop>
+      <Werkbalk>
+        <Zoekveld placeholder="Zoek op naam of e-mail" />
+        <FilterKeuze param="baan" label="Baan" opties={[['hgm', 'HGM-breed (beheer, onderhoudsmanager, monteur)'], ...banen.map((b) => [b.id, b.naam] as [string, string])]} />
+      </Werkbalk>
+      <DataTabel kolommen={kolommen} rijen={rijen} sleutel={(p) => p.id} naar={(p) => `/beheer/gebruikers/${p.id}`}
+                 regelKlasse={(p) => (p.actief ? '' : 'gedempt')} leeg="Niemand gevonden." />
+    </>
+  )
+}
+
+// /beheer/gebruikers/nieuw (?baan=… zet de baan alvast)
+export function GebruikerNieuw() {
+  const { profiel } = useSessie()
+  const { banen } = useGebruikersdata()
+  const [zoek] = useSearchParams()
+  const navigeer = useNavigate()
+  const [wachtwoord, setWachtwoord] = useState<NieuwWachtwoord | null>(null)
+  return (
+    <>
+      <p><Link to="/beheer/gebruikers">← Alle gebruikers</Link></p>
+      <PaginaKop titel="Gebruiker toevoegen" />
+      {wachtwoord
+        ? <WachtwoordKaart {...wachtwoord} sluit={() => navigeer('/beheer/gebruikers')} />
+        : <Toevoegen banen={banen} isBeheer={profiel?.globale_rol === 'beheer'} standaardBaan={zoek.get('baan') ?? undefined}
+                     sluit={() => navigeer('/beheer/gebruikers')}
+                     klaar={(w) => (w ? setWachtwoord(w) : navigeer('/beheer/gebruikers'))} />}
+    </>
+  )
+}
+
+// /beheer/gebruikers/:profielId: banen en rollen, wachtwoord en account.
+export function GebruikerDetail() {
+  const { profielId } = useParams()
+  const { sessie, profiel } = useSessie()
+  const isBeheer = profiel?.globale_rol === 'beheer'
+  const { personen, banen, laad, baanNaam, vanPersoon } = useGebruikersdata()
+  const [wachtwoord, setWachtwoord] = useState<NieuwWachtwoord | null>(null)
+  const [fout, setFout] = useState<string | null>(null)
+  const p = personen?.find((x) => x.id === profielId)
 
   async function actie(f: () => PromiseLike<{ error: unknown }>) {
     setFout(null)
@@ -57,8 +121,8 @@ export default function BeheerGebruikers() {
     laad()
   }
 
-  async function nieuwWachtwoord(p: Persoon) {
-    if (!window.confirm(`Nieuw tijdelijk wachtwoord voor ${p.naam ?? p.email}? Het oude werkt dan niet meer.`)) return
+  async function nieuwWachtwoord() {
+    if (!p || !window.confirm(`Nieuw tijdelijk wachtwoord voor ${p.naam ?? p.email}? Het oude werkt dan niet meer.`)) return
     setFout(null)
     try {
       const r = await gebruikersFunctie({ actie: 'wachtwoord', profiel_id: p.id })
@@ -68,102 +132,55 @@ export default function BeheerGebruikers() {
     }
   }
 
-  const baanNaam = (id: string) => banen.find((b) => b.id === id)?.naam ?? 'Onbekende baan'
-  const vanPersoon = (id: string) => koppelingen.filter((k) => k.profiel_id === id)
-    .sort((a, b) => baanNaam(a.locatie_id).localeCompare(baanNaam(b.locatie_id)))
-  const term = zoek.trim().toLowerCase()
-  const zichtbaar = (personen ?? []).filter((p) =>
-    (filter === 'alle' || (filter === 'hgm' ? p.globale_rol : koppelingen.some((k) => k.profiel_id === p.id && k.locatie_id === filter)))
-    && (!term || `${p.naam ?? ''} ${p.email ?? ''}`.toLowerCase().includes(term)))
-  const mij = sessie!.user.id
+  if (!personen) return <p className="zacht">Laden…</p>
+  if (!p) return <><p><Link to="/beheer/gebruikers">← Alle gebruikers</Link></p><p className="zacht">Deze gebruiker bestaat niet.</p></>
+  const eigen = vanPersoon(p.id)
+  // Onderhoudsmanager beheert geen accounts van beheer; niemand wijzigt hier zichzelf.
+  const magAccount = p.id !== sessie!.user.id && (isBeheer || p.globale_rol !== 'beheer')
 
   return (
     <>
-      <div className="kop-met-knop">
-        <h1>Gebruikers</h1>
-        {!toevoegen && <button className="knop" onClick={() => { setToevoegen(true); setWachtwoord(null) }}>+ Gebruiker toevoegen</button>}
-      </div>
-      <p className="zacht">Iedereen met toegang, over alle banen. Klik op een naam om banen en rollen te wijzigen.</p>
+      <p><Link to="/beheer/gebruikers">← Alle gebruikers</Link></p>
+      <PaginaKop titel={p.naam ?? p.email ?? 'Gebruiker'} sub={p.email}>
+        <Chip klasse={p.actief ? 'in-orde' : ''}>{p.actief ? 'Actief' : 'Gedeactiveerd'}</Chip>
+      </PaginaKop>
       {fout && <div className="melding fout">{fout}</div>}
       {wachtwoord && <WachtwoordKaart {...wachtwoord} sluit={() => setWachtwoord(null)} />}
-      {toevoegen && (
-        <Toevoegen banen={banen} isBeheer={isBeheer} standaardBaan={filter !== 'alle' && filter !== 'hgm' ? filter : undefined}
-                   sluit={() => setToevoegen(false)}
-                   klaar={(w) => { setToevoegen(false); if (w) setWachtwoord(w); laad() }} />
+
+      <section className="kaart">
+        <h2>Banen en rollen</h2>
+        {p.globale_rol ? <p>{rolNamen[p.globale_rol]}: werkt op alle banen.</p> : (
+          <>
+            {eigen.length === 0 && <p className="zacht">Nog aan geen baan gekoppeld.</p>}
+            {eigen.map((k) => (
+              <div key={k.locatie_id} className="lus-rij gebruiker-koppeling">
+                <span className="gebruiker-baan">{baanNaam(k.locatie_id)}</span>
+                <select aria-label={`Rol op ${baanNaam(k.locatie_id)}`} value={k.rol} className="rolkeuze"
+                        onChange={(e) => actie(() => supabase.from('locatie_gebruikers').update({ rol: e.target.value })
+                          .eq('profiel_id', p.id).eq('locatie_id', k.locatie_id))}>
+                  {locatieRollen.map((r) => <option key={r} value={r}>{rolNamen[r]}</option>)}
+                </select>
+                <button className="knop tweede klein"
+                        onClick={() => window.confirm(`${p.naam ?? p.email} van ${baanNaam(k.locatie_id)} halen? Het account blijft bestaan.`)
+                          && actie(() => supabase.from('locatie_gebruikers').delete().eq('profiel_id', p.id).eq('locatie_id', k.locatie_id))}>
+                  Van baan halen
+                </button>
+              </div>
+            ))}
+            <Koppelen banen={banen.filter((b) => !eigen.some((k) => k.locatie_id === b.id))}
+                      koppel={(locatie_id, rol) => actie(() => supabase.from('locatie_gebruikers').insert({ profiel_id: p.id, locatie_id, rol }))} />
+          </>
+        )}
+      </section>
+
+      {magAccount && (
+        <div className="actiebalk">
+          <button className="knop tweede" onClick={nieuwWachtwoord}>Nieuw tijdelijk wachtwoord</button>
+          <button className="knop tweede" onClick={() => actie(() => supabase.from('profielen').update({ actief: !p.actief }).eq('id', p.id))}>
+            {p.actief ? 'Account deactiveren' : 'Account activeren'}
+          </button>
+        </div>
       )}
-
-      <div className="gebruikers-filter">
-        <select aria-label="Baan" value={filter} onChange={(e) => setFilter(e.target.value)}>
-          <option value="alle">Alle banen</option>
-          <option value="hgm">HGM-breed (beheer, onderhoudsmanager, monteur)</option>
-          {banen.map((b) => <option key={b.id} value={b.id}>{b.naam}</option>)}
-        </select>
-        <input type="search" aria-label="Zoeken" placeholder="Zoek op naam of e-mail" value={zoek} onChange={(e) => setZoek(e.target.value)} />
-      </div>
-
-      {personen === null && <p className="zacht">Laden…</p>}
-      {personen && zichtbaar.length === 0 && <p className="zacht">Niemand gevonden.</p>}
-      <ul className="lijst">
-        {zichtbaar.map((p) => {
-          const eigen = vanPersoon(p.id)
-          const isOpen = open === p.id
-          // Onderhoudsmanager beheert geen accounts van beheer; niemand wijzigt hier zichzelf.
-          const magAccount = p.id !== mij && (isBeheer || p.globale_rol !== 'beheer')
-          return (
-            <li key={p.id} className={`rij gebruiker ${p.actief ? '' : 'inactief'}`}>
-              <button type="button" className="gebruiker-kop" aria-expanded={isOpen} onClick={() => setOpen(isOpen ? null : p.id)}>
-                <span className="rij-hoofd">
-                  <strong>{p.naam ?? p.email}{!p.actief && ' (gedeactiveerd)'}</strong>
-                  {p.globale_rol && <span className="label">{rolNamen[p.globale_rol]}</span>}
-                </span>
-                <span className="zacht klein-tekst">{p.email}</span>
-                <span className="gebruiker-banen">
-                  {p.globale_rol ? <span className="zacht">Alle banen</span>
-                    : eigen.length === 0 ? <span className="zacht">Nog aan geen baan gekoppeld</span>
-                    : eigen.map((k) => <span key={k.locatie_id} className="chip">{baanNaam(k.locatie_id)} · {rolNamen[k.rol]}</span>)}
-                </span>
-              </button>
-
-              {isOpen && (
-                <div className="gebruiker-detail">
-                  {!p.globale_rol && (
-                    <>
-                      {eigen.map((k) => (
-                        <div key={k.locatie_id} className="lus-rij">
-                          <span className="gebruiker-baan">{baanNaam(k.locatie_id)}</span>
-                          <select aria-label={`Rol op ${baanNaam(k.locatie_id)}`} value={k.rol} className="rolkeuze"
-                                  onChange={(e) => actie(() => supabase.from('locatie_gebruikers').update({ rol: e.target.value })
-                                    .eq('profiel_id', p.id).eq('locatie_id', k.locatie_id))}>
-                            {locatieRollen.map((r) => <option key={r} value={r}>{rolNamen[r]}</option>)}
-                          </select>
-                          <button className="knop tweede klein"
-                                  onClick={() => window.confirm(`${p.naam ?? p.email} van ${baanNaam(k.locatie_id)} halen? Het account blijft bestaan.`)
-                                    && actie(() => supabase.from('locatie_gebruikers').delete()
-                                      .eq('profiel_id', p.id).eq('locatie_id', k.locatie_id))}>
-                            Van baan halen
-                          </button>
-                        </div>
-                      ))}
-                      <Koppelen banen={banen.filter((b) => !eigen.some((k) => k.locatie_id === b.id))}
-                                koppel={(locatie_id, rol) => actie(() => supabase.from('locatie_gebruikers')
-                                  .insert({ profiel_id: p.id, locatie_id, rol }))} />
-                    </>
-                  )}
-                  {magAccount && (
-                    <div className="knoppenrij">
-                      <button className="knop tweede klein" onClick={() => nieuwWachtwoord(p)}>Nieuw wachtwoord</button>
-                      <button className="knop tweede klein"
-                              onClick={() => actie(() => supabase.from('profielen').update({ actief: !p.actief }).eq('id', p.id))}>
-                        {p.actief ? 'Deactiveren' : 'Activeren'}
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
-            </li>
-          )
-        })}
-      </ul>
     </>
   )
 }

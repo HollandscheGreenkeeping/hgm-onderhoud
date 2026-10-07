@@ -4,21 +4,24 @@ import { useLocatie } from '../lib/locatie'
 import { plekTekst, plekVelden, useBaan } from '../lib/baan'
 import { datum, objectTitel, storingStatus, vandaag } from '../lib/teksten'
 import { downloadCsv } from '../lib/csv'
+import { PaginaKop, useUrlParam, Weergaven, Werkbalk } from '../components/tabel'
 
 type Weergave = 'rapport' | 'export'
 
 export default function Rapportage() {
   const { magPlannen } = useLocatie()
-  const [weergave, setWeergave] = useState<Weergave>('rapport')
+  const [weergaveTekst] = useUrlParam('weergave', 'rapport')
+  const weergave = weergaveTekst as Weergave
   return (
     <main className="rapportage">
-      <h1 className="geen-print">Rapportage</h1>
-      {magPlannen && (
-        <div className="schakelaar filterbalk geen-print">
-          <button className={`knop ${weergave === 'rapport' ? '' : 'tweede'}`} onClick={() => setWeergave('rapport')}>Klantrapport</button>
-          <button className={`knop ${weergave === 'export' ? '' : 'tweede'}`} onClick={() => setWeergave('export')}>Export (Excel/CSV)</button>
-        </div>
-      )}
+      <div className="geen-print">
+        <PaginaKop titel="Rapportage" />
+        {magPlannen && (
+          <Werkbalk>
+            <Weergaven standaard="rapport" opties={[{ waarde: 'rapport', naam: 'Klantrapport' }, { waarde: 'export', naam: 'Export (Excel/CSV)' }]} />
+          </Werkbalk>
+        )}
+      </div>
       {weergave === 'rapport' ? <Klantrapport /> : <Export />}
     </main>
   )
@@ -46,11 +49,8 @@ const hgmLogo = '/icon.svg'
 function Klantrapport() {
   const { locatie } = useLocatie()
   const { holes } = useBaan(locatie.id)
-  const [maand, setMaand] = useState(() => {
-    const d = new Date()
-    d.setDate(0) // standaard: vorige maand (rapport aan het begin van de maand)
-    return d.toISOString().slice(0, 7)
-  })
+  // Standaard: vorige maand (rapport aan het begin van de maand). In de URL, zodat de link deelbaar is.
+  const [maand, setMaand] = useUrlParam('maand', (() => { const d = new Date(); d.setDate(0); return d.toISOString().slice(0, 7) })())
   const [werk, setWerk] = useState<Werk[]>([])
   const [storingen, setStoringen] = useState<Storing[]>([])
   const [taken, setTaken] = useState<Taak[]>([])

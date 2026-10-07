@@ -14,6 +14,14 @@
   --lettertype-kop: 'Zilla Slab', Georgia, serif;
   --lettertype-mono: 'IBM Plex Mono', ui-monospace, Menlo, monospace;
 
+  /* Zijbalk (app-schil): HGM-olijf met lichte tekst */
+  --kleur-zijbalk: #2a3520;
+  --kleur-zijbalk-tekst: #e4eadb;
+  --kleur-zijbalk-zacht: #a9b39c;
+  --kleur-zijbalk-actief: rgba(255, 255, 255, .10);
+  --kleur-zijbalk-rand: rgba(255, 255, 255, .09);
+  --zijbalk-breedte: 248px;
+
   /* Neutraal – wit, niet crème */
   --kleur-achtergrond: #ffffff;
   --kleur-vlak: #ffffff;

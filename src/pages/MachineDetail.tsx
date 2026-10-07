@@ -46,7 +46,7 @@ export default function MachineDetail() {
         })),
       ...(tk.data ?? []).map((t) => ({
         sleutel: `t${t.id}`, datum: (t.afgerond_op ?? t.deadline ?? vandaag()).slice(0, 10), soort: 'taak' as const,
-        tekst: t.omschrijving, sub: taakStatus[t.status], link: `${basis}/taken`, open: t.status !== 'afgerond',
+        tekst: t.omschrijving, sub: taakStatus[t.status], link: `${basis}/taken/${t.id}`, open: t.status !== 'afgerond',
       })),
       ...((wz.data ?? []) as unknown as { id: string; datum: string; activiteit: { naam: string } | null }[]).map((w) => ({
         sleutel: `w${w.id}`, datum: w.datum, soort: 'inzet' as const, tekst: `Ingezet: ${w.activiteit?.naam ?? ''}`,
