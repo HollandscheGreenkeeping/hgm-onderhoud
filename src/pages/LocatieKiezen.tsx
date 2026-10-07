@@ -32,8 +32,9 @@ export default function LocatieKiezen() {
   useEffect(() => {
     supabase.rpc('mijn_locaties').then(({ data, error }) => {
       if (error) return setFout(error.message)
-      setLocaties(data)
-      const ids = (data ?? []).map((l: MijnLocatie) => l.locatie_id)
+      const banen = ((data ?? []) as MijnLocatie[]).filter((l) => l.soort === 'baan') // werkplaats staat onder Werkplaats
+      setLocaties(banen)
+      const ids = banen.map((l) => l.locatie_id)
       if (ids.length) supabase.from('locaties').select('id, klantlogo_pad, baanfoto_pad').in('id', ids).then(({ data: rijen }) =>
         setBeelden(Object.fromEntries((rijen ?? []).map((r) => [r.id, {
           logo: r.klantlogo_pad ? huisstijlUrl(r.klantlogo_pad) : null,

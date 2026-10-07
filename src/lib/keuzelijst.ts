@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase, type Rol } from './supabase'
 
-export type Lijst = 'activiteit' | 'storingstype' | 'middel' | 'machinetype'
+export type Lijst = 'activiteit' | 'storingstype' | 'middel' | 'machinetype' | 'keuringsoort'
 export type Keuze = { id: string; naam: string; eenheid: string | null }
 
 // Actieve waarden van een keuzelijst voor deze locatie (null in locatie_ids = alle locaties).

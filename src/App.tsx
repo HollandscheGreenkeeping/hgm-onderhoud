@@ -25,6 +25,12 @@ import BeheerGebruikers from './pages/BeheerGebruikers'
 import BeheerBanen from './pages/BeheerBanen'
 import BaanInstellingen from './pages/BaanInstellingen'
 import Keuzelijsten from './pages/Keuzelijsten'
+import Werkplaats, { AlleenGlobaal } from './pages/Werkplaats'
+import Werkorders, { WerkorderNieuw } from './pages/Werkorders'
+import WerkorderDetail from './pages/WerkorderDetail'
+import WerkplaatsPlanning from './pages/WerkplaatsPlanning'
+import Keuringen from './pages/Keuringen'
+import MachineKosten from './pages/MachineKosten'
 
 // De kaartbibliotheek is groot; pas laden als de kaart echt nodig is (sneller inlogscherm).
 const Kaart = lazy(() => import('./pages/Kaart'))
@@ -54,6 +60,15 @@ export default function App() {
       <Route path="/" element={<Beveiligd><HoofdLayout /></Beveiligd>}>
         <Route index element={<HoofdOverzicht />} />
         <Route path="banen" element={<LocatieKiezen />} />
+        <Route path="werkplaats" element={<Werkplaats />}>
+          <Route index element={<Navigate to="werkorders" replace />} />
+          <Route path="werkorders" element={<Werkorders />} />
+          <Route path="werkorders/nieuw" element={<WerkorderNieuw />} />
+          <Route path="werkorders/:werkorderId" element={<WerkorderDetail />} />
+          <Route path="planning" element={<WerkplaatsPlanning />} />
+          <Route path="keuringen" element={<Keuringen />} />
+          <Route path="kosten" element={<AlleenGlobaal><MachineKosten /></AlleenGlobaal>} />
+        </Route>
         <Route path="beheer" element={<Beheer />}>
           <Route index element={<Navigate to="gebruikers" replace />} />
           <Route path="gebruikers" element={<BeheerGebruikers />} />

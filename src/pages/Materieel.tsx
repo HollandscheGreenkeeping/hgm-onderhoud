@@ -8,11 +8,22 @@ export type Machine = {
   id: string; naam: string | null; merk: string | null; model: string | null; serienummer: string | null
   aanschafjaar: number | null; standplaats: string | null; draaiuren: number; gearchiveerd_op: string | null
   machinetype_id: string | null
+  locatie_id: string; huidige_locatie_id: string
   type: { naam: string } | null
+  eigen: { naam: string } | null                                  // baan waar de machine bij hoort
+  huidig: { naam: string; soort: 'baan' | 'werkplaats' } | null   // waar hij nu staat
 }
 
 export const machineVelden = `id, naam, merk, model, serienummer, aanschafjaar, standplaats, draaiuren, gearchiveerd_op,
-  machinetype_id, type:keuzelijst_waarden(naam)`
+  machinetype_id, locatie_id, huidige_locatie_id, type:keuzelijst_waarden(naam),
+  eigen:locaties!machines_locatie_id_fkey(naam), huidig:locaties!machines_huidige_locatie_id_fkey(naam, soort)`
+
+// Standplaats als het niet de eigen baan is: in de werkplaats, op een andere baan, of hier als vervanger.
+export function machineElders(m: Pick<Machine, 'locatie_id' | 'huidige_locatie_id' | 'eigen' | 'huidig'>, baanId: string) {
+  if (m.locatie_id !== baanId) return `Vervangend materieel van ${m.eigen?.naam ?? 'een andere baan'}`
+  if (m.huidige_locatie_id === baanId) return null
+  return m.huidig?.soort === 'werkplaats' ? 'In de werkplaats' : `Staat op ${m.huidig?.naam ?? 'een andere baan'}`
+}
 
 export const machineNaam = (m: Pick<Machine, 'naam' | 'merk' | 'model'>) =>
   m.naam ?? ([m.merk, m.model].filter(Boolean).join(' ') || 'Machine')
@@ -27,7 +38,9 @@ export default function Materieel() {
   const [archief, setArchief] = useState(false)
 
   const laad = useCallback(async () => {
-    let q = supabase.from('machines').select(machineVelden).eq('locatie_id', locatie.id).order('naam')
+    // Eigen machines, plus vervangend materieel dat hier tijdelijk staat.
+    let q = supabase.from('machines').select(machineVelden)
+      .or(`locatie_id.eq.${locatie.id},huidige_locatie_id.eq.${locatie.id}`).order('naam')
     q = archief ? q.not('gearchiveerd_op', 'is', null) : q.is('gearchiveerd_op', null)
     const [m, s, t] = await Promise.all([
       q,
@@ -59,6 +72,7 @@ export default function Materieel() {
       <ul className="lijst">
         {machines?.map((m) => {
           const s = status[m.id]
+          const elders = machineElders(m, locatie.id)
           return (
             <li key={m.id}>
               <Link className={`rij ${s?.storing ? 'urgentie-spoed' : s?.onderhoud ? 'urgentie-hoog' : ''}`} to={m.id}>
@@ -66,10 +80,12 @@ export default function Materieel() {
                   <strong>{machineNaam(m)}</strong>
                   {s?.storing ? <span className="label storing">Defect</span>
                     : s?.onderhoud ? <span className="label gepland">Onderhoud</span>
+                    : elders ? <span className="label">{elders}</span>
                     : <span className="zacht">{Number(m.draaiuren).toLocaleString('nl-NL')} u</span>}
                 </span>
                 <span className="zacht">
-                  {[m.type?.naam, [m.merk, m.model].filter(Boolean).join(' '), m.standplaats].filter(Boolean).join(' · ')}
+                  {[(s?.storing || s?.onderhoud) && elders, m.type?.naam, [m.merk, m.model].filter(Boolean).join(' '), m.standplaats]
+                    .filter(Boolean).join(' · ')}
                 </span>
               </Link>
             </li>

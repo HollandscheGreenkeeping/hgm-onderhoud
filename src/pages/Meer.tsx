@@ -3,9 +3,9 @@ import { supabase } from '../lib/supabase'
 import { useLocatie } from '../lib/locatie'
 
 // "Meer"-scherm voor de telefoon: alle menu-items van de baan die niet in de menubalk passen,
-// en de weg terug naar Overzicht, Banen en Beheer.
+// en de weg terug naar Overzicht, Banen, Werkplaats en Beheer.
 export default function Meer() {
-  const { locatie, magPlannen, isGlobaal } = useLocatie()
+  const { locatie, rol, magPlannen, isGlobaal } = useLocatie()
   const navigeer = useNavigate()
   const basis = `/locatie/${locatie.id}`
 
@@ -28,6 +28,7 @@ export default function Meer() {
       <nav className="menulijst">
         <Link to="/">Overzicht alle banen</Link>
         <Link to="/banen">Andere baan</Link>
+        {(isGlobaal || rol === 'monteur') && <Link to="/werkplaats">Werkplaats</Link>}
         {isGlobaal && <Link to="/beheer">Beheer</Link>}
       </nav>
       <nav className="menulijst">

@@ -52,7 +52,7 @@ export default function HoofdOverzicht() {
       supabase.from('taken').select('id, omschrijving, deadline, locatie_id, locatie:locaties(naam)')
         .in('status', ['open', 'in_behandeling']).lt('deadline', vandaag()).order('deadline').limit(8),
     ]).then(([b, c, st, vt]) => {
-      setBanen(b.data ?? [])
+      setBanen(((b.data ?? []) as MijnLocatie[]).filter((l) => l.soort === 'baan'))
       setCijfers(c.data ?? [])
       setStoringen((st.data ?? []) as never)
       setVerlopen((vt.data ?? []) as never)

@@ -9,6 +9,7 @@ const lijsten: [Lijst, string][] = [
   ['activiteit', 'Activiteiten'],
   ['middel', 'Middelen (bemesting en gewasbescherming)'],
   ['machinetype', 'Machinetypes'],
+  ['keuringsoort', 'Keuringen (soorten)'],
 ]
 
 // Beheer → Keuzelijsten: gelden voor alle banen, of per waarde voor gekozen banen. Gearchiveerde waarden
@@ -28,7 +29,7 @@ export default function Keuzelijsten() {
   }, [lijst])
   useEffect(laad, [laad])
   useEffect(() => {
-    supabase.from('locaties').select('id, naam').order('naam').then(({ data }) => setBanen(data ?? []))
+    supabase.from('locaties').select('id, naam').eq('soort', 'baan').order('naam').then(({ data }) => setBanen(data ?? []))
   }, [])
 
   async function wijzig(id: string, velden: Partial<Waarde>) {

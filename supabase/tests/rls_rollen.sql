@@ -63,10 +63,12 @@ insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-000000000005', 'bm.a@test.nl'),
   ('00000000-0000-0000-0000-000000000006', 'gk.ab@test.nl'),
   ('00000000-0000-0000-0000-000000000007', 'bm.b@test.nl'),
-  ('00000000-0000-0000-0000-000000000008', 'gk.a2@test.nl');
+  ('00000000-0000-0000-0000-000000000008', 'gk.a2@test.nl'),
+  ('00000000-0000-0000-0000-000000000009', 'monteur@test.nl');
 
 update profielen set globale_rol = 'beheer' where email = 'beheer@test.nl';
 update profielen set globale_rol = 'onderhoudsmanager' where email = 'om@test.nl';
+update profielen set globale_rol = 'monteur' where email = 'monteur@test.nl';
 
 insert into locaties (id, naam) values
   ('aaaaaaaa-0000-0000-0000-000000000000', 'Testbaan A'),
@@ -350,6 +352,111 @@ select tests.is('om kan baanfoto niet wijzigen',
   tests.rijen($$update locaties set baanfoto_pad = 'baanfotos/x.jpg'$$), 0);
 reset role;
 
+-- ── Werkplaats: monteur, werkorders, keuringen ─────────────────────────────
+
+insert into machines (id, locatie_id, naam) values ('3a000000-0000-0000-0000-000000000002', 'bbbbbbbb-0000-0000-0000-000000000000', 'Reservemaaier B');
+insert into instellingen (sleutel, waarde) values ('werkplaats_uurtarief', '60');
+
+select tests.als('gk.a@test.nl');
+insert into storingen (locatie_id, machine_id, omschrijving, urgentie)
+  values ('aaaaaaaa-0000-0000-0000-000000000000', '3a000000-0000-0000-0000-000000000001', 'Messen slaan aan', 'hoog');
+select tests.is('defect aan machine wordt werkorder',
+  (select count(*) from werkorders where machine_id = '3a000000-0000-0000-0000-000000000001' and bron = 'defect' and status = 'aangevraagd'), 1::bigint);
+select tests.is('werkorder krijgt baan van de machine',
+  (select locatie_id from werkorders where bron = 'defect'), 'aaaaaaaa-0000-0000-0000-000000000000'::uuid);
+select tests.is('gk.a kan werkorder niet plannen',
+  tests.rijen($$update werkorders set monteur_id = auth.uid()$$), 0);
+insert into werkorders (machine_id, omschrijving) values ('3a000000-0000-0000-0000-000000000001', 'Banden nakijken');
+select tests.fout('gk.a kan geen ingeplande werkorder aanmaken',
+  $$insert into werkorders (machine_id, omschrijving, status) values ('3a000000-0000-0000-0000-000000000001', 'x', 'ingepland')$$);
+select tests.fout('gk.a kan geen werkorder op B aanvragen',
+  $$insert into werkorders (machine_id, omschrijving) values ('3a000000-0000-0000-0000-000000000002', 'x')$$);
+reset role;
+
+select tests.als('bm.a@test.nl');
+select tests.is('bm.a ziet geen werkorders', (select count(*) from werkorders), 0::bigint);
+reset role;
+
+select tests.als('monteur@test.nl');
+select tests.is('monteur ziet de werkplaats', (select count(*) from mijn_locaties() where soort = 'werkplaats'), 1::bigint);
+select tests.is('monteur ziet werkorders van alle banen', (select count(*) from werkorders), 2::bigint);
+select tests.is('monteur is niet globaal', is_globaal(), false);
+update werkorders set monteur_id = auth.uid(), gepland_op = current_date where bron = 'defect';
+select tests.is('monteur en datum: ingepland', (select status::text from werkorders where bron = 'defect'), 'ingepland');
+update werkorders set status = 'in_werkplaats', vervangende_machine_id = '3a000000-0000-0000-0000-000000000002' where bron = 'defect';
+select tests.is('machine staat in de werkplaats',
+  (select huidige_locatie_id = werkplaats_id() from machines where id = '3a000000-0000-0000-0000-000000000001'), true);
+select tests.is('vervangende machine staat op baan A', (select huidige_locatie_id from machines where id = '3a000000-0000-0000-0000-000000000002'), 'aaaaaaaa-0000-0000-0000-000000000000'::uuid);
+insert into werkorder_regels (werkorder_id, omschrijving, aantal, bedrag)
+  select id, 'Bovenmes', 1, 85 from werkorders where bron = 'defect';
+insert into uren (locatie_id, minuten, bron_tabel, bron_id)
+  select locatie_id, 90, 'werkorders', id from werkorders where bron = 'defect';
+select tests.is('monteur ziet geen kosten', (select count(*) from machine_kosten()), 0::bigint);
+select tests.fout('monteur kan geen gebruikers koppelen',
+  $$insert into locatie_gebruikers (profiel_id, locatie_id, rol) values
+    ('00000000-0000-0000-0000-000000000007', 'aaaaaaaa-0000-0000-0000-000000000000', 'baanmanager')$$);
+select tests.fout('monteur kan geen machine toevoegen',
+  $$insert into machines (locatie_id, naam) values ('aaaaaaaa-0000-0000-0000-000000000000', 'x')$$);
+update werkorders set status = 'gereed', bevindingen = 'Bovenmes vervangen' where bron = 'defect';
+select tests.is('defectmelding opgelost als werkorder gereed is',
+  (select status::text || ' / ' || oplossing from storingen where omschrijving = 'Messen slaan aan'),
+  'opgelost / Bovenmes vervangen');
+update werkorders set status = 'terug_op_locatie' where bron = 'defect';
+select tests.is('machine terug op eigen baan', (select huidige_locatie_id from machines where id = '3a000000-0000-0000-0000-000000000001'), 'aaaaaaaa-0000-0000-0000-000000000000'::uuid);
+select tests.is('vervangende machine terug naar B', (select huidige_locatie_id from machines where id = '3a000000-0000-0000-0000-000000000002'), 'bbbbbbbb-0000-0000-0000-000000000000'::uuid);
+select tests.is('werkorder afgerond', (select afgerond_op is not null from werkorders where bron = 'defect'), true);
+insert into keuringen (machine_id, soort_id, geldig_tot)
+  values ('3a000000-0000-0000-0000-000000000001', (select id from keuzelijst_waarden where lijst = 'keuringsoort' order by volgorde limit 1), current_date + 20);
+select tests.is('keuring krijgt baan van de machine', (select locatie_id from keuringen), 'aaaaaaaa-0000-0000-0000-000000000000'::uuid);
+select tests.fout('keuring moet een keuringsoort hebben',
+  $$insert into keuringen (machine_id, soort_id, geldig_tot)
+    values ('3a000000-0000-0000-0000-000000000001', (select id from keuzelijst_waarden where lijst = 'activiteit' limit 1), current_date)$$);
+reset role;
+
+select tests.als('gk.a@test.nl');
+select tests.is('gk.a ziet keuring van eigen machine', (select count(*) from keuringen), 1::bigint);
+select tests.fout('gk.a kan geen keuring toevoegen',
+  $$insert into keuringen (machine_id, soort_id, geldig_tot)
+    values ('3a000000-0000-0000-0000-000000000001', (select id from keuzelijst_waarden where lijst = 'keuringsoort' limit 1), current_date)$$);
+select tests.is('gk.a ziet geen onderdelen en kosten', (select count(*) from werkorder_regels), 0::bigint);
+select tests.is('gk.a ziet uren van de monteur niet', (select count(*) from uren where bron_tabel = 'werkorders'), 0::bigint);
+select tests.is('gk.a ziet de naam van de monteur', (select count(*) from profielen where email = 'monteur@test.nl'), 1::bigint);
+reset role;
+
+select tests.als('bm.a@test.nl');
+select tests.is('bm.a ziet geen keuringen', (select count(*) from keuringen), 0::bigint);
+select tests.is('bm.a ziet geen onderdelen', (select count(*) from werkorder_regels), 0::bigint);
+select tests.is('bm.a ziet de monteur niet', (select count(*) from profielen where email = 'monteur@test.nl'), 0::bigint);
+select tests.is('bm.a ziet geen kosten', (select count(*) from machine_kosten()), 0::bigint);
+reset role;
+
+select tests.als('hgk.a@test.nl');
+select tests.is('hgk.a ziet onderdelen van A', (select count(*) from werkorder_regels), 1::bigint);
+select tests.is('hgk.a kan werkorder niet plannen',
+  tests.rijen($$update werkorders set gepland_op = current_date$$), 0);
+select tests.is('kosten: 85 + 1,5 uur × 60',
+  (select totaal from machine_kosten('aaaaaaaa-0000-0000-0000-000000000000') where machine_id = '3a000000-0000-0000-0000-000000000001'), 175.00::numeric);
+select tests.is('hgk.a ziet geen kosten van B', (select count(*) from machine_kosten('bbbbbbbb-0000-0000-0000-000000000000')), 0::bigint);
+insert into onderhoudsschemas (locatie_id, machine_id, omschrijving, interval_waarde, interval_eenheid,
+                               volgende_draaiuren, via_werkplaats)
+  values ('aaaaaaaa-0000-0000-0000-000000000000', '3a000000-0000-0000-0000-000000000001', 'Messen slijpen', 300, 'draaiuren', 300, true);
+reset role;
+
+select tests.als('gk.a@test.nl');
+insert into draaiuren_registraties (machine_id, stand) values ('3a000000-0000-0000-0000-000000000001', 305);
+reset role;
+select tests.is('schema via werkplaats maakt werkorder, geen taak',
+  (select count(*) from werkorders where bron = 'onderhoud' and omschrijving = 'Messen slijpen')
+  + (select count(*) from taken where omschrijving = 'Messen slijpen'), 1::bigint);
+select tests.is('werkorder uit schema is een aanvraag',
+  (select status::text from werkorders where bron = 'onderhoud'), 'aangevraagd');
+
+select tests.als('om@test.nl');
+select tests.is('om plant werkorder in',
+  tests.rijen($$update werkorders set gepland_op = current_date + 1 where bron = 'onderhoud'$$), 1);
+select tests.is('om ziet kosten van alle banen', (select count(*) from machine_kosten()) >= 2, true);
+reset role;
+
 -- ── Beheer: alles, en tweestapsverificatie als die verplicht is ────────────
 
 select tests.als('beheer@test.nl');
@@ -370,6 +477,10 @@ reset role;
 
 select tests.als('gk.a@test.nl');
 select tests.is('greenkeeper heeft geen 2FA nodig', (select count(*) from locaties), 1::bigint);
+reset role;
+
+select tests.als('monteur@test.nl');
+select tests.is('monteur heeft geen 2FA nodig', (select count(*) from werkorders) > 0, true);
 reset role;
 
 select 'ALLE RLS-TESTS GESLAAGD' as resultaat;

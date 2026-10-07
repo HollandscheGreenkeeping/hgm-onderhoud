@@ -5,20 +5,21 @@ import { useSessie } from '../lib/sessie'
 import Kopbalk from './Kopbalk'
 import Menubalk from './Menubalk'
 
-// Alles buiten één baan: Overzicht (alle banen samen) · Banen (baan kiezen) · Beheer.
+// Alles buiten één baan: Overzicht (alle banen samen) · Banen (baan kiezen) · Werkplaats · Beheer.
 // Wie maar op één baan werkt en geen HGM-brede rol heeft, gaat meteen door naar die baan.
 export default function HoofdLayout() {
   const { profiel } = useSessie()
   const { pathname } = useLocation()
   const [banen, setBanen] = useState<MijnLocatie[] | null>(null)
   const isGlobaal = profiel?.globale_rol === 'beheer' || profiel?.globale_rol === 'onderhoudsmanager'
+  const magWerkplaats = isGlobaal || profiel?.globale_rol === 'monteur'
 
   useEffect(() => {
-    supabase.rpc('mijn_locaties').then(({ data }) => setBanen(data ?? []))
+    supabase.rpc('mijn_locaties').then(({ data }) => setBanen(((data ?? []) as MijnLocatie[]).filter((l) => l.soort === 'baan')))
   }, [])
 
   if (!banen || !profiel) return <main className="zacht">Laden…</main>
-  if (!isGlobaal && banen.length === 1 && !pathname.startsWith('/beheer')) {
+  if (!magWerkplaats && banen.length === 1 && !pathname.startsWith('/beheer')) {
     return <Navigate to={`/locatie/${banen[0].locatie_id}`} replace />
   }
 
@@ -26,6 +27,7 @@ export default function HoofdLayout() {
     <>
       <NavLink to="/" end>Overzicht</NavLink>
       <NavLink to="/banen">Banen</NavLink>
+      {magWerkplaats && <NavLink to="/werkplaats">Werkplaats</NavLink>}
       {isGlobaal && <NavLink to="/beheer">Beheer</NavLink>}
     </>
   )

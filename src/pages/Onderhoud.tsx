@@ -10,6 +10,7 @@ type Eenheid = 'dagen' | 'weken' | 'maanden' | 'jaren' | 'draaiuren'
 type Schema = {
   id: string; omschrijving: string; interval_waarde: number; interval_eenheid: Eenheid
   volgende_datum: string | null; volgende_draaiuren: number | null; vooruit_dagen: number; actief: boolean; intern: boolean
+  via_werkplaats: boolean
   objecttype_id: string | null; object_id: string | null; machine_id: string | null; toegewezen_aan: string | null
   objecttype: { naam: string } | null
   object: { code: string | null; objecttypes: { naam: string } | null } | null
@@ -18,7 +19,7 @@ type Schema = {
 }
 
 const schemaVelden = `id, omschrijving, interval_waarde, interval_eenheid, volgende_datum, volgende_draaiuren,
-  vooruit_dagen, actief, intern, objecttype_id, object_id, machine_id, toegewezen_aan,
+  vooruit_dagen, actief, intern, via_werkplaats, objecttype_id, object_id, machine_id, toegewezen_aan,
   objecttype:objecttypes(naam), object:objecten(code, objecttypes(naam)), machine:machines(naam, merk, model),
   uitvoerder:profielen!onderhoudsschemas_toegewezen_aan_fkey(naam)`
 
@@ -118,7 +119,7 @@ function Schemas() {
                 s.interval_eenheid === 'draaiuren'
                   ? `volgende bij ${s.volgende_draaiuren} draaiuren`
                   : s.volgende_datum ? `volgende ${datum(s.volgende_datum)}` : null,
-                s.uitvoerder?.naam,
+                s.via_werkplaats ? 'via de werkplaats' : s.uitvoerder?.naam,
                 s.intern ? 'intern' : null,
               ].filter(Boolean).join(' · ')}
             </span>
@@ -152,6 +153,7 @@ function SchemaFormulier({ schema, klaar, annuleer }: { schema: Schema | null; k
   const [uitvoerder, setUitvoerder] = useState(schema?.toegewezen_aan ?? '')
   const [intern, setIntern] = useState(schema?.intern ?? false)
   const [actief, setActief] = useState(schema?.actief ?? true)
+  const [viaWerkplaats, setViaWerkplaats] = useState(schema?.via_werkplaats ?? false)
   const [fout, setFout] = useState<string | null>(null)
 
   useEffect(() => {
@@ -176,6 +178,7 @@ function SchemaFormulier({ schema, klaar, annuleer }: { schema: Schema | null; k
       volgende_datum: eenheid === 'draaiuren' ? null : volgendeDatum,
       volgende_draaiuren: eenheid === 'draaiuren' ? Number(volgendeUren) : null,
       vooruit_dagen: Number(vooruit), toegewezen_aan: uitvoerder || null, intern, actief,
+      via_werkplaats: viaWerkplaats && (doel === 'machine' || doel === 'object'),
     }
     const { error } = schema
       ? await supabase.from('onderhoudsschemas').update(velden).eq('id', schema.id)
@@ -255,6 +258,12 @@ function SchemaFormulier({ schema, klaar, annuleer }: { schema: Schema | null; k
         {team.map((t) => <option key={t.id} value={t.id}>{t.naam}</option>)}
       </select>
       <label className="vink"><input type="checkbox" checked={intern} onChange={(e) => setIntern(e.target.checked)} />Intern (niet zichtbaar voor de golfclub)</label>
+      {(doel === 'machine' || doel === 'object') && (
+        <label className="vink">
+          <input type="checkbox" checked={viaWerkplaats} onChange={(e) => setViaWerkplaats(e.target.checked)} />
+          Via de werkplaats (maakt een werkorder voor de monteur in plaats van een taak)
+        </label>
+      )}
       {schema && (
         <label className="vink"><input type="checkbox" checked={actief} onChange={(e) => setActief(e.target.checked)} />Actief</label>
       )}

@@ -17,7 +17,12 @@ Volledig plan, rechtenmatrix en fasering: [docs/plan.md](docs/plan.md).
 - **Elke tabel met baandata heeft `locatie_id`** en RLS aan. Nieuwe tabel = ook policies +
   tests in `supabase/tests/rls_rollen.sql`. Gebruik de rechtenfuncties:
   `heeft_toegang(loc)` (alle rollen), `mag_registreren(loc)` (niet baanmanager),
-  `mag_plannen(loc)` (hoofd-greenkeeper en hoger), `is_globaal()`, `is_beheer()`.
+  `mag_plannen(loc)` (hoofd-greenkeeper en hoger), `is_globaal()` (beheer, onderhoudsmanager), `is_beheer()`,
+  `is_monteur()`, `mag_werkplaats()` (beheer, onderhoudsmanager, monteur).
+- **Monteur** is een HGM-brede rol (`profielen.globale_rol`) maar telt níet als globaal: geen gebruikersbeheer,
+  geen kosten, geen tweestapsplicht. Op elke locatie is `mijn_rol` = monteur (mag registreren, niet plannen).
+- **Werkplaats** is één locatie met `soort = 'werkplaats'`. Banenlijsten en dashboards filteren op `soort = 'baan'`.
+  Machines: `locatie_id` = eigen baan (rechten), `huidige_locatie_id` = waar hij nu staat (werkorder-triggers).
 - **Niets echt verwijderen** van objecten, leidingen, baanvlakken, machines: `gearchiveerd_op` zetten.
 - **Intern = onzichtbaar voor baanmanager**: kolom `intern` (storingen, taken, foto's) of een
   aparte tabel (`uren`). Uren staan nooit in tabellen die de baanmanager kan lezen.

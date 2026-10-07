@@ -42,7 +42,7 @@ export default function BeheerGebruikers() {
     const [p, k, b] = await Promise.all([
       supabase.from('profielen').select('id, naam, email, actief, globale_rol').order('naam'),
       supabase.from('locatie_gebruikers').select('profiel_id, locatie_id, rol'),
-      supabase.from('locaties').select('id, naam').eq('actief', true).order('naam'),
+      supabase.from('locaties').select('id, naam').eq('soort', 'baan').eq('actief', true).order('naam'),
     ])
     setPersonen(p.data ?? [])
     setKoppelingen(k.data ?? [])
@@ -95,7 +95,7 @@ export default function BeheerGebruikers() {
       <div className="gebruikers-filter">
         <select aria-label="Baan" value={filter} onChange={(e) => setFilter(e.target.value)}>
           <option value="alle">Alle banen</option>
-          <option value="hgm">HGM-breed (beheer en onderhoudsmanager)</option>
+          <option value="hgm">HGM-breed (beheer, onderhoudsmanager, monteur)</option>
           {banen.map((b) => <option key={b.id} value={b.id}>{b.naam}</option>)}
         </select>
         <input type="search" aria-label="Zoeken" placeholder="Zoek op naam of e-mail" value={zoek} onChange={(e) => setZoek(e.target.value)} />
@@ -199,7 +199,7 @@ function Toevoegen({ banen, isBeheer, standaardBaan, sluit, klaar }: {
   const [baan, setBaan] = useState(standaardBaan ?? '')
   const [bezig, setBezig] = useState(false)
   const [fout, setFout] = useState<string | null>(null)
-  const globaal = rol === 'beheer' || rol === 'onderhoudsmanager'
+  const globaal = rol === 'beheer' || rol === 'onderhoudsmanager' || rol === 'monteur'
 
   async function opslaan(e: FormEvent) {
     e.preventDefault()
@@ -227,6 +227,7 @@ function Toevoegen({ banen, isBeheer, standaardBaan, sluit, klaar }: {
       <label htmlFor="g-rol">Rol</label>
       <select id="g-rol" value={rol} onChange={(e) => setRol(e.target.value)}>
         {locatieRollen.map((r) => <option key={r} value={r}>{rolNamen[r]}</option>)}
+        {isBeheer && <option value="monteur">Monteur (technische dienst, alle banen)</option>}
         {isBeheer && <option value="onderhoudsmanager">Onderhoudsmanager (alle banen)</option>}
         {isBeheer && <option value="beheer">Beheer (alle banen, incl. instellingen)</option>}
       </select>

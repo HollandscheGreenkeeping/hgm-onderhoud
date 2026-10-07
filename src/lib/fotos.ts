@@ -1,6 +1,6 @@
 import { supabase } from './supabase'
 
-export type FotoTabel = 'objecten' | 'leidingen' | 'storingen' | 'taken' | 'werkzaamheden' | 'machines'
+export type FotoTabel = 'objecten' | 'leidingen' | 'storingen' | 'taken' | 'werkzaamheden' | 'machines' | 'werkorders'
 
 const MAX_ZIJDE = 1600
 

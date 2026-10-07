@@ -4,7 +4,8 @@ import { supabase } from '../lib/supabase'
 import { useLocatie } from '../lib/locatie'
 import { datum, openStoringStatussen, storingStatus, taakStatus, vandaag } from '../lib/teksten'
 import StoringMelden from '../components/StoringMelden'
-import { MachineFormulier, machineNaam, machineVelden, type Machine } from './Materieel'
+import MachineWerkplaats from '../components/MachineWerkplaats'
+import { MachineFormulier, machineElders, machineNaam, machineVelden, type Machine } from './Materieel'
 
 type Gebeurtenis = { sleutel: string; datum: string; soort: 'storing' | 'taak' | 'inzet' | 'uren'; tekst: string; sub?: string; link?: string; open?: boolean }
 
@@ -82,6 +83,9 @@ export default function MachineDetail() {
   if (!m) return <main>{melding ? <div className={`melding ${melding.soort}`}>{melding.tekst}</div> : <p className="zacht">Laden…</p>}</main>
 
   const openDefect = historie.some((h) => h.soort === 'storing' && h.open)
+  // Vervangend materieel van een andere baan: melden en draaiuren gaan via de eigen baan of de werkplaats.
+  const eigen = m.locatie_id === locatie.id
+  const elders = machineElders(m, locatie.id)
 
   return (
     <main>
@@ -90,7 +94,8 @@ export default function MachineDetail() {
         <h1>{machineNaam(m)}</h1>
         {openDefect && <span className="label storing">Defect</span>}
         {m.gearchiveerd_op && <span className="label">Gearchiveerd</span>}
-        {magPlannen && !modus && <button type="button" className="tekstlink" onClick={() => setModus('bewerken')}>Bewerken</button>}
+        {elders && <span className="label gepland">{elders}</span>}
+        {magPlannen && eigen && !modus && <button type="button" className="tekstlink" onClick={() => setModus('bewerken')}>Bewerken</button>}
       </div>
       {melding && <div className={`melding ${melding.soort}`}>{melding.tekst}</div>}
 
@@ -98,7 +103,7 @@ export default function MachineDetail() {
       {modus === 'defect' && (
         <div className="kaart">
           <StoringMelden doel={{ soort: 'machine', id: m.id, titel: machineNaam(m) }}
-                         klaar={() => { setModus(null); setMelding({ soort: 'info', tekst: 'Defect gemeld.' }); laad() }}
+                         klaar={() => { setModus(null); setMelding({ soort: 'info', tekst: 'Defect gemeld. De werkplaats krijgt er een werkorder van.' }); laad() }}
                          annuleer={() => setModus(null)} />
         </div>
       )}
@@ -121,7 +126,9 @@ export default function MachineDetail() {
         </section>
       )}
 
-      {magRegistreren && !m.gearchiveerd_op && (
+      {!eigen && <div className="melding info">Deze machine staat hier tijdelijk als vervanger. Een defect meld je bij de werkplaats.</div>}
+
+      {magRegistreren && eigen && !m.gearchiveerd_op && (
         <form className="kaart" onSubmit={urenOpslaan}>
           <h2>Draaiurenstand invoeren</h2>
           <div className="lus-rij">
@@ -153,6 +160,8 @@ export default function MachineDetail() {
         {magPlannen && <Link to={`${basis}/onderhoud`}>Schema toevoegen of wijzigen (Onderhoud → Schema's)</Link>}
       </section>
 
+      <MachineWerkplaats machineId={m.id} eigen={eigen} />
+
       <section>
         <h2>Historie</h2>
         {historie.length === 0 && <p className="zacht">Nog geen historie.</p>}
@@ -167,7 +176,7 @@ export default function MachineDetail() {
       </section>
 
       {/* Hoofdactie; op de telefoon vast onderaan */}
-      {!modus && magRegistreren && !m.gearchiveerd_op && (
+      {!modus && magRegistreren && eigen && !m.gearchiveerd_op && (
         <div className="actiebalk">
           <button className="knop melden" onClick={() => setModus('defect')}>Defect melden</button>
         </div>

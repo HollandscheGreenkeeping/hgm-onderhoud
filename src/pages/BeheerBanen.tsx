@@ -9,7 +9,7 @@ export default function BeheerBanen() {
   const [banen, setBanen] = useState<Baan[] | null>(null)
 
   useEffect(() => {
-    supabase.from('locaties').select('id, naam, klantnaam, adres, klantlogo_pad, baanfoto_pad').eq('actief', true).order('naam')
+    supabase.from('locaties').select('id, naam, klantnaam, adres, klantlogo_pad, baanfoto_pad').eq('soort', 'baan').eq('actief', true).order('naam')
       .then(({ data }) => setBanen(data ?? []))
   }, [])
 

@@ -34,7 +34,9 @@ export function SessieProvider({ children }: { children: ReactNode }) {
       supabase.auth.mfa.getAuthenticatorAssuranceLevel(),
     ])
     setProfiel(p)
-    setTweestapsNodig(Boolean(p?.globale_rol && mfa?.waarde === true && aal?.currentLevel !== 'aal2'))
+    // Alleen beheer en onderhoudsmanager; de monteur heeft geen tweestapsverificatie nodig.
+    const metTweestaps = p?.globale_rol === 'beheer' || p?.globale_rol === 'onderhoudsmanager'
+    setTweestapsNodig(Boolean(metTweestaps && mfa?.waarde === true && aal?.currentLevel !== 'aal2'))
     setLaden(false)
   }
 

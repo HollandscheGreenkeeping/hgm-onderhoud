@@ -762,3 +762,23 @@ main.beheer > .label-klein { display: block; margin-bottom: 8px; }
 .gebruiker-banen .chip { min-height: 0; min-width: 0; padding: 3px 10px; font-size: 14px; font-weight: 500; cursor: default; }
 .gebruiker-detail { display: flex; flex-direction: column; gap: 10px; padding: 0 14px 14px; border-top: 1px solid var(--kleur-rand); padding-top: 12px; }
 .gebruiker-baan { flex: 1 1 160px; font-weight: 600; }
+
+/* ── Werkplaats (werkorders, planning, keuringen, kosten) ── */
+main.werkplaats { max-width: 1280px; }
+main.werkplaats > .label-klein { display: block; margin-bottom: 8px; }
+main.werkplaats > select { max-width: 360px; margin-bottom: var(--ruimte); }
+.werkorder h2 small, .kaart h2 small { font: 500 14px var(--lettertype); }
+.lijst.compact .lus-rij { padding: 6px 0; border-bottom: 1px solid var(--kleur-rand); }
+.tabel.planning td, .tabel.planning th { white-space: normal; vertical-align: top; min-width: 140px; }
+.tabel.planning tbody th { font-weight: 600; min-width: 120px; background: var(--kleur-vlak); }
+.tabel.planning .vandaag { background: var(--kleur-vlak-zacht); }
+.planblok {
+  display: flex; flex-direction: column; gap: 2px; margin-bottom: 6px; padding: 8px 10px; border-radius: var(--radius-klein);
+  border-left: 4px solid var(--kleur-rand-sterk); background: var(--kleur-vlak); box-shadow: var(--schaduw-klein);
+  color: var(--kleur-tekst); text-decoration: none; font-size: 14px;
+}
+.planblok.gepland { border-left-color: var(--kleur-gepland); }
+.planblok.storing { border-left-color: var(--kleur-storing); }
+.planblok.in-orde { border-left-color: var(--kleur-in-orde); }
+.planblok .mono { font-size: 12px; color: var(--kleur-tekst-label); }
+.planblok > span:last-child { color: var(--kleur-tekst-zacht); font-size: 13px; }
