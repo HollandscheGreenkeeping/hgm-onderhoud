@@ -29,7 +29,7 @@ h3 { font-size: 18px; margin: 0 0 8px; }
   background: var(--kleur-vlak); color: var(--kleur-tekst);
   border-bottom: 1px solid var(--kleur-rand);
 }
-.kopbalk .klantlogo { height: 44px; max-width: 160px; object-fit: contain; }          /* nieuw */
+.kopbalk .klantlogo { height: 50px; max-width: 200px; object-fit: contain; }          /* nieuw */
 .kopbalk .klantlogo-leeg {                                                              /* nieuw */
   height: 44px; width: 148px; border: 1.5px dashed var(--kleur-rand-sterk); border-radius: var(--radius-klein);
   display: grid; place-items: center; font: 500 12px var(--lettertype); color: var(--kleur-tekst-label);
@@ -79,7 +79,7 @@ h3 { font-size: 18px; margin: 0 0 8px; }
 @media (min-width: 1601px) { .menu.onder { display: none; } }
 @media (max-width: 600px) {
   .kopbalk { padding: 8px 12px; gap: 12px; min-height: 60px; }
-  .kopbalk .klantlogo, .kopbalk .klantlogo-leeg { height: 36px; max-width: 110px; }
+  .kopbalk .klantlogo, .kopbalk .klantlogo-leeg { height: 40px; max-width: 130px; }
   .kopbalk .klantlogo-leeg { width: 96px; }
   .kopbalk .hgm-logo { height: 34px; }
   .kopbalk .scheiding, .kopbalk .beheer-door { display: none; }
@@ -678,12 +678,12 @@ code.wachtwoord { font: 600 22px var(--lettertype-mono); letter-spacing: 1px; us
 .clubhuis-naamblok > span:last-child { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .clubhuis-naamblok strong { font: 700 30px/1.05 var(--lettertype-kop); text-shadow: 0 1px 12px rgba(0, 0, 0, .25); }
 .clubhuis-naamblok > span:last-child > span { font-size: 14px; color: var(--kleur-op-foto-zacht); }
-.clubhuis-logo {
-  height: 56px; min-width: 56px; max-width: 200px; flex: none; border-radius: 12px; background: var(--kleur-vlak); display: grid; place-items: center; padding: 8px 14px;
-  box-shadow: var(--schaduw-zwevend); font: 700 22px var(--lettertype-kop); color: var(--kleur-primair);
-  transition: transform .3s cubic-bezier(.2, .7, .2, 1);
+.clubhuis-logo {                                                    /* logo zo groot mogelijk in een wit vak */
+  display: flex; align-items: center; justify-content: center; flex: none; height: 76px; min-width: 76px; max-width: min(280px, 100%);
+  padding: 10px 16px; border-radius: 14px; background: var(--kleur-vlak); overflow: hidden; box-shadow: var(--schaduw-zwevend);
+  font: 700 24px var(--lettertype-kop); color: var(--kleur-primair); transition: transform .3s cubic-bezier(.2, .7, .2, 1);
 }
-.clubhuis-logo img { height: 100%; width: auto; max-width: 172px; object-fit: contain; display: block; }
+.clubhuis-logo img { display: block; height: 56px; width: auto; max-width: 248px; object-fit: contain; }
 .clubhuis-tegel:hover .clubhuis-logo { transform: translateY(-3px) rotate(-2deg); }
 
 .clubhuis-cijfers { display: grid; grid-template-columns: repeat(3, 1fr) auto; align-items: center; gap: 12px; padding: 18px 24px; }
@@ -717,8 +717,8 @@ code.wachtwoord { font: 600 22px var(--lettertype-mono); letter-spacing: 1px; us
   .clubhuis-raster { gap: 16px; }
   .clubhuis-naamblok { left: 16px; right: 16px; bottom: 14px; gap: 10px; }
   .clubhuis-naamblok strong { font-size: 22px; }
-  .clubhuis-logo { height: 44px; min-width: 44px; max-width: 150px; padding: 6px 10px; border-radius: 10px; font-size: 17px; }
-  .clubhuis-logo img { max-width: 130px; }
+  .clubhuis-logo { height: 60px; min-width: 60px; max-width: min(220px, 100%); padding: 8px 12px; border-radius: 12px; font-size: 19px; }
+  .clubhuis-logo img { height: 44px; max-width: 196px; }
   .clubhuis-status { top: 12px; right: 12px; font-size: 13px; padding: 6px 12px; }
   .clubhuis-cijfers { grid-template-columns: repeat(3, 1fr); padding: 14px 16px; }
   .clubhuis-cijfers .clubhuis-open { display: none; }

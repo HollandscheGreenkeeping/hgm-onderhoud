@@ -3,6 +3,7 @@ import { huisstijlUrl, supabase } from '../lib/supabase'
 import { useLocatie } from '../lib/locatie'
 import type { Lijst } from '../lib/keuzelijst'
 import BaanfotoInstelling from '../components/BaanfotoInstelling'
+import { logoBijsnijden } from '../lib/logo'
 
 // Beheer: klantlogo, baanfoto en lussen van deze baan, en de keuzelijsten (gelden voor alle banen,
 // of per waarde voor gekozen banen).
@@ -33,7 +34,8 @@ function Klantlogo() {
     }
     setBezig(true)
     const pad = `klantlogos/${locatie.id}-${Date.now()}.${bestand.type === 'image/png' ? 'png' : 'svg'}`
-    const { error } = await supabase.storage.from('huisstijl').upload(pad, bestand, { contentType: bestand.type })
+    const logo = await logoBijsnijden(bestand) // lege randen weg: logo overal zo groot mogelijk
+    const { error } = await supabase.storage.from('huisstijl').upload(pad, logo, { contentType: bestand.type })
     const { error: fout } = error ? { error } : await supabase.from('locaties').update({ klantlogo_pad: pad }).eq('id', locatie.id)
     setBezig(false)
     if (fout) return setMelding({ soort: 'fout', tekst: 'Uploaden mislukt (max. 2 MB).' })
@@ -45,7 +47,8 @@ function Klantlogo() {
   return (
     <section className="kaart">
       <h2>Klantlogo {locatie.naam}</h2>
-      <p className="zacht">Rechtsboven in de app en op klantrapportages. PNG of SVG, transparant, max. 2 MB.</p>
+      <p className="zacht">Linksboven in de app, op de tegel in "Alle banen" en op klantrapportages. PNG of SVG, transparant,
+        max. 2 MB. Lege randen worden automatisch weggesneden.</p>
       {melding && <div className={`melding ${melding.soort}`}>{melding.tekst}</div>}
       {locatie.klantlogo_pad && (
         <div className="logo-voorbeeld"><img src={huisstijlUrl(locatie.klantlogo_pad)} alt="Huidig klantlogo" /></div>
