@@ -1004,6 +1004,7 @@ html::before {
 .posters-voorbeeld { position: sticky; top: 16px; display: grid; justify-items: center; gap: 8px; min-width: 0; }
 .posters-voorbeeld .poster-blad { box-shadow: var(--schaduw-tegel); }
 .posters-voorbeeld p { margin: 0; font-size: 14px; }
+.posters-voorbeeld .posters-tip { max-width: 420px; text-align: center; font-size: 13px; }
 @media (max-width: 900px) {
   .posters { grid-template-columns: 1fr; }
   .posters-voorbeeld { position: static; order: -1; }
@@ -1179,9 +1180,15 @@ html::before {
   html.posterdruk, html.posterdruk body { height: 100%; overflow: hidden; padding: 0; }
   html.posterdruk body { margin: 0; background: var(--poster-papier); }
   html.posterdruk #root { display: none !important; }
-  html.posterdruk .poster-druk { display: block; --e: 1mm; }
-  html.posterdruk.a3 .poster-druk { --e: 1.41421mm; }
-  .poster-druk .poster-blad { break-after: avoid; height: calc(var(--e) * 297 - .2mm); }
+  /* Past altijd op de pagina. Safari negeert @page size (drukt bijv. af op US Letter) en browsers kunnen
+     marges toevoegen: de poster schaalt mee met de printbare ruimte (container-eenheden meten de pagina;
+     vw/vh zijn in Safari het venster) in plaats van af te kappen. */
+  html.posterdruk .poster-druk {
+    display: flex; justify-content: center; align-items: center; width: 100%; height: 100%; overflow: hidden;
+    container-type: size;
+  }
+  .poster-druk > .poster-blad { --e: min(1mm, 100cqw / 210, (100cqh - .3mm) / 297); break-after: avoid; flex: none; }
+  html.posterdruk.a3 .poster-druk > .poster-blad { --e: min(1.41421mm, 100cqw / 210, (100cqh - .3mm) / 297); }
 }
 
 /* ══ HGM → Bestanden ══ */

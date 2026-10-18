@@ -67,7 +67,7 @@ const parken: { sleutel: string; naam: string; logo: string }[] = [
   ['rotterdam', 'Rotterdam'], ['shortgolf-utrecht', 'ShortGolf Utrecht'], ['sint-nyk', 'Sint Nyk'], ['westerpark', 'Westerpark'],
 ].map(([sleutel, naam]) => ({
   sleutel, naam: sleutel === 'shortgolf-utrecht' ? naam : `Golfpark ${naam}`,
-  logo: `/merken/parken/${sleutel}.${sleutel === 'maastricht' || sleutel === 'naarderbos' ? 'png' : 'svg'}`,
+  logo: `/merken/parken/${sleutel}.png`,
 }))
 
 const kleurVan = (merk: Merk, sleutel?: string) => merken[merk].kleuren.find((k) => k.sleutel === sleutel) ?? merken[merk].kleuren[0]
@@ -388,6 +388,7 @@ function Voorbeeld({ poster }: { poster: Poster }) {
     <div className="posters-voorbeeld" ref={ref}>
       <PosterBlad poster={poster} stijl={{ '--e': `${Math.max(e, 1)}px` } as CSSProperties} />
       <p className="zacht">{poster.formaat} staand · {poster.formaat === 'A4' ? '210 × 297 mm' : '297 × 420 mm'}</p>
+      <p className="zacht posters-tip">Kies in het printvenster papierformaat {poster.formaat}. Anders past de poster zich aan het papier aan.</p>
     </div>
   )
 }
