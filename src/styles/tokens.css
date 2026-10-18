@@ -85,6 +85,19 @@
   --hgc-limoen: #95c120;
   --hgc-zacht: #dfe5ef;            /* tekst op blauw */
   --hgc-lettertype: 'Montserrat', Arial, sans-serif;
+  /* Overige kleuren uit het palet van hollandschegolfclub.nl */
+  --hgc-groen: #13612e;
+  --hgc-lichtblauw: #0c71c3;
+  --hgc-paars: #5b4d97;
+  --hgc-oranje: #ff6600;           /* met donkere tekst */
+  --hgc-antraciet: #363636;
+  /* Vaste posterkleuren HGM (de --poster-*-tokens hierboven worden per poster overschreven) */
+  --hgm-olijf: #1d2714;
+  --hgm-limoen: #95c11f;
+  --hgm-antraciet: #363636;
+  /* Donkere tekst op lichte posterkleuren (limoen, oranje) */
+  --poster-donker: #1f2a1f;
+  --poster-donker-zacht: #2f3a2c;
 
   /* Veiligheidskleuren (ISO 7010 / ISO 3864), gelijk aan de kleuren in public/pictogrammen/iso7010 */
   --veilig-verbod: #b71f2e;

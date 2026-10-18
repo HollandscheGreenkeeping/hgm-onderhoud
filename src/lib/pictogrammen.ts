@@ -53,12 +53,13 @@ export const zoekPictogram = (code: string) => pictogrammen.find((p) => p.code =
 
 // Huisstijlen: HGM Golf (onderhoud, werkvloer) en de Hollandsche Golfclub (golfers op de baan).
 export type Merk = 'hgm' | 'hgc'
+export type Sjabloon = 'pictogram' | 'foto' | 'split' | 'kaart' | 'kader' | 'tekst'
 
 // Kant-en-klare boodschappen: tekst en pictogrammen, daarna vrij aan te passen.
 // merken: bij welke huisstijl ze in de lijst staan (standaard alleen HGM).
 export type Boodschap = {
   naam: string; groep: string; merken?: Merk[]
-  sjabloon: 'pictogram' | 'foto' | 'tekst'
+  sjabloon: Sjabloon; kleur?: string
   kop: string; tekst: string; pictos: string[]; foto?: string; qr?: boolean
 }
 
@@ -105,22 +106,45 @@ export const boodschappen: Boodschap[] = [
     kop: 'Zie je iets kapot? Meld het.', tekst: 'Waar, wat en hoe dringend, met een foto. Meteen bij de juiste persoon.' },
   { groep: 'Werkplaats', naam: 'Deur dicht', sjabloon: 'tekst', pictos: [],
     kop: 'Deur dicht houden', tekst: 'Ook overdag. Er staan machines en middelen binnen.' },
-  { groep: 'Op de baan', naam: 'Pitchmarks', merken: ['hgc'], sjabloon: 'foto', pictos: [], foto: '/marketing/baan-ochtend.jpg',
+  { groep: 'Op de baan', naam: 'Pitchmarks', merken: ['hgc'], sjabloon: 'kader', pictos: [], foto: '/merken/hgc-fotos/baan-22346.jpg',
     kop: 'Herstel je pitchmark', tekst: 'En nog één erbij. Zo blijft de green mooi voor iedereen.' },
-  { groep: 'Op de baan', naam: 'Bunker harken', merken: ['hgc'], sjabloon: 'tekst', pictos: [],
+  { groep: 'Op de baan', naam: 'Bunker harken', merken: ['hgc'], sjabloon: 'split', pictos: [], foto: '/merken/hgc-fotos/baan-22331.jpg',
     kop: 'Hark de bunker', tekst: 'Laat de bunker achter zoals je hem zelf zou willen aantreffen.' },
-  { groep: 'Op de baan', naam: 'Trolleys en buggy’s', merken: ['hgc'], sjabloon: 'tekst', pictos: [],
+  { groep: 'Op de baan', naam: 'Trolleys en buggy’s', merken: ['hgc'], sjabloon: 'kaart', kleur: 'groen', pictos: [],
     kop: 'Trolleys niet op tee en green', tekst: 'Ook niet tussen green en bunker. Volg de paden en de paaltjes.' },
   { groep: 'Op de baan', naam: 'Greenkeepers aan het werk', merken: ['hgc'], sjabloon: 'pictogram', pictos: ['W001'],
     kop: 'Greenkeepers aan het werk', tekst: 'Wacht op een teken van de greenkeeper voordat je slaat.' },
   { groep: 'Op de baan', naam: 'Onweer', merken: ['hgc'], sjabloon: 'pictogram', pictos: ['W001'],
     kop: 'Onweer? Verlaat de baan', tekst: 'Ga naar het clubhuis of een schuilhut. Niet schuilen onder bomen.' },
-  { groep: 'Op de baan', naam: 'Paddestoelen', merken: ['hgc'], sjabloon: 'foto', pictos: [], foto: '/posters/schemer.jpg',
+  { groep: 'Op de baan', naam: 'Paddestoelen', merken: ['hgc'], sjabloon: 'split', kleur: 'oranje', pictos: [], foto: '/merken/hgc-fotos/details-13523.jpg',
     kop: 'Paddestoelen op de baan', tekst: 'Mooi om te zien, niet om te plukken of te eten. Sommige soorten zijn giftig.' },
-  { groep: 'Baanstatus', naam: 'Baan gesloten', merken: ['hgc'], sjabloon: 'tekst', pictos: [],
+  { groep: 'Baanstatus', naam: 'Baan gesloten', merken: ['hgc'], sjabloon: 'kaart', pictos: [],
     kop: 'Baan gesloten', tekst: 'Vanwege de weersomstandigheden is de baan vandaag gesloten. Kijk voor actuele informatie op de website.' },
-  { groep: 'Baanstatus', naam: 'Wintergreens', merken: ['hgc'], sjabloon: 'tekst', pictos: [],
+  { groep: 'Baanstatus', naam: 'Wintergreens', merken: ['hgc'], sjabloon: 'kader', pictos: [], foto: '/merken/hgc-fotos/seizoen-10306.jpg',
     kop: 'Vandaag wintergreens', tekst: 'De zomergreens zijn gesloten. Speel naar de wintergreens.' },
-  { groep: 'Baanstatus', naam: 'Onderhoud greens', merken: ['hgc'], sjabloon: 'foto', pictos: [], foto: '/posters/ochtend.jpg',
+  { groep: 'Baanstatus', naam: 'Onderhoud greens', merken: ['hgc'], sjabloon: 'foto', pictos: [], foto: '/merken/hgc-fotos/onderhoud-22370.jpg',
     kop: 'Greens in onderhoud', tekst: 'De greens zijn gestoken en bezand. De komende weken rollen ze iets langzamer. Dank voor je begrip.' },
+  { groep: 'Op de baan', naam: 'Schapen in de baan', merken: ['hgc'], sjabloon: 'split', kleur: 'limoen', pictos: [], foto: '/merken/hgc-fotos/details-10681.jpg',
+    kop: 'Schapen in de baan', tekst: 'Onze grazers houden de rough kort. Geef ze de ruimte en sla niet als ze in de buurt zijn.' },
+  { groep: 'Op de baan', naam: 'Speeltempo', merken: ['hgc'], sjabloon: 'kaart', kleur: 'lichtblauw', pictos: [],
+    kop: 'Houd het tempo erin', tekst: 'Blijf aansluiten bij de flight voor je. Laat sneller spel door als er een hole vrij is.' },
+  { groep: 'Op de baan', naam: 'Natuur', merken: ['hgc'], sjabloon: 'kader', kleur: 'groen', pictos: [], foto: '/merken/hgc-fotos/details-10305.jpg',
+    kop: 'Natuur op de baan', tekst: 'Ecologisch beheerde rough met bloemen en insecten. Zoek je bal hier niet te lang.' },
+  { groep: 'Baanstatus', naam: 'Bunkers in onderhoud', merken: ['hgc'], sjabloon: 'split', pictos: [], foto: '/merken/hgc-fotos/onderhoud-22365.jpg',
+    kop: 'Bunkers in onderhoud', tekst: 'De bunkers krijgen nieuw zand. Kijk voor de plaatselijke regel op het bord bij de starter.' },
+  { groep: 'Werkplaats', naam: 'Gemaaid en klaar', sjabloon: 'kader', pictos: [], foto: '/merken/hgc-fotos/onderhoud-22976.jpg',
+    kop: 'Elke streep telt', tekst: 'Goed maaiwerk begint bij scherpe messen. Na elke ronde: schoon, getankt en gecontroleerd.' },
+  { groep: 'Faciliteiten', naam: 'Buggy’s op het pad', merken: ['hgc'], sjabloon: 'pictogram', pictos: ['sym:golf-cart'],
+    kop: 'Buggy’s alleen op het pad', tekst: 'Blijf op afstand van greens en tees. Volg de paaltjes.' },
+  { groep: 'Faciliteiten', naam: 'Golfsets te huur', merken: ['hgc'], sjabloon: 'split', pictos: ['sym:golf-bat', 'sym:golf-cart', 'sym:golf-ball'],
+    foto: '/merken/hgc-fotos/baan-22264.jpg', kop: 'Golfsets te huur', tekst: 'Huur een set clubs, ballen of een buggy bij de receptie.' },
+  { groep: 'Faciliteiten', naam: 'Clubhuis en horeca', merken: ['hgc'], sjabloon: 'kaart', kleur: 'groen', pictos: ['sym:coffee-02', 'sym:spoon-and-knife', 'sym:beer'],
+    kop: 'Clubhuis', tekst: 'Koffie, lunch en een borrel na je ronde.' },
+  { groep: 'Faciliteiten', naam: 'Terras', merken: ['hgc'], sjabloon: 'kader', kleur: 'oranje', pictos: ['sym:sun-03', 'sym:drink'],
+    foto: '/merken/hgc-fotos/baan-22339.jpg', kop: 'Terras open', tekst: 'Geniet na je ronde van een drankje met uitzicht op de baan.' },
+  { groep: 'Faciliteiten', naam: 'Toiletten en kleedruimte', merken: ['hgc'], sjabloon: 'tekst', kleur: 'blauw', pictos: ['sym:toilet-01', 'sym:shower-head', 'sym:locker'],
+    kop: 'Toiletten en kleedruimte', tekst: 'Met douches en kluisjes. Neem je eigen slot mee.' },
+  { groep: 'Faciliteiten', naam: 'Laadplek buggy’s', sjabloon: 'pictogram', merken: ['hgm', 'hgc'], pictos: ['sym:ev-charging', 'W026'],
+    kop: 'Laadplek buggy’s', tekst: 'Alleen voor elektrische buggy’s. Stekker na het laden terug in de houder.' },
 ]
+

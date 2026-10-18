@@ -6,47 +6,85 @@ import { supabase } from '../lib/supabase'
 import { useSessie } from '../lib/sessie'
 import { bankLink, opslagVoorvoegsel, uploadNaarBank, useMagBestanden } from '../lib/bestanden'
 import {
-  boodschappen, pictogramUrl, pictogrammen, soortNamen, zoekPictogram, type Boodschap, type Merk, type Soort,
+  boodschappen, pictogramUrl, pictogrammen, soortNamen, zoekPictogram, type Merk, type Sjabloon, type Soort,
 } from '../lib/pictogrammen'
+import { fotoGroepen, posterFotos } from '../lib/posterfotos'
+import { isSymbool, symboolGroepen, symbolen, zoekSymbool } from '../lib/symbolen'
 
 // HGM → Posters: borden en posters voor de werkplaats en de baan, af te drukken als PDF (A4 of A3).
 // Pictogrammen zijn de officiële ISO 7010-tekens, ongewijzigd. Verder alleen tekst, foto en het HGM-logo.
 // De poster is getekend in de eenheid --e (1 mm op A4); A3 is precies A4 × √2, dus alleen --e schaalt.
 
-type Sjabloon = Boodschap['sjabloon']
 type Formaat = 'A4' | 'A3'
 
-const sjablonen: { waarde: Sjabloon; naam: string }[] = [
-  { waarde: 'pictogram', naam: 'Pictogram' }, { waarde: 'foto', naam: 'Foto' }, { waarde: 'tekst', naam: 'Tekst' },
+const sjablonen: { waarde: Sjabloon; naam: string; uitleg: string }[] = [
+  { waarde: 'pictogram', naam: 'Pictogram', uitleg: 'Groot veiligheidsteken met tekstbord' },
+  { waarde: 'foto', naam: 'Foto', uitleg: 'Foto over de hele poster, tekst onderin' },
+  { waarde: 'split', naam: 'Gedeeld', uitleg: 'Foto boven, kleurvlak met tekst onder' },
+  { waarde: 'kader', naam: 'Kader', uitleg: 'Foto in een witte lijst met een tekstlabel' },
+  { waarde: 'kaart', naam: 'Kaart', uitleg: 'Kleurvlak met gecentreerde tekst, witte voet' },
+  { waarde: 'tekst', naam: 'Tekst', uitleg: 'Alleen tekst op een kleurvlak' },
 ]
-const fotos = [
-  { url: '/posters/ochtend.jpg', naam: 'Ochtend' }, { url: '/posters/nacht.jpg', naam: 'Nacht' },
-  { url: '/posters/schemer.jpg', naam: 'Schemer' }, { url: '/marketing/baan-ochtend.jpg', naam: 'Green' },
-  { url: '/marketing/maaier-avond.jpg', naam: 'Maaier' },
-]
+const metFoto: Sjabloon[] = ['foto', 'split', 'kader']
 const soorten = Object.keys(soortNamen) as Soort[]
-const maxPictos = 3
+const maxPictos = 4
 const lettersSleutel = 'hgm-poster-letters'
 
 // Huisstijlen. Logo's ongewijzigd: HGM heeft een witte versie, de Hollandsche Golfclub niet
-// (daar staat het kleurenlogo op een wit vlak op donkere posters).
-const merken: Record<Merk, { naam: string; logo: string; logoWit: string | null; logoAlt: string; verloop: string; website?: string }> = {
-  hgm: { naam: 'HGM Golf', logo: '/hgm-logo.png', logoWit: '/hgm-logo-wit.png', logoAlt: 'Hollandsche Greenkeeping Maatschappij', verloop: '/posters/verloop.png' },
-  hgc: { naam: 'Hollandsche Golfclub', logo: '/merken/hollandsche-golfclub.png', logoWit: null, logoAlt: 'Hollandsche Golfclub',
-         verloop: '/merken/verloop-hgc.png', website: 'hollandschegolfclub.nl' },
+// (daar staat het kleurenlogo op een wit vlak op gekleurde posters).
+type Kleur = { sleutel: string; naam: string; token: string; licht?: boolean }
+const merken: Record<Merk, {
+  naam: string; logo: string; logoWit: string | null; logoAlt: string; website?: string; standaardFoto: string; kleuren: Kleur[]
+}> = {
+  hgm: {
+    naam: 'HGM Golf', logo: '/hgm-logo.png', logoWit: '/hgm-logo-wit.png', logoAlt: 'Hollandsche Greenkeeping Maatschappij',
+    standaardFoto: '/posters/ochtend.jpg',
+    kleuren: [
+      { sleutel: 'olijf', naam: 'Olijf', token: '--hgm-olijf' },
+      { sleutel: 'limoen', naam: 'Limoen', token: '--hgm-limoen', licht: true },
+      { sleutel: 'antraciet', naam: 'Antraciet', token: '--hgm-antraciet' },
+    ],
+  },
+  hgc: {
+    naam: 'Hollandsche Golfclub', logo: '/merken/hollandsche-golfclub.png', logoWit: '/merken/hollandsche-golfclub-wit.svg', logoAlt: 'Hollandsche Golfclub',
+    website: 'hollandschegolfclub.nl', standaardFoto: '/merken/hgc-fotos/baan-22264.jpg',
+    kleuren: [
+      { sleutel: 'blauw', naam: 'Blauw', token: '--hgc-blauw' },
+      { sleutel: 'groen', naam: 'Groen', token: '--hgc-groen' },
+      { sleutel: 'lichtblauw', naam: 'Lichtblauw', token: '--hgc-lichtblauw' },
+      { sleutel: 'paars', naam: 'Paars', token: '--hgc-paars' },
+      { sleutel: 'antraciet', naam: 'Antraciet', token: '--hgc-antraciet' },
+      { sleutel: 'oranje', naam: 'Oranje', token: '--hgc-oranje', licht: true },
+      { sleutel: 'hgclimoen', naam: 'Limoen', token: '--hgc-limoen', licht: true },
+    ],
+  },
 }
+// Golfparken van de Hollandsche Golfclub met hun eigen logo (ongewijzigd van hollandschegolfclub.nl).
+const parken: { sleutel: string; naam: string; logo: string }[] = [
+  ['almkreek', 'Almkreek'], ['de-berendonck', 'De Berendonck'], ['de-breuninkhof', 'De Breuninkhof'], ['de-haverleij', 'De Haverleij'],
+  ['de-kurenpolder', 'De Kurenpolder'], ['de-loonsche-duynen', 'De Loonsche Duynen'], ['de-purmer', 'De Purmer'], ['gendersteyn', 'Gendersteyn'],
+  ['maastricht', 'International Maastricht'], ['land-van-thorn', 'Land van Thorn'], ['naarderbos', 'Naarderbos'], ['reymerswael', 'Reymerswael'],
+  ['rotterdam', 'Rotterdam'], ['shortgolf-utrecht', 'ShortGolf Utrecht'], ['sint-nyk', 'Sint Nyk'], ['westerpark', 'Westerpark'],
+].map(([sleutel, naam]) => ({
+  sleutel, naam: sleutel === 'shortgolf-utrecht' ? naam : `Golfpark ${naam}`,
+  logo: `/merken/parken/${sleutel}.${sleutel === 'maastricht' || sleutel === 'naarderbos' ? 'png' : 'svg'}`,
+}))
+
+const kleurVan = (merk: Merk, sleutel?: string) => merken[merk].kleuren.find((k) => k.sleutel === sleutel) ?? merken[merk].kleuren[0]
 
 export type Poster = {
   sjabloon: Sjabloon; formaat: Formaat; kop: string; tekst: string; plek: string
   pictos: string[]; foto: string; qr: boolean
-  merk?: Merk   // ontbreekt bij oudere opgeslagen posters: HGM
+  merk?: Merk     // ontbreekt bij oudere opgeslagen posters: HGM
+  kleur?: string  // sleutel uit merken[merk].kleuren; leeg = eerste kleur
+  park?: string   // alleen Hollandsche Golfclub: sleutel uit parken (eigen parklogo in de voet)
 }
 
 export default function Posters() {
   const eerste = boodschappen[0]
   const [p, setP] = useState<Poster>({
     sjabloon: eerste.sjabloon, formaat: 'A4', kop: eerste.kop, tekst: eerste.tekst, plek: '',
-    pictos: eerste.pictos, foto: fotos[0].url, qr: false, merk: 'hgm',
+    pictos: eerste.pictos, foto: merken.hgm.standaardFoto, qr: false, merk: 'hgm',
   })
   // Eigen foto: nieuw gekozen (bestand, nog niet in de opslag) of uit de bestandenbank (pad).
   const [eigenFoto, setEigenFoto] = useState<{ url: string; bestand?: File; pad?: string } | null>(null)
@@ -137,7 +175,7 @@ export default function Posters() {
   function kiesBoodschap(naam: string) {
     const b = boodschappen.find((x) => x.naam === naam)
     if (!b) return
-    setP((oud) => ({ ...oud, sjabloon: b.sjabloon, kop: b.kop, tekst: b.tekst, pictos: b.pictos, foto: b.foto ?? oud.foto, qr: b.qr ?? false }))
+    setP((oud) => ({ ...oud, sjabloon: b.sjabloon, kop: b.kop, tekst: b.tekst, pictos: b.pictos, foto: b.foto ?? oud.foto, qr: b.qr ?? false, kleur: b.kleur }))
   }
 
   function wisselPicto(code: string) {
@@ -180,10 +218,25 @@ export default function Posters() {
             <div className="posters-keuze" role="group" aria-label="Huisstijl">
               {(Object.keys(merken) as Merk[]).map((m) => (
                 <button key={m} type="button" aria-pressed={merk === m}
-                        onClick={() => setP((oud) => ({ ...oud, merk: m, qr: m === 'hgc' ? false : oud.qr }))}>{merken[m].naam}</button>
+                        onClick={() => setP((oud) => ({ ...oud, merk: m, kleur: undefined, park: undefined, qr: m === 'hgc' ? false : oud.qr,
+                          foto: posterFotos.some((f) => f.url === oud.foto) ? oud.foto : merken[m].standaardFoto }))}>{merken[m].naam}</button>
               ))}
             </div>
           </div>
+
+          {merk === 'hgc' && (
+            <label>
+              Golfpark
+              <select value={p.park ?? ''} onChange={(e) => {
+                const park = parken.find((x) => x.sleutel === e.target.value)
+                setP((oud) => ({ ...oud, park: park?.sleutel,
+                  plek: !oud.plek || parken.some((x) => x.naam === oud.plek) ? park?.naam ?? '' : oud.plek }))
+              }}>
+                <option value="">Geen (alleen Hollandsche Golfclub)</option>
+                {parken.map((x) => <option key={x.sleutel} value={x.sleutel}>{x.naam}</option>)}
+              </select>
+            </label>
+          )}
 
           <label>
             Boodschap
@@ -199,9 +252,23 @@ export default function Posters() {
 
           <div>
             <span className="veldlabel">Sjabloon</span>
-            <div className="posters-keuze" role="group" aria-label="Sjabloon">
+            <div className="posters-keuze raster" role="group" aria-label="Sjabloon">
               {sjablonen.map((s) => (
-                <button key={s.waarde} type="button" aria-pressed={p.sjabloon === s.waarde} onClick={() => zet('sjabloon', s.waarde)}>{s.naam}</button>
+                <button key={s.waarde} type="button" aria-pressed={p.sjabloon === s.waarde} title={s.uitleg}
+                        onClick={() => setP((oud) => ({ ...oud, sjabloon: s.waarde,
+                          foto: metFoto.includes(s.waarde) && !oud.foto ? merken[merk].standaardFoto : oud.foto }))}>{s.naam}</button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <span className="veldlabel">Kleur <span className="zacht">({kleurVan(merk, p.kleur).naam})</span></span>
+            <div className="posters-kleuren" role="group" aria-label="Kleur">
+              {merken[merk].kleuren.map((k) => (
+                <button key={k.sleutel} type="button" aria-pressed={kleurVan(merk, p.kleur).sleutel === k.sleutel} title={k.naam}
+                        style={{ '--c': `var(${k.token})` } as CSSProperties} onClick={() => zet('kleur', k.sleutel)}>
+                  <span className="sr-only">{k.naam}</span>
+                </button>
               ))}
             </div>
           </div>
@@ -219,18 +286,27 @@ export default function Posters() {
           <label>Tekst<textarea rows={3} value={p.tekst} onChange={(e) => zet('tekst', e.target.value)} maxLength={180} /></label>
           <label>Onderregel<input value={p.plek} onChange={(e) => zet('plek', e.target.value)} placeholder={merk === 'hgc' ? 'bijv. Golfpark Almkreek' : 'bijv. Werkplaats Golfpark Almkreek'} maxLength={60} /></label>
 
-          {p.sjabloon === 'foto' && (
+          {metFoto.includes(p.sjabloon) && (
             <div>
               <span className="veldlabel">Foto</span>
-              <div className="posters-fotos">
-                {fotos.map((f) => (
-                  <button key={f.url} type="button" aria-pressed={p.foto === f.url} onClick={() => zet('foto', f.url)}
-                          style={{ backgroundImage: `url('${f.url}')` }} title={f.naam}><span>{f.naam}</span></button>
-                ))}
+              <div className="posters-fotolijst">
                 {eigenFoto && (
-                  <button type="button" aria-pressed={p.foto === eigenFoto.url} onClick={() => zet('foto', eigenFoto.url)}
-                          style={{ backgroundImage: `url('${eigenFoto.url}')` }}><span>Eigen</span></button>
+                  <div className="posters-fotos">
+                    <button type="button" aria-pressed={p.foto === eigenFoto.url} onClick={() => zet('foto', eigenFoto.url)}
+                            style={{ backgroundImage: `url('${eigenFoto.url}')` }}><span>Eigen foto</span></button>
+                  </div>
                 )}
+                {fotoGroepen.map((g) => (
+                  <div key={g}>
+                    <span className="label-klein">{g}</span>
+                    <div className="posters-fotos">
+                      {posterFotos.filter((f) => f.groep === g).map((f) => (
+                        <button key={f.url} type="button" aria-pressed={p.foto === f.url} onClick={() => zet('foto', f.url)}
+                                style={{ backgroundImage: `url('${f.klein}')` }} title={f.naam}><span>{f.naam}</span></button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
               </div>
               <label className="posters-upload knop tweede klein">
                 Eigen foto kiezen
@@ -250,7 +326,24 @@ export default function Posters() {
           </label>}
 
           <div>
-            <span className="veldlabel">Pictogrammen <span className="zacht">({p.pictos.length}/{maxPictos}, ISO 7010)</span></span>
+            <span className="veldlabel">Pictogrammen en symbolen <span className="zacht">({p.pictos.length}/{maxPictos})</span></span>
+            {symboolGroepen.map((g) => (
+              <div key={g} className="posters-pictogroep">
+                <span className="label-klein">{g}</span>
+                <div className="posters-pictos symbolen">
+                  {symbolen.filter((x) => x.groep === g).map((x) => {
+                    const gekozen = p.pictos.includes(x.code)
+                    return (
+                      <button key={x.code} type="button" aria-pressed={gekozen} title={x.naam}
+                              disabled={!gekozen && p.pictos.length >= maxPictos} onClick={() => wisselPicto(x.code)}>
+                        <SymboolSvg code={x.code} /><span>{x.naam}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            ))}
+            <span className="posters-normkop">Veiligheidstekens (ISO 7010)</span>
             {soorten.map((s) => (
               <div key={s} className="posters-pictogroep">
                 <span className="label-klein">{soortNamen[s]}</span>
@@ -308,18 +401,38 @@ function kopMaat(kop: string) {
 }
 
 export function PosterBlad({ poster: p, stijl }: { poster: Poster; stijl?: CSSProperties }) {
-  const m = merken[p.merk ?? 'hgm']
-  const donker = p.sjabloon !== 'pictogram'
-  const soort = zoekPictogram(p.pictos[0] ?? '')?.soort
+  const merk = p.merk ?? 'hgm'
+  const m = merken[merk]
+  const kleur = kleurVan(merk, p.kleur)
+  // Waar staat het logo: op wit (pictogram, kaart, kader) of op de posterkleur.
+  const opKleur = ['foto', 'split', 'tekst'].includes(p.sjabloon)
+  const logo = !opKleur || kleur.licht ? m.logo : m.logoWit ?? m.logo
+  const logoOpVlak = opKleur && !m.logoWit   // clublogo heeft geen witte versie: op een wit vlak
+  const soort = isSymbool(p.pictos[0] ?? '') ? undefined : zoekPictogram(p.pictos[0] ?? '')?.soort
+  const kleurStijl = { '--poster-olijf': `var(${kleur.token})`, '--poster-olijf-diep': `var(${kleur.token})` } as CSSProperties
+
   const pictos = p.pictos.length > 0 && (
     <div className={`poster-pictos aantal-${p.pictos.length}`}>
-      {p.pictos.map((c) => <img key={c} src={pictogramUrl(c)} alt={zoekPictogram(c)?.naam ?? c} />)}
+      {p.pictos.map((c) => isSymbool(c)
+        ? <span key={c} className="poster-symbool" role="img" aria-label={zoekSymbool(c)?.naam}><SymboolSvg code={c} /></span>
+        : <img key={c} src={pictogramUrl(c)} alt={zoekPictogram(c)?.naam ?? c} />)}
     </div>
   )
+  const park = merk === 'hgc' ? parken.find((x) => x.sleutel === p.park) : undefined
+  const inhoud = (
+    <div className="poster-inhoud">
+      {pictos}
+      <h1>{p.kop}</h1>
+      {p.tekst && <p className="poster-tekst">{p.tekst}</p>}
+    </div>
+  )
+  // Foto als echte afbeelding: Safari drukt CSS-achtergronden niet goed af.
+  const foto = p.foto ? <img src={p.foto} alt="" /> : null
   const voet = (
     <div className="poster-voet">
       <div className="poster-merk">
-        <img src={donker && m.logoWit ? m.logoWit : m.logo} alt={m.logoAlt} className={donker && !m.logoWit ? 'op-vlak' : undefined} />
+        {park && <img src={park.logo} alt={park.naam} className={`parklogo${opKleur ? ' op-vlak' : ''}`} />}
+        <img src={logo} alt={m.logoAlt} className={logoOpVlak ? 'op-vlak' : undefined} />
         {(p.plek || m.website) && <span>{p.plek}{p.plek && m.website && <br />}{m.website}</span>}
       </div>
       {p.qr && <div className="poster-qr"><span>Meld het<br />in de app</span><div><img src="/marketing/qr-app.svg" alt="QR-code naar HGM Golf Onderhoud" /></div></div>}
@@ -327,34 +440,49 @@ export function PosterBlad({ poster: p, stijl }: { poster: Poster; stijl?: CSSPr
   )
 
   return (
-    <div className={`poster-blad merk-${p.merk ?? 'hgm'} sjabloon-${p.sjabloon} kop-${kopMaat(p.kop)}`} style={stijl} data-soort={soort}>
+    <div className={`poster-blad merk-${merk} sjabloon-${p.sjabloon} kop-${kopMaat(p.kop)}`} style={{ ...kleurStijl, ...stijl }}
+         data-soort={soort} data-licht={kleur.licht ? '' : undefined}>
       {p.sjabloon === 'pictogram' && (
         <>
           <div className="poster-pictovlak">{pictos}</div>
           <div className="poster-bord">{p.kop}</div>
           {p.tekst && <p className="poster-tekst">{p.tekst}</p>}
+          {voet}
         </>
       )}
       {p.sjabloon === 'foto' && (
         <>
-          {/* Foto en verloop als echte afbeeldingen: Safari drukt CSS-achtergronden, filters en
-              verlopen met transparantie niet goed af (verloop wordt zwart). Verloop-PNG = merkkleur met alpha. */}
-          <div className="poster-foto">{p.foto && <img src={p.foto} alt="" />}<img src={m.verloop} alt="" /></div>
-          <div className="poster-inhoud">
-            {pictos}
-            <h1>{p.kop}</h1>
-            {p.tekst && <p className="poster-tekst">{p.tekst}</p>}
-          </div>
+          {/* Verloop als PNG (merkkleur met alpha): Safari drukt CSS-verlopen met transparantie zwart af. */}
+          <div className="poster-foto">{foto}<img src={`/posters/verloop/${kleur.sleutel}.png`} alt="" /></div>
+          {inhoud}
+          {voet}
         </>
       )}
-      {p.sjabloon === 'tekst' && (
-        <div className="poster-inhoud">
-          {pictos}
-          <h1>{p.kop}</h1>
-          {p.tekst && <p className="poster-tekst">{p.tekst}</p>}
-        </div>
+      {p.sjabloon === 'split' && (
+        <>
+          <div className="split-foto">{foto}</div>
+          <div className="split-paneel">{inhoud}{voet}</div>
+        </>
       )}
-      {voet}
+      {p.sjabloon === 'kader' && (
+        <>
+          <div className="kader-foto">{foto}</div>
+          <div className="kader-label">{inhoud}{voet}</div>
+        </>
+      )}
+      {p.sjabloon === 'kaart' && (
+        <>
+          <div className="kaart-vlak">{inhoud}</div>
+          <div className="kaart-voet">{voet}</div>
+        </>
+      )}
+      {p.sjabloon === 'tekst' && <>{inhoud}{voet}</>}
     </div>
   )
+}
+
+// Symbool uit symbolen.ts als inline SVG (lijnen in currentColor; drukt ook in Safari goed af).
+function SymboolSvg({ code }: { code: string }) {
+  const s = zoekSymbool(code)
+  return s ? <svg viewBox="0 0 24 24" aria-hidden dangerouslySetInnerHTML={{ __html: s.body }} /> : null
 }
