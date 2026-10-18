@@ -1294,6 +1294,7 @@ html::before {
 .stickers-rij input { width: 20px; height: 20px; min-height: 0; margin: 0; accent-color: var(--kleur-secundair); }
 .stickers-rij:hover { background: var(--kleur-zijbalk-hover); }
 .stickers-instellingen { position: sticky; top: 16px; }
+.stickers-koop { margin: 0 0 6px; padding: 10px 12px; border-radius: var(--radius-klein); background: var(--kleur-in-orde-zacht); font-size: 14px; line-height: 1.5; }
 .stickers-voorbeeld { zoom: .42; border: 1px solid var(--kleur-rand-sterk); box-shadow: var(--schaduw-tegel); width: max-content; }
 .stickers-voorbeeld .sticker { outline: .25mm dashed var(--kleur-rand); }
 
@@ -1317,13 +1318,13 @@ html::before {
 }
 .sticker-qr svg { display: block; width: 100%; height: 100%; }
 .sticker-tekst { display: flex; flex-direction: column; min-width: 0; padding-top: calc(var(--k) * .6mm); }
-.sticker-code { font-size: calc(var(--k) * 10pt); font-weight: 700; line-height: 1.08; overflow-wrap: break-word; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.sticker-code { font-size: calc(var(--k) * 10pt); font-weight: 700; line-height: 1.08; overflow-wrap: break-word; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .sticker-code.mono { font-family: var(--lettertype-mono); font-size: calc(var(--k) * 15pt); font-weight: 600; letter-spacing: -.02em; line-height: 1; }
 .sticker-sub { display: flex; align-items: center; gap: calc(var(--k) * 1.2mm); margin-top: calc(var(--k) * 1.3mm); font-size: calc(var(--k) * 6.4pt); line-height: 1.2; color: var(--kleur-op-foto-zacht); }
 .sticker-sub::before { content: ''; flex: none; width: calc(var(--k) * 1.6mm); height: calc(var(--k) * 1.6mm); border-radius: 50%; background: var(--c); box-shadow: 0 0 0 .3mm var(--kleur-primair-tekst); }
 .sticker-voet { margin-top: auto; display: flex; align-items: flex-end; justify-content: space-between; gap: 2mm; }
 .sticker-voet span { font-size: calc(var(--k) * 5.6pt); color: var(--kleur-op-foto-zacht); line-height: 1.2; }
-.sticker-voet img { display: block; height: calc(var(--k) * 4.6mm); width: auto; }
+.sticker-voet img { display: block; flex: none; height: calc(var(--q) * 8.2mm); width: auto; margin-bottom: calc(var(--q) * -.4mm); }
 .sticker-band {
   flex: none; display: flex; align-items: center; justify-content: space-between; gap: 2mm;
   height: calc(var(--q) * 6.6mm); padding: 0 calc(var(--k) * 3mm); background: var(--c); color: var(--kleur-primair-tekst);

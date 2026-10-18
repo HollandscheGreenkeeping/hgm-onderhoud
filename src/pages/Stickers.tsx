@@ -11,11 +11,23 @@ import { machineNaam } from './Materieel'
 // /o/<object-id> en /m/<machine-id> (korte links, dus een kleine QR-code die ook buiten goed scant).
 // Afdrukken op etiketvellen in vaste maten (mm): niet schalen, anders vallen de stickers naast de etiketten.
 
-export type Vel = { sleutel: string; naam: string; b: number; h: number; kol: number; rij: number; boven: number; links: number; tussenX: number; tussenY: number }
+// Etiketvellen met een weerbestendige (polyester) Avery-variant voor buiten en een papieren voor binnen.
+// Layouts: standaard A4-indelingen van Avery, etiketten gecentreerd met 2,54 mm tussenruimte.
+export type Vel = {
+  sleutel: string; naam: string; buiten: string; binnen?: string
+  b: number; h: number; kol: number; rij: number; boven: number; links: number; tussenX: number; tussenY: number
+}
 export const vellen: Vel[] = [
-  { sleutel: '70x37', naam: '70 × 37 mm · 24 per vel (bijv. Avery 3474)', b: 70, h: 37, kol: 3, rij: 8, boven: 0.5, links: 0, tussenX: 0, tussenY: 0 },
-  { sleutel: '63x38', naam: '63,5 × 38,1 mm · 21 per vel (Avery L7160)', b: 63.5, h: 38.1, kol: 3, rij: 7, boven: 15.15, links: 7.2, tussenX: 2.5, tussenY: 0 },
-  { sleutel: '105x74', naam: '105 × 74 mm · 8 per vel (groot, voor machines)', b: 105, h: 74, kol: 2, rij: 4, boven: 0.5, links: 0, tussenX: 0, tussenY: 0 },
+  { sleutel: '70x37', naam: '70 × 37 mm · 24 per vel', buiten: 'Avery Zweckform L4718-20', binnen: 'Avery 3474',
+    b: 70, h: 37, kol: 3, rij: 8, boven: 0.5, links: 0, tussenX: 0, tussenY: 0 },
+  { sleutel: '63x38', naam: '63,5 × 38,1 mm · 21 per vel', buiten: 'Avery L7060-20', binnen: 'Avery L7160',
+    b: 63.5, h: 38.1, kol: 3, rij: 7, boven: 15.15, links: 7.21, tussenX: 2.54, tussenY: 0 },
+  { sleutel: '63x34', naam: '63,5 × 33,9 mm · 24 per vel (klein, voor deksels)', buiten: 'Avery L4773-20', binnen: 'Avery L7159',
+    b: 63.5, h: 33.9, kol: 3, rij: 8, boven: 12.9, links: 7.21, tussenX: 2.54, tussenY: 0 },
+  { sleutel: '99x42', naam: '99,1 × 42,3 mm · 12 per vel (machines)', buiten: 'Avery L4776-20',
+    b: 99.1, h: 42.3, kol: 2, rij: 6, boven: 21.6, links: 4.63, tussenX: 2.54, tussenY: 0 },
+  { sleutel: '99x57', naam: '99,1 × 57 mm · 10 per vel (groot, machines)', buiten: 'Avery L7992-25', binnen: 'Avery L7173',
+    b: 99.1, h: 57, kol: 2, rij: 5, boven: 6, links: 4.63, tussenX: 2.54, tussenY: 0 },
 ]
 
 export type Item = { sleutel: string; soort: 'object' | 'machine'; id: string; titel: string; sub: string; groep: string; kleur: string }
@@ -148,7 +160,11 @@ export default function Stickers() {
               <input type="number" min={1} max={10} value={aantal} onChange={(e) => setAantal(Math.max(1, Math.min(10, Number(e.target.value) || 1)))} />
             </label>
           </div>
-          <p className="zacht klein-tekst">Druk af op A4 met schaal 100% en zonder marges. Gebruik buiten weerbestendige etiketten (polyester of vinyl).</p>
+          <p className="stickers-koop">
+            <strong>Buiten:</strong> {vel.buiten} (weerbestendig polyester, laserprinter)
+            {vel.binnen && <><br /><strong>Binnen:</strong> {vel.binnen} (papier)</>}
+          </p>
+          <p className="zacht klein-tekst">Druk af op A4 met schaal 100% en zonder marges. Doe eerst een proef op gewoon papier en leg die tegen het etiketvel.</p>
           <div className="stickers-voorbeeld">
             <StickerVel vel={vel} stickers={vellenLijst[0]} baan={locatie.naam} />
           </div>
