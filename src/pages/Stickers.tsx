@@ -13,6 +13,7 @@ import { machineNaam } from './Materieel'
 
 // Etiketvellen met een weerbestendige (polyester) Avery-variant voor buiten en een papieren voor binnen.
 // Layouts: standaard A4-indelingen van Avery, etiketten gecentreerd met 2,54 mm tussenruimte.
+// Ronde vellen: maten van OnlineLabels (EU30109 Ø 40, EU30022 Ø 51, EU30065 Ø 60).
 export type Vel = {
   sleutel: string; naam: string; buiten: string; binnen?: string
   b: number; h: number; kol: number; rij: number; boven: number; links: number; tussenX: number; tussenY: number
@@ -21,6 +22,8 @@ export type Vel = {
 export const vellen: Vel[] = [
   { sleutel: 'rond40', naam: 'Rond Ø 40 mm · 24 per vel (sprinklers)', buiten: 'Avery Heavy Duty rond Ø 40 mm (polyester)', binnen: 'Avery L3415',
     b: 40, h: 40, kol: 4, rij: 6, boven: 16, links: 17.5, tussenX: 5, tussenY: 5, rond: true },
+  { sleutel: 'rond51', naam: 'Rond Ø 51 mm · 15 per vel', buiten: 'OnlineLabels EU30022LP (weerbestendig, laser)', binnen: 'Avery Zweckform 6225',
+    b: 51, h: 51, kol: 3, rij: 5, boven: 17, links: 26.5, tussenX: 2, tussenY: 2, rond: true },
   { sleutel: 'rond60', naam: 'Rond Ø 60 mm · 12 per vel', buiten: 'Avery Heavy Duty rond Ø 60 mm (polyester)', binnen: 'Avery L3416',
     b: 60, h: 60, kol: 3, rij: 4, boven: 25.5, links: 13, tussenX: 2, tussenY: 2, rond: true },
   { sleutel: '70x37', naam: '70 × 37 mm · 24 per vel', buiten: 'Avery Zweckform L4718-20', binnen: 'Avery 3474',
