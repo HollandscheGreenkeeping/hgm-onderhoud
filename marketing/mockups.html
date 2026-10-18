@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<title>HGM Onderhoud – mock-ups</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@600;700&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<!--
+  Mock-ups van HGM Golf Onderhoud voor flyer en nieuwsbrief. Eén mock-up per weergave:
+  mockups.html?m=laptop | telefoon-kaart | telefoon-melden | horloge | duo
+  Renderen naar PNG: zie marketing/render.sh. Kleuren gelijk aan src/styles/tokens.css.
+-->
+<style>
+  :root {
+    --primair: #2a3520; --groen: #2f7d3b; --tekst: #26301c; --zacht: #5a6249; --label: #687060;
+    --rand: #e3e6df; --rand-sterk: #dadfd5; --vlak-zacht: #f1f3ee; --groen-zacht: #e4f0e3;
+    --rood: #c8402f; --rood-zacht: #f8e3df; --oranje: #9c6312; --oranje-zacht: #f6ecdc;
+    --blauw: #2c7fd0; --bruin: #8a5a3c;
+    --kop: 'Zilla Slab', Georgia, serif; --sans: 'Public Sans', system-ui, sans-serif; --mono: 'IBM Plex Mono', ui-monospace, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: transparent; font-family: var(--sans); color: var(--tekst); -webkit-font-smoothing: antialiased; }
+  .mock { display: none; }
+  .mock.aan { display: block; }
+  body { padding: 40px; }
+
+  /* ── Laptop ── */
+  .laptop { width: 1180px; }
+  .laptop-scherm { border: 14px solid #1d2117; border-radius: 22px 22px 0 0; background: #fff; overflow: hidden; height: 700px; display: grid; grid-template-columns: 220px 1fr; box-shadow: 0 30px 70px rgba(20,30,15,.22); }
+  .laptop-voet { height: 22px; margin: 0 -60px; background: linear-gradient(#d9dcd3, #b9bdb1); border-radius: 0 0 26px 26px; position: relative; }
+  .laptop-voet::after { content: ''; position: absolute; left: 50%; top: 0; width: 160px; height: 8px; margin-left: -80px; background: #a8ad9f; border-radius: 0 0 10px 10px; }
+  .zij { border-right: 1px solid var(--rand); padding: 14px 10px; display: flex; flex-direction: column; gap: 2px; font-size: 13.5px; }
+  .zij-baan { display: flex; gap: 9px; align-items: center; padding: 2px 6px 12px; border-bottom: 1px solid var(--rand); margin-bottom: 8px; }
+  .zij-logo { width: 38px; height: 38px; border: 1px solid var(--rand); border-radius: 8px; display: grid; place-items: center; font: 700 12px var(--kop); color: var(--primair); background: var(--vlak-zacht); }
+  .zij-baan small { display: block; font-size: 11px; color: var(--label); }
+  .zij-baan strong { font: 700 14px/1.15 var(--kop); }
+  .zij a { display: flex; justify-content: space-between; align-items: center; padding: 7px 9px; border-radius: 7px; color: var(--tekst); text-decoration: none; font-weight: 500; position: relative; }
+  .zij a.aan { background: var(--groen-zacht); color: var(--primair); font-weight: 700; }
+  .zij a.aan::before { content: ''; position: absolute; left: -10px; top: 7px; bottom: 7px; width: 3px; border-radius: 0 3px 3px 0; background: var(--groen); }
+  .zij .tel { font: 600 10.5px var(--mono); background: var(--rood); color: #fff; border-radius: 99px; padding: 1px 6px; }
+  .zij .groep { font-size: 11px; font-weight: 600; color: var(--label); padding: 12px 9px 4px; border-top: 1px solid var(--rand); margin-top: 6px; }
+  .zij-voet { margin-top: auto; display: flex; align-items: center; gap: 6px; font-size: 9.5px; color: var(--label); padding: 8px 6px 0; border-top: 1px solid var(--rand); }
+  .zij-voet img { height: 24px; }
+  .inhoud { display: flex; flex-direction: column; min-width: 0; }
+  .kruimel { height: 40px; border-bottom: 1px solid var(--rand); display: flex; align-items: center; padding: 0 22px; font-size: 12.5px; color: var(--zacht); }
+  .kruimel b { color: var(--tekst); }
+  .pagina { padding: 16px 22px; }
+  .pkop { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 10px; }
+  .pkop h1 { margin: 0; font: 700 22px var(--kop); display: flex; align-items: center; gap: 8px; }
+  .pkop h1 span { font: 600 11px var(--mono); background: var(--vlak-zacht); color: var(--zacht); padding: 2px 8px; border-radius: 99px; }
+  .knop { display: inline-flex; align-items: center; height: 32px; padding: 0 14px; border-radius: 8px; font: 600 13px var(--sans); background: var(--primair); color: #fff; }
+  .knop.rood { background: var(--rood); }
+  .knop.groen { background: var(--groen); }
+  .werkbalk { display: flex; gap: 6px; align-items: center; padding-bottom: 10px; margin-bottom: 10px; border-bottom: 1px solid var(--rand); font-size: 12.5px; }
+  .tab { padding: 6px 10px; border-radius: 7px; color: var(--zacht); font-weight: 500; }
+  .tab.aan { background: var(--vlak-zacht); color: var(--tekst); font-weight: 700; box-shadow: inset 0 -2px 0 var(--groen); }
+  .zoek { margin-left: auto; width: 210px; height: 30px; border: 1px solid var(--rand-sterk); border-radius: 7px; padding: 0 10px; display: flex; align-items: center; color: var(--label); }
+  .filter { height: 30px; border: 1px solid var(--rand-sterk); border-radius: 7px; padding: 0 10px; display: flex; align-items: center; color: var(--zacht); }
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; border: 1px solid var(--rand); border-radius: 9px; overflow: hidden; }
+  th { text-align: left; background: var(--vlak-zacht); color: var(--zacht); font-weight: 600; font-size: 11.5px; padding: 7px 10px; border-bottom: 1px solid var(--rand); }
+  td { padding: 8px 10px; border-bottom: 1px solid var(--rand); vertical-align: middle; }
+  tr:last-child td { border-bottom: 0; }
+  td b { display: block; font-weight: 600; }
+  td small { color: var(--zacht); font-size: 11px; }
+  td.mono { font: 500 11px var(--mono); color: var(--zacht); white-space: nowrap; }
+  tr.let td:first-child { box-shadow: inset 3px 0 0 var(--rood); }
+  .chip { display: inline-flex; align-items: center; gap: 5px; padding: 2px 8px; border-radius: 99px; font-size: 11px; font-weight: 700; white-space: nowrap; }
+  .chip::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .chip.r { background: var(--rood-zacht); color: var(--rood); }
+  .chip.o { background: var(--oranje-zacht); color: var(--oranje); }
+  .chip.g { background: var(--groen-zacht); color: var(--groen); }
+  .cat { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; }
+  .cat::before { content: ''; width: 8px; height: 8px; border-radius: 2px; background: var(--c); }
+  .urgent { color: var(--rood); font-weight: 700; }
+
+  /* ── Telefoon ── */
+  .telefoon { width: 390px; height: 800px; border-radius: 58px; background: #1d2117; padding: 12px; box-shadow: 0 30px 70px rgba(20,30,15,.25); position: relative; }
+  .tscherm { width: 100%; height: 100%; border-radius: 47px; background: #fff; overflow: hidden; position: relative; display: flex; flex-direction: column; }
+  .eiland { position: absolute; top: 11px; left: 50%; width: 112px; height: 32px; margin-left: -56px; background: #000; border-radius: 20px; z-index: 5; }
+  .status { height: 50px; display: flex; justify-content: space-between; align-items: center; padding: 6px 30px 0; font: 600 14px var(--sans); flex: none; }
+  .tkop { display: flex; align-items: center; gap: 10px; padding: 6px 16px 10px; border-bottom: 1px solid var(--rand); flex: none; }
+  .tkop .logo { width: 34px; height: 34px; border: 1px solid var(--rand); border-radius: 7px; display: grid; place-items: center; font: 700 11px var(--kop); color: var(--primair); background: var(--vlak-zacht); }
+  .tkop strong { font: 700 16px var(--kop); flex: 1; }
+  .tkop img { height: 28px; }
+  .menubalk { display: grid; grid-template-columns: repeat(5, 1fr); border-top: 1px solid var(--rand); padding: 6px 4px 22px; font-size: 11.5px; color: var(--zacht); text-align: center; background: #fff; flex: none; }
+  .menubalk span { display: flex; flex-direction: column; align-items: center; gap: 5px; position: relative; }
+  .menubalk span::before { content: ''; width: 24px; height: 3px; border-radius: 2px; background: transparent; }
+  .menubalk span.aan { color: var(--tekst); font-weight: 700; }
+  .menubalk span.aan::before { background: var(--groen); }
+  .menubalk i { position: absolute; top: -3px; right: 6px; font: 600 9px var(--mono); background: var(--rood); color: #fff; border-radius: 99px; padding: 0 5px; font-style: normal; }
+
+  .kaart { flex: 1; position: relative; overflow: hidden; background: #7d9a5a; }
+  .kaart svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .kaartknop { position: absolute; top: 12px; left: 12px; background: #fff; border-radius: 9px; padding: 7px 12px; font: 600 12.5px var(--sans); box-shadow: 0 4px 14px rgba(20,30,15,.18); }
+  .kaartzoek { position: absolute; top: 12px; left: 82px; right: 12px; background: #fff; border-radius: 9px; padding: 7px 12px; font-size: 12.5px; color: var(--label); box-shadow: 0 4px 14px rgba(20,30,15,.18); }
+  .paneel { position: absolute; left: 0; right: 0; bottom: 0; background: #fff; border-radius: 18px 18px 0 0; box-shadow: 0 -8px 26px rgba(20,30,15,.2); padding: 8px 14px 12px; }
+  .paneel::before { content: ''; display: block; width: 36px; height: 4px; border-radius: 2px; background: var(--rand-sterk); margin: 0 auto 8px; }
+  .paneel h3 { margin: 0 0 8px; font: 700 15px var(--kop); }
+  .rij { border: 1px solid var(--rand); border-radius: 10px; padding: 8px 10px; margin-bottom: 6px; font-size: 12px; }
+  .rij.let { border-left: 3px solid var(--rood); }
+  .rij .boven { display: flex; justify-content: space-between; align-items: center; font: 500 10px var(--mono); color: var(--label); }
+  .rij b { display: block; font-size: 13px; margin: 3px 0 2px; }
+  .rij small { color: var(--zacht); }
+
+  .melden { flex: 1; padding: 14px 18px; display: flex; flex-direction: column; }
+  .meldkop { display: flex; justify-content: space-between; font-size: 13px; color: var(--zacht); margin-bottom: 10px; }
+  .meldkop .mono { font: 500 12px var(--mono); }
+  .stappen { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin-bottom: 16px; }
+  .stappen span { height: 4px; border-radius: 2px; background: var(--rand); }
+  .stappen span.g { background: var(--groen); }
+  .melden h2 { font: 700 26px/1.1 var(--kop); margin: 0 0 14px; }
+  .tegels { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+  .tegel { border: 1.5px solid var(--rand-sterk); border-radius: 12px; padding: 14px 12px; font: 600 14px var(--sans); display: flex; align-items: center; gap: 8px; }
+  .tegel::before { content: ''; width: 12px; height: 12px; border-radius: 3px; background: var(--c); }
+  .tegel.aan { border-color: var(--groen); background: var(--groen-zacht); box-shadow: inset 0 0 0 1px var(--groen); }
+  .label { font-size: 12.5px; font-weight: 600; margin-bottom: 6px; }
+  .invoer { border: 1px solid var(--rand-sterk); border-radius: 10px; padding: 12px; font-size: 14px; color: var(--tekst); margin-bottom: 12px; min-height: 66px; }
+  .foto { border: 1.5px dashed var(--rand-sterk); border-radius: 12px; padding: 12px; display: flex; align-items: center; gap: 10px; font-size: 13.5px; font-weight: 600; }
+  .foto span { width: 38px; height: 38px; border-radius: 8px; background: var(--vlak-zacht); display: grid; place-items: center; font-size: 22px; color: var(--zacht); }
+  .melden .knop { margin-top: auto; height: 52px; justify-content: center; font-size: 16px; border-radius: 12px; }
+
+  /* ── Horloge ── */
+  .horloge { width: 250px; height: 300px; border-radius: 68px; background: #1d2117; padding: 16px; position: relative; box-shadow: 0 24px 60px rgba(20,30,15,.3); }
+  .horloge::after { content: ''; position: absolute; right: -10px; top: 78px; width: 12px; height: 46px; border-radius: 6px; background: #2c3224; }
+  .hscherm { width: 100%; height: 100%; border-radius: 54px; background: #000; color: #fff; padding: 20px 16px 10px; overflow: hidden; }
+  .htijd { display: flex; justify-content: space-between; align-items: baseline; font: 600 15px var(--sans); }
+  .htijd span { color: #5cb85c; font-size: 16px; }
+  .hkop { font-size: 12px; font-weight: 600; margin: 10px 0 6px; }
+  .hrij { background: #222; border-radius: 14px; padding: 9px 11px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
+  .hrij small { display: block; color: #9a9a9a; font-size: 10.5px; }
+  .schakel { width: 30px; height: 18px; border-radius: 9px; background: #3a3a3a; position: relative; flex: none; }
+  .schakel::after { content: ''; position: absolute; left: 2px; top: 2px; width: 14px; height: 14px; border-radius: 50%; background: #fff; }
+  .schakel.aan { background: var(--groen); }
+  .schakel.aan::after { left: 14px; }
+
+  .duo { position: relative; width: 1400px; height: 860px; }
+  .duo .laptop { position: absolute; left: 0; top: 30px; }
+  .duo .telefoon { position: absolute; right: 30px; top: 60px; transform: scale(.92); transform-origin: top right; }
+</style>
+</head>
+<body>
+
+<!-- ───────────── Laptop: storingenlijst ───────────── -->
+<template id="t-laptop">
+<div class="laptop">
+  <div class="laptop-scherm">
+    <aside class="zij">
+      <div class="zij-baan"><div class="zij-logo">AK</div><div><small>Baan</small><strong>Golfpark Almkreek ▾</strong></div></div>
+      <a>Kaart</a><a class="aan">Storingen <span class="tel">4</span></a><a>Taken</a><a>Werk</a><a>Onderhoud</a><a>Materieel</a><a>Voorstellen</a><a>Dashboard</a><a>Rapportage</a>
+      <span class="groep">HGM</span><a>Overzicht</a><a>Alle banen</a><a>Werkplaats</a><a>Inkoop</a>
+      <div class="zij-voet">beheer door <img src="../public/hgm-logo.png" alt=""></div>
+    </aside>
+    <div class="inhoud">
+      <div class="kruimel">Golfpark Almkreek&nbsp;&nbsp;/&nbsp;&nbsp;<b>Storingen</b></div>
+      <div class="pagina">
+        <div class="pkop"><h1>Storingen <span>4</span></h1><span class="knop rood">Storing melden</span></div>
+        <div class="werkbalk">
+          <span class="tab aan">Open</span><span class="tab">Aan mij</span><span class="tab">In behandeling</span><span class="tab">Opgelost</span><span class="tab">Alle</span>
+          <span class="zoek">Zoek op code, plek of melder</span><span class="filter">Urgentie: alle ▾</span><span class="filter">Soort: alle ▾</span>
+        </div>
+        <table>
+          <tr><th>Storing</th><th>Code</th><th>Hole</th><th>Soort</th><th>Urgentie</th><th>Status</th><th>Uitvoerder</th><th>Gemeld</th></tr>
+          <tr class="let"><td><b>Sprinkler lekt</b><small>Sprinkler A-014</small></td><td class="mono">S-3F2A</td><td>4</td><td><span class="cat" style="--c: var(--blauw)">Beregening</span></td><td class="urgent">Spoed</td><td><span class="chip r">Gemeld</span></td><td><small>Niemand</small></td><td class="mono">12 min</td></tr>
+          <tr><td><b>Klep reageert niet</b><small>Klep K-07</small></td><td class="mono">S-91C4</td><td>9</td><td><span class="cat" style="--c: var(--blauw)">Beregening</span></td><td class="urgent">Hoog</td><td><span class="chip o">In behandeling</span></td><td>Sander</td><td class="mono">2 u</td></tr>
+          <tr><td><b>Natte plek voor de green</b><small>Plek op de kaart</small></td><td class="mono">S-7D10</td><td>12</td><td><span class="cat" style="--c: var(--bruin)">Drainage</span></td><td>Normaal</td><td><span class="chip r">Toegewezen</span></td><td>Ruben</td><td class="mono">1 d</td></tr>
+          <tr><td><b>Messen slaan aan</b><small>Greenmaaier 2 · werkorder WO-18</small></td><td class="mono">S-24B8</td><td>–</td><td><span class="cat" style="--c: #6b7280">Materieel</span></td><td>Normaal</td><td><span class="chip o">In behandeling</span></td><td>Werkplaats</td><td class="mono">2 d</td></tr>
+          <tr><td><b>Kapotte bal-wasser</b><small>Ballenwasser tee 1</small></td><td class="mono">S-05E3</td><td>1</td><td><span class="cat" style="--c: #6b7280">Overig</span></td><td>Laag</td><td><span class="chip g">Opgelost</span></td><td>Ruben</td><td class="mono">3 d</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="laptop-voet"></div>
+</div>
+</template>
+
+<!-- ───────────── Telefoon: kaart met storingen ───────────── -->
+<template id="t-telefoon-kaart">
+<div class="telefoon"><div class="tscherm">
+  <div class="eiland"></div>
+  <div class="status"><span>9:41</span><span>●●● ▮</span></div>
+  <div class="tkop"><div class="logo">AK</div><strong>Golfpark Almkreek</strong><img src="../public/hgm-logo.png" alt=""></div>
+  <div class="kaart">
+    <svg viewBox="0 0 390 560" preserveAspectRatio="xMidYMid slice">
+      <defs>
+        <pattern id="gras" width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(30)"><rect width="14" height="14" fill="#6f8f4c"/><rect width="7" height="14" fill="#759752"/></pattern>
+        <pattern id="fair" width="18" height="18" patternUnits="userSpaceOnUse" patternTransform="rotate(-20)"><rect width="18" height="18" fill="#94b865"/><rect width="9" height="18" fill="#9cc06c"/></pattern>
+      </defs>
+      <rect width="390" height="560" fill="url(#gras)"/>
+      <g fill="#4d6b35" opacity=".9"><circle cx="30" cy="80" r="26"/><circle cx="60" cy="60" r="20"/><circle cx="350" cy="140" r="28"/><circle cx="370" cy="190" r="22"/><circle cx="40" cy="420" r="30"/><circle cx="330" cy="470" r="26"/><circle cx="20" cy="300" r="18"/></g>
+      <path d="M95 520 C 120 420, 120 330, 170 250 S 250 120, 285 70" stroke="url(#fair)" stroke-width="78" fill="none" stroke-linecap="round"/>
+      <path d="M95 520 C 120 420, 120 330, 170 250 S 250 120, 285 70" stroke="#a9cd78" stroke-width="2" stroke-dasharray="2 8" fill="none" opacity=".7"/>
+      <ellipse cx="292" cy="62" rx="44" ry="30" fill="#b5d98a"/>
+      <ellipse cx="248" cy="96" rx="20" ry="11" fill="#eadfb8"/>
+      <ellipse cx="200" cy="300" rx="16" ry="9" fill="#eadfb8"/>
+      <path d="M220 360 q 60 -20 110 20 q 30 40 -20 70 q -60 20 -100 -20 z" fill="#5f8fb8"/>
+      <rect x="80" y="505" width="40" height="22" rx="4" fill="#9cc06c"/>
+      <g stroke="#2c7fd0" stroke-width="2.5" fill="none" opacity=".9"><path d="M60 540 L 150 300 L 300 90"/><path d="M150 300 L 330 300"/></g>
+      <g fill="#2c7fd0" stroke="#fff" stroke-width="2"><circle cx="150" cy="300" r="6"/><circle cx="300" cy="90" r="6"/><circle cx="230" cy="190" r="6"/><circle cx="110" cy="420" r="6"/><circle cx="330" cy="300" r="6"/></g>
+      <g><circle cx="230" cy="190" r="15" fill="#c8402f" opacity=".25"/><circle cx="230" cy="190" r="8" fill="#c8402f" stroke="#fff" stroke-width="2.5"/></g>
+      <g><circle cx="330" cy="300" r="15" fill="#9c6312" opacity=".25"/><circle cx="330" cy="300" r="8" fill="#9c6312" stroke="#fff" stroke-width="2.5"/></g>
+      <g font-family="IBM Plex Mono, monospace" font-size="11" font-weight="600" fill="#fff"><text x="282" y="40">4</text></g>
+      <line x1="292" y1="62" x2="292" y2="36" stroke="#fff" stroke-width="2"/><path d="M292 36 l 14 5 l -14 5 z" fill="#c8402f"/>
+    </svg>
+    <div class="kaartknop">Lagen</div><div class="kaartzoek">Zoek hole, object of code</div>
+    <div class="paneel">
+      <h3>Storingen · 4 open</h3>
+      <div class="rij let"><div class="boven"><span>S-3F2A · hole 4</span><span class="chip r">Gemeld</span></div><b>Sprinkler lekt</b><small>Beregening · Sprinkler A-014 · 12 min</small></div>
+      <div class="rij"><div class="boven"><span>S-91C4 · hole 9</span><span class="chip o">In behandeling</span></div><b>Klep reageert niet</b><small>Beregening · Klep K-07 · 2 u</small></div>
+    </div>
+  </div>
+  <div class="menubalk"><span class="aan">Kaart</span><span>Storingen<i>4</i></span><span>Taken</span><span>Werk</span><span>Meer</span></div>
+</div></div>
+</template>
+
+<!-- ───────────── Telefoon: storing melden ───────────── -->
+<template id="t-telefoon-melden">
+<div class="telefoon"><div class="tscherm">
+  <div class="eiland"></div>
+  <div class="status"><span>9:41</span><span>●●● ▮</span></div>
+  <div class="melden">
+    <div class="meldkop"><span>← Terug</span><span class="mono">stap 2 van 3</span></div>
+    <div class="stappen"><span class="g"></span><span class="g"></span><span></span></div>
+    <h2>Wat is er aan de hand?</h2>
+    <div class="tegels">
+      <div class="tegel aan" style="--c: var(--blauw)">Beregening</div>
+      <div class="tegel" style="--c: var(--bruin)">Drainage</div>
+      <div class="tegel" style="--c: #7a3fb0">Kabels</div>
+      <div class="tegel" style="--c: #6b7280">Overig</div>
+    </div>
+    <div class="label">Omschrijving</div>
+    <div class="invoer">Sprinkler blijft doorlopen, plas op de fairway.</div>
+    <div class="foto"><span>+</span>Foto toevoegen</div>
+    <span class="knop">Volgende: urgentie</span>
+  </div>
+</div></div>
+</template>
+
+<!-- ───────────── Horloge ───────────── -->
+<template id="t-horloge">
+<div class="horloge"><div class="hscherm">
+  <div class="htijd"><span>Vandaag</span>9:41</div>
+  <div class="hkop">Werk vandaag</div>
+  <div class="hrij"><div>Greens maaien<small>Hole 1–9</small></div><span class="schakel aan"></span></div>
+  <div class="hrij"><div>Bunkers harken<small>Hole 10–18</small></div><span class="schakel"></span></div>
+  <div class="hkop">Mijn taken</div>
+  <div class="hrij"><div>Klep K-07 nakijken<small style="color:#e2795f">uiterlijk vandaag</small></div></div>
+</div></div>
+</template>
+
+<!-- ───────────── Duo: laptop + telefoon ───────────── -->
+<template id="t-duo">
+<div class="duo"><div class="d-laptop"></div><div class="d-telefoon"></div></div>
+</template>
+
+<div id="doel"></div>
+<script>
+  const m = new URLSearchParams(location.search).get('m') || 'laptop'
+  const doel = document.getElementById('doel')
+  const zet = (id) => document.getElementById('t-' + id).content.cloneNode(true)
+  if (m === 'duo') {
+    doel.appendChild(zet('duo'))
+    document.querySelector('.d-laptop').replaceWith(zet('laptop'))
+    document.querySelector('.d-telefoon').replaceWith(zet('telefoon-kaart'))
+  } else {
+    doel.appendChild(zet(m))
+  }
+</script>
+</body>
+</html>

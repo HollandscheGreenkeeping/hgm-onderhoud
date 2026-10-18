@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<title>HGM Golf Onderhoud – we gaan testen (medewerkers)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@600;700&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<!-- Interne flyer (A4, één pagina) voor HGM-medewerkers: aankondiging testfase. PDF: marketing/render.sh.
+     Kleuren gelijk aan src/styles/tokens.css. -->
+<style>
+  :root {
+    --primair: #2a3520; --groen: #2f7d3b; --tekst: #26301c; --zacht: #5a6249; --label: #687060;
+    --rand: #e3e6df; --vlak-zacht: #f1f3ee; --groen-zacht: #e4f0e3; --rood: #c8402f; --blauw: #2c7fd0;
+    --kop: 'Zilla Slab', Georgia, serif; --sans: 'Public Sans', Arial, sans-serif; --mono: 'IBM Plex Mono', monospace;
+  }
+  @page { size: A4; margin: 0; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: #e9ebe5; font-family: var(--sans); color: var(--tekst); -webkit-font-smoothing: antialiased; }
+  .blad { width: 210mm; height: 297mm; margin: 10mm auto; background: #fff; overflow: hidden; display: flex; flex-direction: column; }
+  @media print { html, body { background: #fff; } .blad { margin: 0; } }
+
+  .foto { height: 64mm; background: url('../public/marketing/baan-ochtend.jpg') center 55% / cover; position: relative; flex: none; }
+  .foto::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(18,26,12,.55), rgba(18,26,12,.1) 55%, rgba(18,26,12,0)); }
+  .foto img { position: absolute; left: 12mm; top: 9mm; height: 14mm; z-index: 1; background: #fff; padding: 2mm 3mm; border-radius: 2mm; }
+  .foto .intern { position: absolute; right: 12mm; top: 11mm; z-index: 1; font: 700 9pt var(--sans); color: var(--primair); background: #fff; border-radius: 99px; padding: 1.5mm 4mm; }
+  .foto h1 { position: absolute; right: 12mm; top: 19mm; z-index: 1; margin: 0; max-width: 120mm; text-align: right; color: #fff; font: 700 28pt/1.03 var(--kop); }
+
+  .scherm { position: relative; z-index: 2; margin: -27mm auto -7mm; width: 146mm; }
+  .scherm img { width: 100%; display: block; }
+  .intro { padding: 2mm 14mm 2mm; }
+  .intro p { margin: 0 0 2mm; font-size: 9.8pt; line-height: 1.48; color: var(--zacht); }
+  .intro p strong { color: var(--tekst); }
+  .intro p:last-child { margin-bottom: 0; }
+
+  .voorjou { padding: 4mm 14mm 0; }
+  h2 { font: 700 15pt var(--kop); margin: 0 0 3mm; }
+  .punten { display: grid; grid-template-columns: 1fr 1fr; gap: 2.5mm 8mm; }
+  .punt { display: grid; grid-template-columns: 7mm 1fr; gap: 2mm; font-size: 9.5pt; line-height: 1.45; color: var(--zacht); }
+  .punt b { display: grid; place-items: center; width: 6mm; height: 6mm; border-radius: 50%; background: var(--groen-zacht); color: var(--groen); font: 700 9pt var(--sans); }
+  .punt strong { display: block; color: var(--tekst); font-size: 10pt; }
+
+  .tijdlijn { padding: 5mm 14mm 0; }
+  .stappen { display: grid; grid-template-columns: repeat(3, 1fr); position: relative; }
+  .stappen::before { content: ''; position: absolute; left: 3mm; right: 3mm; top: 2.6mm; height: 2px; background: var(--rand); }
+  .fase { position: relative; padding-right: 5mm; }
+  .fase i { display: block; width: 6mm; height: 6mm; border-radius: 50%; background: #fff; border: 2px solid var(--rand); margin-bottom: 2.5mm; position: relative; }
+  .fase.nu i { background: var(--groen); border-color: var(--groen); box-shadow: 0 0 0 3px var(--groen-zacht); }
+  .fase .wanneer { font: 500 8.5pt var(--mono); color: var(--label); }
+  .fase strong { display: block; font: 700 11pt var(--kop); margin: 1mm 0; }
+  .fase p { margin: 0; font-size: 8.8pt; line-height: 1.45; color: var(--zacht); }
+
+  .meedoen { margin: 5mm 14mm 10mm; background: var(--primair); color: #fff; border-radius: 4mm; padding: 5mm 7mm; display: grid; grid-template-columns: 1fr auto; gap: 6mm; align-items: center; }
+  .meedoen h2 { color: #fff; margin: 0 0 1.5mm; font-size: 17pt; }
+  .meedoen p { margin: 0; font-size: 10pt; line-height: 1.5; color: #dfe6d6; }
+  .meedoen .adres { background: #fff; color: var(--primair); border-radius: 2.5mm; padding: 3.5mm 5mm; font-weight: 700; font-size: 10.5pt; white-space: nowrap; }
+
+  .voet { margin-top: auto; padding: 4mm 14mm 8mm; display: flex; justify-content: space-between; font-size: 8.5pt; color: var(--label); }
+</style>
+</head>
+<body>
+<section class="blad">
+  <div class="foto">
+    <img src="../public/hgm-logo.png" alt="Hollandsche Greenkeeping Maatschappij">
+    <span class="intern">Voor medewerkers</span>
+    <h1>We gaan testen.<br>Test jij mee?</h1>
+  </div>
+
+  <div class="scherm"><img src="../public/marketing/duo.png" alt="HGM Golf Onderhoud op de computer en op de telefoon"></div>
+
+  <div class="intro">
+      <p><strong>HGM Golf Onderhoud</strong> is ons nieuwe systeem voor al het werk op de banen. Storingen, taken,
+         dagplanning, materieel en werkorders staan straks op één plek: op de kaart van de baan, op de computer
+         en op je telefoon in het veld.</p>
+      <p>Eerst testen we het in de praktijk. Wat werkt, wat is onhandig, wat mist er nog? Dat horen we graag van jullie.</p>
+  </div>
+
+  <div class="voorjou">
+    <h2>Wat verandert er voor jou?</h2>
+    <div class="punten">
+      <div class="punt"><b>1</b><div><strong>Melden in drie stappen</strong>Waar, wat en hoe dringend, met een foto. Meteen bij de juiste persoon.</div></div>
+      <div class="punt"><b>2</b><div><strong>Je werk voor vandaag</strong>De dagplanning staat klaar op je telefoon. Afvinken als het gedaan is.</div></div>
+      <div class="punt"><b>3</b><div><strong>Alles op de kaart</strong>Elke sprinkler, klep en leiding, met de hele historie erbij.</div></div>
+      <div class="punt"><b>4</b><div><strong>Machine kapot?</strong>Een defect melden wordt meteen een werkorder voor de werkplaats.</div></div>
+    </div>
+  </div>
+
+  <div class="tijdlijn">
+    <h2>Zo gaan we het doen</h2>
+    <div class="stappen">
+      <div class="fase nu"><i></i><span class="wanneer">nu</span><strong>Testen</strong><p>We beginnen op de proefbaan Golfpark Almkreek, met een kleine groep collega's.</p></div>
+      <div class="fase"><i></i><span class="wanneer">de komende maanden</span><strong>Verbeteren</strong><p>Jullie feedback verwerken en meer banen en collega's laten meedoen.</p></div>
+      <div class="fase"><i></i><span class="wanneer">medio 2027</span><strong>Op alle banen</strong><p>Het systeem gaat in productie en iedereen werkt ermee.</p></div>
+    </div>
+  </div>
+
+  <div class="meedoen">
+    <div>
+      <h2>Wil je meetesten?</h2>
+      <p>Laat het weten aan je hoofd-greenkeeper of stuur een mailtje. Je hoeft er niets voor te kunnen: als je een
+         telefoon kunt gebruiken, kun je meedoen.</p>
+    </div>
+    <span class="adres">support@hgmgolf.nl</span>
+  </div>
+
+</section>
+</body>
+</html>
