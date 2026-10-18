@@ -1,4 +1,7 @@
+import { useState } from 'react'
 import { Link, useNavigate } from 'react-router'
+import { inIosApp, koppelHorloge } from '../lib/horloge'
+import { useSessie } from '../lib/sessie'
 import { supabase } from '../lib/supabase'
 import { useLocatie } from '../lib/locatie'
 
@@ -7,6 +10,8 @@ import { useLocatie } from '../lib/locatie'
 export default function Meer() {
   const { locatie, rol, magPlannen, isGlobaal } = useLocatie()
   const navigeer = useNavigate()
+  const { profiel } = useSessie()
+  const [horloge, setHorloge] = useState<string | null>(null)
   const basis = `/locatie/${locatie.id}`
 
   async function uitloggen() {
@@ -32,6 +37,17 @@ export default function Meer() {
         {(magPlannen || rol === 'monteur') && <Link to={`/inkoop/voorraad?locatie=${locatie.id}`}>Inkoop en voorraad</Link>}
         {isGlobaal && <Link to="/beheer">Beheer</Link>}
       </nav>
+      {inIosApp() && (
+        <>
+          <nav className="menulijst">
+            <button type="button" onClick={() => koppelHorloge(profiel?.naam ?? profiel?.email ?? '')
+              .then(() => setHorloge('Apple Watch gekoppeld.')).catch((e) => setHorloge((e as Error).message))}>
+              Apple Watch koppelen
+            </button>
+          </nav>
+          {horloge && <div className="melding info">{horloge}</div>}
+        </>
+      )}
       <nav className="menulijst">
         <Link to="/wachtwoord">Wachtwoord wijzigen</Link>
         <button type="button" className="uitloggen" onClick={uitloggen}>Uitloggen</button>

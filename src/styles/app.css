@@ -808,14 +808,15 @@ strong.rood, span.rood { color: var(--kleur-storing); }
 .zijbalk {
   position: sticky; top: 0; height: 100dvh; overflow-y: auto; display: flex; flex-direction: column; gap: 4px;
   background: var(--kleur-zijbalk); color: var(--kleur-zijbalk-tekst); padding: 14px 10px; scrollbar-width: thin;
+  border-right: 1px solid var(--kleur-zijbalk-rand);
 }
 .zijbalk-baan { display: flex; align-items: center; gap: 10px; padding: 4px 6px 14px; margin-bottom: 6px; border-bottom: 1px solid var(--kleur-zijbalk-rand); }
-.zijbalk-logo { width: 44px; height: 44px; border-radius: var(--radius-klein); background: var(--kleur-vlak); object-fit: contain; padding: 4px; flex: none; }
-.zijbalk-logo.leeg { display: grid; place-items: center; font: 700 16px var(--lettertype-kop); color: var(--kleur-primair); text-transform: uppercase; }
+.zijbalk-logo { width: 44px; height: 44px; border-radius: var(--radius-klein); background: var(--kleur-vlak); border: 1px solid var(--kleur-zijbalk-rand); object-fit: contain; padding: 4px; flex: none; }
+.zijbalk-logo.leeg { display: grid; place-items: center; font: 700 16px var(--lettertype-kop); color: var(--kleur-primair); text-transform: uppercase; background: var(--kleur-vlak-zacht); }
 .zijbalk-baan > div { display: flex; flex-direction: column; min-width: 0; }
 .zijbalk-baanlabel { font-size: 12px; color: var(--kleur-zijbalk-zacht); }
 .zijbalk-baannaam { font: 700 17px/1.2 var(--lettertype-kop); color: var(--kleur-zijbalk-tekst); text-decoration: none; overflow-wrap: anywhere; }
-.zijbalk-baannaam:hover { color: var(--kleur-primair-tekst); }
+.zijbalk-baannaam:hover { color: var(--kleur-secundair); }
 .zijbalk-baannaam span { font-size: 11px; color: var(--kleur-zijbalk-zacht); }
 
 .zijbalk-groep { display: flex; flex-direction: column; gap: 1px; padding: 6px 0; }
@@ -826,10 +827,10 @@ strong.rood, span.rood { color: var(--kleur-storing); }
   padding: 0 10px; border-radius: var(--radius-klein); color: var(--kleur-zijbalk-tekst); text-decoration: none;
   font-size: 15px; font-weight: 500;
 }
-.zijbalk-groep a:hover { background: var(--kleur-zijbalk-actief); }
-.zijbalk-groep a.active { background: var(--kleur-zijbalk-actief); color: var(--kleur-primair-tekst); font-weight: 600; }
+.zijbalk-groep a:hover { background: var(--kleur-zijbalk-hover); }
+.zijbalk-groep a.active { background: var(--kleur-zijbalk-actief); color: var(--kleur-primair); font-weight: 600; }
 .zijbalk-groep a.active::before { content: ''; position: absolute; left: -10px; top: 8px; bottom: 8px; width: 3px; border-radius: 0 3px 3px 0; background: var(--kleur-secundair); }
-.zijbalk-groep a:focus-visible, .zijbalk-acties a:focus-visible, .zijbalk-acties button:focus-visible { outline: 2px solid var(--kleur-zijbalk-tekst); outline-offset: 1px; }
+.zijbalk-groep a:focus-visible, .zijbalk-acties a:focus-visible, .zijbalk-acties button:focus-visible { outline: 2px solid var(--kleur-secundair); outline-offset: 1px; }
 .zijbalk-telling { font: 600 12px var(--lettertype-mono); background: var(--kleur-storing); color: var(--kleur-primair-tekst); border-radius: var(--radius-pil); padding: 1px 7px; }
 .zijbalk-sub { display: flex; flex-direction: column; gap: 1px; margin: 2px 0 6px 12px; padding-left: 8px; border-left: 1px solid var(--kleur-zijbalk-rand); }
 .zijbalk-sub a { min-height: 34px; font-size: 14px; color: var(--kleur-zijbalk-zacht); }
@@ -841,7 +842,7 @@ strong.rood, span.rood { color: var(--kleur-storing); }
 .zijbalk-acties { display: flex; gap: 14px; }
 .zijbalk-acties a, .zijbalk-acties button { color: var(--kleur-zijbalk-zacht); font: 500 14px var(--lettertype); background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; }
 .zijbalk-acties a:hover, .zijbalk-acties button:hover { color: var(--kleur-zijbalk-tekst); }
-.zijbalk-hgm { display: flex; align-items: center; gap: 8px; background: var(--kleur-vlak); border-radius: var(--radius-klein); padding: 6px 10px; }
+.zijbalk-hgm { display: flex; align-items: center; gap: 8px; padding: 4px 2px; }
 .zijbalk-hgm span { font-size: 11px; color: var(--kleur-tekst-label); }
 .zijbalk-hgm img { height: 30px; width: auto; }
 
@@ -945,3 +946,12 @@ strong.rood, span.rood { color: var(--kleur-storing); }
 .perhole h2 { font-size: 18px; margin: 18px 0 8px; }
 .werk-periode { margin-bottom: 12px; }
 .werk-periode input { width: auto; margin: 0; }
+
+/* iOS-app en PWA op het beginscherm: niets onder de statusbalk of de notch */
+.kopbalk { padding-top: max(10px, env(safe-area-inset-top)); }
+.inlog-kolom { padding-top: max(28px, env(safe-area-inset-top)); }
+/* Witte strook achter de statusbalk: bij scrollen schuift de inhoud er niet zichtbaar onderdoor */
+html::before {
+  content: ''; position: fixed; inset: 0 0 auto 0; height: env(safe-area-inset-top); z-index: 100;
+  background: var(--kleur-vlak); pointer-events: none;
+}

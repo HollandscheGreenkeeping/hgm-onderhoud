@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react'
+import { Capacitor } from '@capacitor/core'
 import { Navigate } from 'react-router'
 import { supabase } from '../lib/supabase'
 import { useSessie } from '../lib/sessie'
@@ -50,10 +51,13 @@ export default function Inloggen() {
           <h1 className="inlog-titel">Welkom terug</h1>
           <p className="zacht inlog-intro">Log in om storingen te melden, taken te plannen en de baan te beheren.</p>
 
-          <div className="schakelaar inlog-schakelaar" role="tablist">
-            <button type="button" className={`knop ${modus === 'ww' ? '' : 'tweede'}`} onClick={() => kies('ww')}>Met wachtwoord</button>
-            <button type="button" className={`knop ${modus === 'link' ? '' : 'tweede'}`} onClick={() => kies('link')}>Met inloglink</button>
-          </div>
+          {/* In de iOS-app opent een inloglink Safari in plaats van de app: daar alleen met wachtwoord. */}
+          {!Capacitor.isNativePlatform() && (
+            <div className="schakelaar inlog-schakelaar" role="tablist">
+              <button type="button" className={`knop ${modus === 'ww' ? '' : 'tweede'}`} onClick={() => kies('ww')}>Met wachtwoord</button>
+              <button type="button" className={`knop ${modus === 'link' ? '' : 'tweede'}`} onClick={() => kies('link')}>Met inloglink</button>
+            </div>
+          )}
 
           {fout && <div className="melding fout" role="alert">{fout}</div>}
 
@@ -75,7 +79,7 @@ export default function Inloggen() {
                 <div>
                   <div className="inlog-labelrij">
                     <label htmlFor="wachtwoord">Wachtwoord</label>
-                    <a href="#" onClick={(e) => { e.preventDefault(); kies('link') }}>Vergeten?</a>
+                    {!Capacitor.isNativePlatform() && <a href="#" onClick={(e) => { e.preventDefault(); kies('link') }}>Vergeten?</a>}
                   </div>
                   <div className="inlog-ww">
                     <input id="wachtwoord" type={toon ? 'text' : 'password'} autoComplete="current-password"

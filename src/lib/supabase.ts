@@ -8,6 +8,8 @@ if (!url || !sleutel) {
 }
 
 export const supabase = createClient(url, sleutel)
+export const supabaseUrl: string = url
+export const supabaseSleutel: string = sleutel
 
 export type Rol = 'beheer' | 'onderhoudsmanager' | 'monteur' | 'hoofdgreenkeeper' | 'greenkeeper' | 'baanmanager'
 
