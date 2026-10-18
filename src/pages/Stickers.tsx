@@ -16,8 +16,13 @@ import { machineNaam } from './Materieel'
 export type Vel = {
   sleutel: string; naam: string; buiten: string; binnen?: string
   b: number; h: number; kol: number; rij: number; boven: number; links: number; tussenX: number; tussenY: number
+  rond?: boolean   // rond etiket: alleen logo, QR-code en code (voor sprinklers en deksels)
 }
 export const vellen: Vel[] = [
+  { sleutel: 'rond40', naam: 'Rond Ø 40 mm · 24 per vel (sprinklers)', buiten: 'Avery Heavy Duty rond Ø 40 mm (polyester)', binnen: 'Avery L3415',
+    b: 40, h: 40, kol: 4, rij: 6, boven: 16, links: 17.5, tussenX: 5, tussenY: 5, rond: true },
+  { sleutel: 'rond60', naam: 'Rond Ø 60 mm · 12 per vel', buiten: 'Avery Heavy Duty rond Ø 60 mm (polyester)', binnen: 'Avery L3416',
+    b: 60, h: 60, kol: 3, rij: 4, boven: 25.5, links: 13, tussenX: 2, tussenY: 2, rond: true },
   { sleutel: '70x37', naam: '70 × 37 mm · 24 per vel', buiten: 'Avery Zweckform L4718-20', binnen: 'Avery 3474',
     b: 70, h: 37, kol: 3, rij: 8, boven: 0.5, links: 0, tussenX: 0, tussenY: 0 },
   { sleutel: '63x38', naam: '63,5 × 38,1 mm · 21 per vel', buiten: 'Avery L7060-20', binnen: 'Avery L7160',
@@ -43,7 +48,8 @@ export default function Stickers() {
   const [zoek] = useUrlParam('q')
   const [type, setType] = useState('')
   const [gekozen, setGekozen] = useState<Set<string>>(new Set())
-  const [velSleutel, setVelSleutel] = useState(vellen[0].sleutel)
+  // Installaties (sprinklers, kleppen) standaard op een rond etiket, machines op een rechthoekig.
+  const [velSleutel, setVelSleutel] = useState(weergave === 'machines' ? '70x37' : 'rond40')
   const [start, setStart] = useState(1)
   const [aantal, setAantal] = useState(1)
   const vel = vellen.find((v) => v.sleutel === velSleutel)!
@@ -191,11 +197,19 @@ export function StickerVel({ vel, stickers, baan }: { vel: Vel; stickers: (Item 
           left: `${vel.links + kol * (vel.b + vel.tussenX)}mm`, top: `${vel.boven + rij * (vel.h + vel.tussenY)}mm`,
           width: `${vel.b}mm`, height: `${vel.h}mm`, '--q': vel.h / 37, '--k': Math.min(vel.h / 37, vel.b / 70), '--c': s.kleur,
         } as CSSProperties
+        const qr = <QrCode tekst={`${appAdres}/${s.soort === 'object' ? 'o' : 'm'}/${s.id}`} />
+        if (vel.rond) return (
+          <div key={n} className="sticker rond" style={{ ...stijl, '--d': `${vel.b}mm` } as CSSProperties}>
+            <img src="/hgm-logo-wit.png" alt="HGM" />
+            <div className="sticker-qr">{qr}</div>
+            <strong className="mono">{s.titel}</strong>
+          </div>
+        )
         return (
           <div key={n} className="sticker" style={stijl}>
             <div className="sticker-kaart">
               <div className="sticker-lijf">
-                <div className="sticker-qr"><QrCode tekst={`${appAdres}/${s.soort === 'object' ? 'o' : 'm'}/${s.id}`} /></div>
+                <div className="sticker-qr">{qr}</div>
                 <div className="sticker-tekst">
                   <strong className={s.soort === 'object' && s.titel.length <= 8 ? 'sticker-code mono' : 'sticker-code'}>{s.titel}</strong>
                   {s.sub && <span className="sticker-sub">{s.sub}</span>}

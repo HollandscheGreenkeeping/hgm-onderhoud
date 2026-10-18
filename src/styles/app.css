@@ -1332,6 +1332,22 @@ html::before {
 .sticker-band b { font: 700 calc(var(--k) * 6.8pt)/1 var(--lettertype); letter-spacing: .07em; text-transform: uppercase; white-space: nowrap; }
 .sticker-band span { font-size: calc(var(--k) * 5.4pt); opacity: .9; white-space: nowrap; }
 
+/* Rond etiket (sprinklers): olijf met een rand in de categoriekleur, logo · QR · code. Maten in delen van --d. */
+.sticker.rond {
+  padding: 0; border-radius: 50%; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: calc(var(--d) * .025); background: var(--kleur-primair); color: var(--kleur-primair-tekst);
+  box-shadow: inset 0 0 0 calc(var(--d) * .065) var(--c);
+}
+.sticker.rond img { display: block; height: calc(var(--d) * .135); width: auto; margin-top: calc(var(--d) * .02); }
+.sticker.rond .sticker-qr {
+  width: calc(var(--d) * .52); height: calc(var(--d) * .52); padding: calc(var(--d) * .028); border-radius: calc(var(--d) * .05);
+}
+.sticker.rond strong {
+  max-width: calc(var(--d) * .56); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-size: calc(var(--d) * .1); font-weight: 600; line-height: 1; letter-spacing: -.02em;
+}
+.stickers-voorbeeld .sticker.rond { outline: none; }
+
 .sticker-druk { display: none; }
 @media print {
   html.stickerdruk body { margin: 0; background: var(--poster-papier); }
