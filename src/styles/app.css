@@ -1300,25 +1300,36 @@ html::before {
 /* Etiketvel en sticker in mm (A4); --k schaalt de tekst mee met de etikethoogte (37 mm = 1) */
 .sticker-vel { position: relative; width: 210mm; height: 297mm; background: var(--poster-papier); overflow: hidden; }
 .sticker { position: absolute; padding: calc(var(--k) * 1.3mm); font-family: var(--lettertype); color: var(--kleur-tekst); }
-/* Kaartje binnen het etiket (1,3 mm marge vangt kleine verschuivingen van de printer op) */
+/* Kaartje binnen het etiket (1,3 mm marge vangt kleine verschuivingen van de printer op):
+   donker olijf, QR op een wit tegeltje, voetbalk in de categoriekleur (--c) */
 .sticker-kaart {
-  display: flex; flex-direction: column; height: 100%; overflow: hidden;
-  border: .3mm solid var(--c); border-radius: calc(var(--k) * 2.2mm); background: var(--poster-papier);
+  display: flex; flex-direction: column; height: 100%; overflow: hidden; border-radius: calc(var(--k) * 2mm);
+  background: var(--kleur-primair); color: var(--kleur-primair-tekst);
 }
+.sticker-lijf {
+  flex: 1; min-height: 0; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: calc(var(--k) * 3mm);
+  padding: calc(var(--q) * 2.2mm) calc(var(--k) * 3mm) calc(var(--q) * 2.2mm) calc(var(--q) * 2.2mm);
+}
+/* Vaste maat: etikethoogte 37 − marges 2 × 1,3 − balk 6,6 − binnenmarge 2 × 2,2 = 23,4 mm (× --q) */
+.sticker-qr {
+  width: calc(var(--q) * 23.4mm); height: calc(var(--q) * 23.4mm); box-sizing: border-box; padding: calc(var(--q) * 1.4mm);
+  border-radius: calc(var(--q) * 1.6mm); background: var(--poster-papier); color: var(--veilig-zwart);
+}
+.sticker-qr svg { display: block; width: 100%; height: 100%; }
+.sticker-tekst { display: flex; flex-direction: column; min-width: 0; padding-top: calc(var(--k) * .6mm); }
+.sticker-code { font-size: calc(var(--k) * 10pt); font-weight: 700; line-height: 1.08; overflow-wrap: break-word; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.sticker-code.mono { font-family: var(--lettertype-mono); font-size: calc(var(--k) * 15pt); font-weight: 600; letter-spacing: -.02em; line-height: 1; }
+.sticker-sub { display: flex; align-items: center; gap: calc(var(--k) * 1.2mm); margin-top: calc(var(--k) * 1.3mm); font-size: calc(var(--k) * 6.4pt); line-height: 1.2; color: var(--kleur-op-foto-zacht); }
+.sticker-sub::before { content: ''; flex: none; width: calc(var(--k) * 1.6mm); height: calc(var(--k) * 1.6mm); border-radius: 50%; background: var(--c); box-shadow: 0 0 0 .3mm var(--kleur-primair-tekst); }
+.sticker-voet { margin-top: auto; display: flex; align-items: flex-end; justify-content: space-between; gap: 2mm; }
+.sticker-voet span { font-size: calc(var(--k) * 5.6pt); color: var(--kleur-op-foto-zacht); line-height: 1.2; }
+.sticker-voet img { display: block; height: calc(var(--k) * 4.6mm); width: auto; }
 .sticker-band {
-  display: flex; align-items: center; justify-content: space-between; gap: 2mm; flex: none;
-  height: calc(var(--k) * 6.4mm); padding: 0 calc(var(--k) * 2.6mm); background: var(--c); color: var(--kleur-primair-tekst);
+  flex: none; display: flex; align-items: center; justify-content: space-between; gap: 2mm;
+  height: calc(var(--q) * 6.6mm); padding: 0 calc(var(--k) * 3mm); background: var(--c); color: var(--kleur-primair-tekst);
 }
-.sticker-band span { font: 700 calc(var(--k) * 6.4pt)/1 var(--lettertype); letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
-.sticker-band img { display: block; height: calc(var(--k) * 4.2mm); width: auto; }
-.sticker-lijf { flex: 1; min-height: 0; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: calc(var(--k) * 2.6mm); align-items: center; padding: calc(var(--k) * 1.8mm) calc(var(--k) * 2.6mm); }
-.sticker-qr { height: calc(var(--q) * 22.5mm); aspect-ratio: 1; }   /* --q: met de hoogte, --k (tekst): met wat past */
-.sticker-qr svg { display: block; width: 100%; height: 100%; color: var(--veilig-zwart); }
-.sticker-tekst { display: flex; flex-direction: column; gap: calc(var(--k) * .9mm); min-width: 0; }
-.sticker-code { font-size: calc(var(--k) * 10.5pt); line-height: 1.08; color: var(--kleur-tekst); overflow-wrap: break-word; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-.sticker-code.mono { font-family: var(--lettertype-mono); font-size: calc(var(--k) * 15pt); font-weight: 600; letter-spacing: -.02em; }
-.sticker-sub { font-size: calc(var(--k) * 6.8pt); line-height: 1.2; color: var(--kleur-tekst-zacht); }
-.sticker-baan { margin-top: calc(var(--k) * .6mm); padding-top: calc(var(--k) * .9mm); border-top: .25mm solid var(--kleur-rand); font-size: calc(var(--k) * 5.8pt); color: var(--kleur-tekst-label); }
+.sticker-band b { font: 700 calc(var(--k) * 6.8pt)/1 var(--lettertype); letter-spacing: .07em; text-transform: uppercase; white-space: nowrap; }
+.sticker-band span { font-size: calc(var(--k) * 5.4pt); opacity: .9; white-space: nowrap; }
 
 .sticker-druk { display: none; }
 @media print {

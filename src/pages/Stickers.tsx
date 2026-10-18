@@ -20,7 +20,7 @@ export const vellen: Vel[] = [
 
 export type Item = { sleutel: string; soort: 'object' | 'machine'; id: string; titel: string; sub: string; groep: string; kleur: string }
 
-// Kleurband in de kleur van de categorie, net als op de kaart; machines in HGM-olijf.
+// Voetbalk in de kleur van de categorie, net als op de kaart; machines in grasgroen (de sticker zelf is olijf).
 const kleurVan = (categorie?: string | null) =>
   ['beregening', 'drainage', 'kabel'].includes(categorie ?? '') ? `var(--kleur-${categorie})` : 'var(--kleur-overig)'
 
@@ -53,7 +53,7 @@ export default function Stickers() {
         })),
         ...((m.data ?? []) as unknown as M[]).map((x) => ({
           sleutel: `m:${x.id}`, soort: 'machine' as const, id: x.id, titel: machineNaam(x),
-          sub: [x.type?.naam, x.standplaats].filter(Boolean).join(' · '), groep: x.type?.naam ?? 'Overig', kleur: 'var(--kleur-primair)',
+          sub: [x.type?.naam, x.standplaats].filter(Boolean).join(' · '), groep: x.type?.naam ?? 'Overig', kleur: 'var(--kleur-secundair)',
         })),
       ])
     })
@@ -178,18 +178,15 @@ export function StickerVel({ vel, stickers, baan }: { vel: Vel; stickers: (Item 
         return (
           <div key={n} className="sticker" style={stijl}>
             <div className="sticker-kaart">
-              <div className="sticker-band">
-                <span>Storing? Scan en meld</span>
-                <img src="/hgm-logo-wit.png" alt="HGM" />
-              </div>
               <div className="sticker-lijf">
                 <div className="sticker-qr"><QrCode tekst={`${appAdres}/${s.soort === 'object' ? 'o' : 'm'}/${s.id}`} /></div>
                 <div className="sticker-tekst">
-                  <strong className={s.soort === 'object' ? 'sticker-code mono' : 'sticker-code'}>{s.titel}</strong>
+                  <strong className={s.soort === 'object' && s.titel.length <= 8 ? 'sticker-code mono' : 'sticker-code'}>{s.titel}</strong>
                   {s.sub && <span className="sticker-sub">{s.sub}</span>}
-                  <span className="sticker-baan">{baan}</span>
+                  <div className="sticker-voet"><span>{baan}</span><img src="/hgm-logo-wit.png" alt="HGM" /></div>
                 </div>
               </div>
+              <div className="sticker-band"><b>Storing? Scan en meld</b><span>HGM Onderhoud</span></div>
             </div>
           </div>
         )
