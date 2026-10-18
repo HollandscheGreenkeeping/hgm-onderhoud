@@ -5,14 +5,18 @@
 <title>HGM Golf Onderhoud – we gaan testen (medewerkers)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@600;700&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
-<!-- Interne flyer (A4, één pagina) voor HGM-medewerkers: aankondiging testfase. PDF: marketing/render.sh.
-     Kleuren gelijk aan src/styles/tokens.css. -->
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@500;600&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+<!-- Interne flyer (A4, één pagina) voor HGM-medewerkers: aankondiging testfase.
+     Huisstijl van HGM (hgmgolf.nl en logo): EB Garamond voor koppen, Poppins voor tekst, limoengroen
+     #95c11f als accent, olijf uit het logo. De mock-ups tonen de app zelf (huisstijl 2a). -->
 <style>
   :root {
-    --primair: #2a3520; --groen: #2f7d3b; --tekst: #26301c; --zacht: #5a6249; --label: #687060;
-    --rand: #e3e6df; --vlak-zacht: #f1f3ee; --groen-zacht: #e4f0e3; --rood: #c8402f; --blauw: #2c7fd0;
-    --kop: 'Zilla Slab', Georgia, serif; --sans: 'Public Sans', Arial, sans-serif; --mono: 'IBM Plex Mono', monospace;
+    --primair: #2b3a1f;          /* olijf uit het logo */
+    --groen: #95c11f;            /* limoengroen van hgmgolf.nl (alleen vlakken en lijnen, niet voor tekst) */
+    --groen-donker: #4f6b12;     /* leesbare variant voor tekst */
+    --tekst: #363636; --zacht: #515151; --label: #6e6e6e;
+    --rand: #dedede; --vlak-zacht: #f4f6ef; --groen-zacht: #eef5dc;
+    --kop: 'EB Garamond', Georgia, serif; --sans: 'Poppins', Arial, sans-serif; --mono: 'Poppins', Arial, sans-serif;
   }
   @page { size: A4; margin: 0; }
   * { box-sizing: border-box; }
@@ -22,23 +26,24 @@
 
   .foto { height: 64mm; background: url('../public/marketing/baan-ochtend.jpg') center 55% / cover; position: relative; flex: none; }
   .foto::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(18,26,12,.55), rgba(18,26,12,.1) 55%, rgba(18,26,12,0)); }
-  .foto img { position: absolute; left: 12mm; top: 9mm; height: 14mm; z-index: 1; background: #fff; padding: 2mm 3mm; border-radius: 2mm; }
-  .foto .intern { position: absolute; right: 12mm; top: 11mm; z-index: 1; font: 700 9pt var(--sans); color: var(--primair); background: #fff; border-radius: 99px; padding: 1.5mm 4mm; }
-  .foto h1 { position: absolute; right: 12mm; top: 19mm; z-index: 1; margin: 0; max-width: 120mm; text-align: right; color: #fff; font: 700 28pt/1.03 var(--kop); }
+  .foto img { position: absolute; left: 12mm; top: 8mm; height: 17mm; z-index: 1; background: #fff; padding: 2.5mm 3.5mm; border-radius: 1.5mm; }
+  .foto .intern { position: absolute; right: 12mm; top: 11mm; z-index: 1; font: 600 8pt var(--sans); letter-spacing: .18em; text-transform: uppercase; color: var(--primair); background: var(--groen); border-radius: 99px; padding: 1.6mm 4mm; }
+  .foto h1 { position: absolute; right: 12mm; top: 19mm; z-index: 1; margin: 0; max-width: 120mm; text-align: right; color: #fff; font: 600 33pt/1 var(--kop); }
 
   .scherm { position: relative; z-index: 2; margin: -27mm auto -7mm; width: 146mm; }
   .scherm img { width: 100%; display: block; }
   .intro { padding: 2mm 14mm 2mm; }
-  .intro p { margin: 0 0 2mm; font-size: 9.8pt; line-height: 1.48; color: var(--zacht); }
+  .intro p { margin: 0 0 2mm; font-size: 9.3pt; line-height: 1.55; color: var(--zacht); }
   .intro p strong { color: var(--tekst); }
   .intro p:last-child { margin-bottom: 0; }
 
   .voorjou { padding: 4mm 14mm 0; }
-  h2 { font: 700 15pt var(--kop); margin: 0 0 3mm; }
+  h2 { font: 600 19pt/1.1 var(--kop); margin: 0 0 3mm; color: var(--primair); }
+  h2::after { content: ''; display: block; width: 14mm; height: 2px; background: var(--groen); margin-top: 1.8mm; }
   .punten { display: grid; grid-template-columns: 1fr 1fr; gap: 2.5mm 8mm; }
-  .punt { display: grid; grid-template-columns: 7mm 1fr; gap: 2mm; font-size: 9.5pt; line-height: 1.45; color: var(--zacht); }
-  .punt b { display: grid; place-items: center; width: 6mm; height: 6mm; border-radius: 50%; background: var(--groen-zacht); color: var(--groen); font: 700 9pt var(--sans); }
-  .punt strong { display: block; color: var(--tekst); font-size: 10pt; }
+  .punt { display: grid; grid-template-columns: 7mm 1fr; gap: 2mm; font-size: 8.8pt; line-height: 1.5; color: var(--zacht); }
+  .punt b { display: grid; place-items: center; width: 6mm; height: 6mm; border-radius: 50%; background: var(--groen); color: var(--primair); font: 600 8.5pt var(--sans); }
+  .punt strong { display: block; color: var(--tekst); font-size: 9.5pt; font-weight: 600; }
 
   .tijdlijn { padding: 5mm 14mm 0; }
   .stappen { display: grid; grid-template-columns: repeat(3, 1fr); position: relative; }
@@ -46,14 +51,15 @@
   .fase { position: relative; padding-right: 5mm; }
   .fase i { display: block; width: 6mm; height: 6mm; border-radius: 50%; background: #fff; border: 2px solid var(--rand); margin-bottom: 2.5mm; position: relative; }
   .fase.nu i { background: var(--groen); border-color: var(--groen); box-shadow: 0 0 0 3px var(--groen-zacht); }
-  .fase .wanneer { font: 500 8.5pt var(--mono); color: var(--label); }
-  .fase strong { display: block; font: 700 11pt var(--kop); margin: 1mm 0; }
-  .fase p { margin: 0; font-size: 8.8pt; line-height: 1.45; color: var(--zacht); }
+  .fase .wanneer { font: 600 7.5pt var(--sans); letter-spacing: .14em; text-transform: uppercase; color: var(--groen-donker); }
+  .fase strong { display: block; font: 600 14pt var(--kop); margin: .5mm 0; color: var(--primair); }
+  .fase p { margin: 0; font-size: 8.4pt; line-height: 1.45; color: var(--zacht); }
 
-  .meedoen { margin: 5mm 14mm 10mm; background: var(--primair); color: #fff; border-radius: 4mm; padding: 5mm 7mm; display: grid; grid-template-columns: 1fr auto; gap: 6mm; align-items: center; }
-  .meedoen h2 { color: #fff; margin: 0 0 1.5mm; font-size: 17pt; }
-  .meedoen p { margin: 0; font-size: 10pt; line-height: 1.5; color: #dfe6d6; }
-  .meedoen .adres { background: #fff; color: var(--primair); border-radius: 2.5mm; padding: 3.5mm 5mm; font-weight: 700; font-size: 10.5pt; white-space: nowrap; }
+  .meedoen { margin: 5mm 14mm 10mm; background: var(--primair); color: #fff; border-radius: 2mm; border-left: 3mm solid var(--groen); padding: 5mm 7mm; display: grid; grid-template-columns: 1fr auto; gap: 6mm; align-items: center; }
+  .meedoen h2 { color: #fff; margin: 0 0 1.5mm; font-size: 21pt; }
+  .meedoen h2::after { display: none; }
+  .meedoen p { margin: 0; font-size: 9.3pt; line-height: 1.55; color: #e3e9d6; }
+  .meedoen .adres { background: var(--groen); color: var(--primair); border-radius: 99px; padding: 3.5mm 6mm; font-weight: 600; font-size: 10pt; white-space: nowrap; }
 
   .voet { margin-top: auto; padding: 4mm 14mm 8mm; display: flex; justify-content: space-between; font-size: 8.5pt; color: var(--label); }
 </style>

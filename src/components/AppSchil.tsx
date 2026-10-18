@@ -27,7 +27,7 @@ const namen: Record<string, string> = {
   voorstellen: 'Voorstellen', overzicht: 'Dashboard', rapportage: 'Rapportage', meer: 'Meer',
   banen: 'Banen', werkplaats: 'Werkplaats', werkorders: 'Werkorders', planning: 'Planning', keuringen: 'Keuringen',
   kosten: 'Kosten', inkoop: 'Inkoop', bestellingen: 'Bestellingen', voorraad: 'Voorraad', producten: 'Producten',
-  leveranciers: 'Leveranciers', budget: 'Budget', beheer: 'Beheer', gebruikers: 'Gebruikers', keuzelijsten: 'Keuzelijsten',
+  leveranciers: 'Leveranciers', budget: 'Budget', beheer: 'Beheer', gebruikers: 'Gebruikers', keuzelijsten: 'Keuzelijsten', posters: 'Posters',
   nieuw: 'Nieuw', schemas: "Schema's", kalender: 'Kalender', verlopen: 'Verlopen',
 }
 
@@ -121,6 +121,7 @@ export default function AppSchil({ baan, magInkoop, mobielKop, mobielMenu, child
               {rol !== 'monteur' && <NavLink to="/inkoop/budget">Budget</NavLink>}
             </div>
           )}
+          <NavLink to="/posters">Posters</NavLink>
           {isGlobaal && <NavLink to="/beheer">Beheer</NavLink>}
           {isGlobaal && onder('/beheer') && (
             <div className="zijbalk-sub">

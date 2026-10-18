@@ -955,3 +955,129 @@ html::before {
   content: ''; position: fixed; inset: 0 0 auto 0; height: env(safe-area-inset-top); z-index: 100;
   background: var(--kleur-vlak); pointer-events: none;
 }
+
+/* ══ HGM → Posters: generator (bediening in app-stijl, poster in de huisstijl van hgmgolf.nl) ══ */
+.posters { display: grid; grid-template-columns: 360px minmax(0, 1fr); gap: 28px; align-items: start; }
+.posters-bediening { display: grid; gap: 6px; min-width: 0; }
+.posters-bediening > div { margin-bottom: var(--ruimte); }
+.posters-keuze { display: flex; gap: 4px; padding: 3px; border-radius: var(--radius-klein); background: var(--kleur-vlak-zacht); }
+.posters-keuze button {
+  flex: 1; min-height: 38px; border: 0; border-radius: 6px; background: transparent; cursor: pointer;
+  font: 600 15px var(--lettertype); color: var(--kleur-tekst-zacht);
+}
+.posters-keuze button[aria-pressed='true'] { background: var(--kleur-vlak); color: var(--kleur-tekst); box-shadow: var(--schaduw-klein); }
+.posters-fotos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 8px; }
+.posters-fotos button {
+  position: relative; display: flex; align-items: flex-end; aspect-ratio: 4 / 3; padding: 0; cursor: pointer;
+  border: 2px solid transparent; border-radius: var(--radius-klein); background: var(--kleur-foto-leeg) center / cover;
+}
+.posters-fotos span { width: 100%; padding: 2px 6px; font: 600 12px var(--lettertype); color: var(--kleur-op-foto); background: var(--kleur-foto-verloop); border-radius: 0 0 6px 6px; text-align: left; }
+.posters-fotos button[aria-pressed='true'], .posters-pictos button[aria-pressed='true'] { border-color: var(--kleur-secundair); box-shadow: 0 0 0 3px var(--kleur-in-orde-zacht); }
+.posters-upload { position: relative; cursor: pointer; margin: 0; }
+.posters-upload input { display: none; }
+.posters-vink { display: flex; align-items: center; gap: 10px; min-height: 40px; margin-bottom: var(--ruimte); cursor: pointer; }
+.posters-vink input { width: 22px; height: 22px; min-height: 0; margin: 0; accent-color: var(--kleur-secundair); }
+.posters-pictogroep { margin-top: 10px; }
+.posters-pictos { display: grid; grid-template-columns: repeat(auto-fill, minmax(52px, 1fr)); gap: 6px; margin-top: 6px; }
+.posters-pictos button {
+  aspect-ratio: 1; min-height: 48px; padding: 5px; cursor: pointer;
+  border: 1px solid var(--kleur-rand); border-radius: var(--radius-klein); background: var(--kleur-vlak);
+}
+.posters-pictos button[aria-pressed='true'] { background: var(--kleur-in-orde-zacht); }
+.posters-pictos button:disabled { opacity: .35; cursor: default; }
+.posters-pictos img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.posters-voorbeeld { position: sticky; top: 16px; display: grid; justify-items: center; gap: 8px; min-width: 0; }
+.posters-voorbeeld .poster-blad { box-shadow: var(--schaduw-tegel); }
+.posters-voorbeeld p { margin: 0; font-size: 14px; }
+@media (max-width: 900px) {
+  .posters { grid-template-columns: 1fr; }
+  .posters-voorbeeld { position: static; order: -1; }
+}
+@media (max-width: 700px) { .posters-keuze button { min-height: var(--raakvlak-min); font-size: 16px; } }
+
+/* De poster zelf. Eenheid --e = 1 mm op A4 (√2 mm op A3, schermpixels in het voorbeeld). */
+.poster-blad {
+  --bord: var(--poster-olijf); --bord-tekst: var(--poster-papier);
+  position: relative; display: flex; flex-direction: column; overflow: hidden;
+  width: calc(var(--e) * 210); height: calc(var(--e) * 297); padding: calc(var(--e) * 16);
+  background: var(--poster-papier); color: var(--poster-tekst); font-family: var(--poster-lettertype);
+  -webkit-print-color-adjust: exact; print-color-adjust: exact;
+}
+.poster-blad[data-soort='verbod'] { --bord: var(--veilig-verbod); }
+.poster-blad[data-soort='gebod'] { --bord: var(--veilig-gebod); }
+.poster-blad[data-soort='waarschuwing'] { --bord: var(--veilig-waarschuwing); --bord-tekst: var(--veilig-zwart); }
+.poster-blad[data-soort='redding'] { --bord: var(--veilig-redding); }
+.poster-blad[data-soort='brand'] { --bord: var(--veilig-brand); }
+.poster-blad h1, .poster-blad p { margin: 0; }
+.poster-pictos { display: flex; gap: calc(var(--e) * 8); justify-content: center; align-items: center; }
+.poster-pictos img { display: block; width: calc(var(--e) * 132); height: calc(var(--e) * 132); object-fit: contain; }
+.poster-pictos.aantal-2 img { width: calc(var(--e) * 82); height: calc(var(--e) * 82); }
+.poster-pictos.aantal-3 img { width: calc(var(--e) * 54); height: calc(var(--e) * 54); }
+.poster-tekst { text-wrap: balance; }
+
+/* Sjabloon pictogram: groot ISO-teken met aanvullend tekstbord in dezelfde signaalkleur */
+.poster-pictovlak { flex: 1; min-height: 0; display: grid; place-items: center; }
+.poster-bord {
+  padding: calc(var(--e) * 7) calc(var(--e) * 8); border-radius: calc(var(--e) * 2); text-align: center; text-wrap: balance;
+  overflow-wrap: anywhere; background: var(--bord); color: var(--bord-tekst); font-weight: 700; line-height: 1.05; letter-spacing: -.01em;
+}
+.kop-groot .poster-bord { font-size: calc(var(--e) * 24); }
+.kop-middel .poster-bord { font-size: calc(var(--e) * 16); }
+.kop-klein .poster-bord { font-size: calc(var(--e) * 11.5); }
+.kop-mini .poster-bord { font-size: calc(var(--e) * 8.5); }
+.sjabloon-pictogram .poster-tekst { margin-top: calc(var(--e) * 8); text-align: center; font-size: calc(var(--e) * 7); line-height: 1.4; }
+
+/* Sjablonen foto en tekst: olijf fond, Garamond-kop, limoenlijn */
+.sjabloon-foto, .sjabloon-tekst { background: var(--poster-olijf-diep); color: var(--poster-papier); }
+.sjabloon-tekst { background: var(--poster-olijf); }
+.poster-foto { position: absolute; inset: 0 0 auto; height: 74%; background: center / cover; }
+.poster-foto::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--poster-olijf-diep) 30%, transparent) 0%, transparent 18%, transparent 48%,
+    color-mix(in srgb, var(--poster-olijf-diep) 82%, transparent) 80%, var(--poster-olijf-diep) 97%);
+}
+.poster-inhoud { position: relative; margin-top: auto; }
+.sjabloon-tekst .poster-inhoud { margin-block: auto; }
+.sjabloon-tekst .poster-inhoud::before { content: ''; display: block; width: calc(var(--e) * 24); height: calc(var(--e) * 1.2); margin-bottom: calc(var(--e) * 12); background: var(--poster-limoen); }
+.poster-inhoud .poster-pictos { justify-content: flex-start; margin-bottom: calc(var(--e) * 9); }
+.poster-inhoud .poster-pictos img { width: calc(var(--e) * 30); height: calc(var(--e) * 30); }
+.poster-inhoud h1 { font: 600 calc(var(--e) * 30)/.98 var(--poster-lettertype-kop); letter-spacing: -.01em; text-wrap: balance; }
+.kop-middel .poster-inhoud h1 { font-size: calc(var(--e) * 22); }
+.kop-klein .poster-inhoud h1 { font-size: calc(var(--e) * 16); }
+.kop-mini .poster-inhoud h1 { font-size: calc(var(--e) * 13); }
+.sjabloon-tekst.kop-groot .poster-inhoud h1 { font-size: calc(var(--e) * 36); }
+.poster-inhoud .poster-tekst { max-width: calc(var(--e) * 150); margin-top: calc(var(--e) * 7); font-size: calc(var(--e) * 6.2); line-height: 1.45; color: var(--poster-zacht); }
+.sjabloon-foto .poster-inhoud .poster-tekst::before { content: ''; display: block; width: calc(var(--e) * 16); height: calc(var(--e) * .6); margin-bottom: calc(var(--e) * 5); background: var(--poster-limoen); }
+
+/* Voet: HGM-logo, onderregel, QR-code */
+.poster-voet {
+  position: relative; display: flex; justify-content: space-between; align-items: flex-end; gap: calc(var(--e) * 8);
+  margin-top: calc(var(--e) * 12); padding-top: calc(var(--e) * 7); border-top: calc(var(--e) * .5) solid var(--poster-limoen);
+}
+.sjabloon-foto .poster-voet, .sjabloon-tekst .poster-voet { border-top: 0; padding-top: 0; }
+.poster-merk { display: flex; align-items: flex-end; gap: calc(var(--e) * 5); min-width: 0; }
+.poster-merk img { display: block; height: calc(var(--e) * 15); }
+.sjabloon-foto .poster-merk img, .sjabloon-tekst .poster-merk img { filter: brightness(0) invert(1); }
+.poster-merk span {
+  padding-bottom: calc(var(--e) * 1); font-size: calc(var(--e) * 3.6); font-weight: 500; letter-spacing: .16em; text-transform: uppercase;
+  color: var(--poster-olijf);
+}
+.sjabloon-foto .poster-merk span, .sjabloon-tekst .poster-merk span { color: var(--poster-zacht); }
+.poster-qr { display: flex; align-items: center; gap: calc(var(--e) * 4); flex: none; }
+.poster-qr span { font-size: calc(var(--e) * 3.6); font-weight: 600; line-height: 1.3; text-align: right; color: inherit; }
+.sjabloon-pictogram .poster-qr span { color: var(--poster-olijf); }
+.poster-qr div {
+  width: calc(var(--e) * 26); height: calc(var(--e) * 26); padding: calc(var(--e) * 2.5); border-radius: calc(var(--e) * 2);
+  background: var(--poster-papier); border: calc(var(--e) * .5) solid var(--poster-limoen);
+}
+.poster-qr img { display: block; width: 100%; height: 100%; }
+
+/* Afdrukken: alleen de kopie in <body>, zonder app eromheen (@page zet Posters.tsx per formaat) */
+.poster-druk { display: none; }
+@media print {
+  html.posterdruk body { margin: 0; background: var(--poster-papier); }
+  html.posterdruk #root { display: none !important; }
+  html.posterdruk .poster-druk { display: block; --e: 1mm; }
+  html.posterdruk.a3 .poster-druk { --e: 1.41421mm; }
+  .poster-druk .poster-blad { break-after: avoid; height: calc(var(--e) * 297 - .2mm); }
+}

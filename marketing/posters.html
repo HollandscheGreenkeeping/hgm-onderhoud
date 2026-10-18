@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<title>HGM Golf Onderhoud – posters A3</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,500;0,600;1,500&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+<!--
+  Posterserie A3 (staand), drie pagina's: ochtend · nacht · schemer.
+  Beelden: marketing/posters/*.jpg (stills uit de HGM-film, bewerkt: uitsnede, kleur, korrel, opgeschaald).
+  Huisstijl HGM (hgmgolf.nl en logo): EB Garamond, Poppins, limoengroen #95c11f, olijf.
+  QR: public/marketing/qr-app.svg → https://hgm-onderhoud.vercel.app
+-->
+<style>
+  :root {
+    --olijf: #1d2714;              /* dieper olijf voor het posterfond */
+    --groen: #95c11f;
+    --wit-zacht: #e6ead9;
+    --kop: 'EB Garamond', Georgia, serif; --sans: 'Poppins', Arial, sans-serif;
+  }
+  @page { size: A3; margin: 0; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: #d9dcd2; font-family: var(--sans); -webkit-font-smoothing: antialiased; }
+  .poster { width: 297mm; height: 420mm; margin: 12mm auto; position: relative; overflow: hidden; background: var(--olijf); color: #fff; }
+  @media print { html, body { background: #fff; } .poster { margin: 0; page-break-after: always; } }
+
+  .beeld { position: absolute; left: 0; right: 0; top: 0; height: 326mm; background-size: cover; background-position: center; }
+  /* Foto loopt over in het olijf; bovenrand iets donkerder voor diepte */
+  .beeld::after { content: ''; position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(29,39,20,.28) 0%, rgba(29,39,20,0) 18%, rgba(29,39,20,0) 52%, rgba(29,39,20,.8) 80%, var(--olijf) 94%, var(--olijf) 100%); }
+
+  .tekst { position: absolute; left: 22mm; right: 22mm; bottom: 66mm; }
+  .tekst h1 { margin: 0; font: 600 74pt/.95 var(--kop); letter-spacing: -.01em; }
+  .tekst h1 em { display: block; font-style: italic; font-weight: 500; color: var(--groen); }
+  .tekst p { margin: 9mm 0 0; max-width: 175mm; font: 400 14pt/1.5 var(--sans); color: var(--wit-zacht); }
+  .tekst p::before { content: ''; display: block; width: 18mm; height: 2px; background: var(--groen); margin-bottom: 6mm; }
+
+  .voet { position: absolute; left: 22mm; right: 22mm; bottom: 18mm; display: flex; justify-content: space-between; align-items: flex-end; }
+  .merk { display: flex; align-items: flex-end; gap: 7mm; }
+  .merk img { height: 26mm; filter: brightness(0) invert(1); opacity: .95; }
+  .merk span { font: 500 10pt var(--sans); letter-spacing: .22em; text-transform: uppercase; color: var(--wit-zacht); padding-bottom: 1.5mm; }
+  .qr { display: flex; align-items: center; gap: 5mm; }
+  .qr span { font: 500 10pt/1.35 var(--sans); color: var(--wit-zacht); text-align: right; }
+  .qr span strong { display: block; color: #fff; font-weight: 600; }
+  .qr div { width: 36mm; height: 36mm; background: #fff; border-radius: 2.5mm; padding: 4.5mm; }
+  .qr div img { width: 100%; height: 100%; display: block; }
+</style>
+</head>
+<body>
+
+<section class="poster">
+  <div class="beeld" style="background-image: url('posters/ochtend.jpg'); background-position: 50% 40%"></div>
+  <div class="tekst">
+    <h1>Voor de eerste afslag<em>is het werk al gedaan.</em></h1>
+    <p>Elke ochtend staat de dagplanning klaar en wordt elk stuk werk vastgelegd. Per hole, per dag, voor iedereen terug te zien.</p>
+  </div>
+  <div class="voet">
+    <div class="merk"><img src="../public/hgm-logo.png" alt="Hollandsche Greenkeeping Maatschappij"><span>HGM Golf Onderhoud</span></div>
+    <div class="qr"><span><strong>Scan en kijk</strong>hoe het werkt</span><div><img src="../public/marketing/qr-app.svg" alt="QR-code naar HGM Golf Onderhoud"></div></div>
+  </div>
+</section>
+
+<section class="poster">
+  <div class="beeld" style="background-image: url('posters/nacht.jpg'); background-position: 50% 45%"></div>
+  <div class="tekst">
+    <h1>Als niemand kijkt<em>gaat het werk door.</em></h1>
+    <p>Storingen, taken en machines van uw baan op één plek. Gemeld in het veld, opgepakt door de juiste persoon.</p>
+  </div>
+  <div class="voet">
+    <div class="merk"><img src="../public/hgm-logo.png" alt="Hollandsche Greenkeeping Maatschappij"><span>HGM Golf Onderhoud</span></div>
+    <div class="qr"><span><strong>Scan en kijk</strong>hoe het werkt</span><div><img src="../public/marketing/qr-app.svg" alt="QR-code naar HGM Golf Onderhoud"></div></div>
+  </div>
+</section>
+
+<section class="poster">
+  <div class="beeld" style="background-image: url('posters/schemer.jpg'); background-position: 50% 50%"></div>
+  <div class="tekst">
+    <h1>Tot op de centimeter<em>op de kaart.</em></h1>
+    <p>Elke green, sprinkler, klep en leiding staat op de kaart, met de hele onderhoudshistorie erbij.</p>
+  </div>
+  <div class="voet">
+    <div class="merk"><img src="../public/hgm-logo.png" alt="Hollandsche Greenkeeping Maatschappij"><span>HGM Golf Onderhoud</span></div>
+    <div class="qr"><span><strong>Scan en kijk</strong>hoe het werkt</span><div><img src="../public/marketing/qr-app.svg" alt="QR-code naar HGM Golf Onderhoud"></div></div>
+  </div>
+</section>
+
+</body>
+</html>

@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<title>HGM Golf Onderhoud – advertentie</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@500;600&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+<!-- Advertentieflyer A4: grote beelden, weinig tekst, QR-code (public/marketing/qr-app.svg → de web-app).
+     Huisstijl HGM (hgmgolf.nl en logo): EB Garamond, Poppins, limoengroen #95c11f, olijf uit het logo. -->
+<style>
+  :root {
+    --primair: #2b3a1f; --groen: #95c11f; --tekst: #363636; --zacht: #515151;
+    --kop: 'EB Garamond', Georgia, serif; --sans: 'Poppins', Arial, sans-serif;
+  }
+  @page { size: A4; margin: 0; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: #e9ebe5; font-family: var(--sans); color: var(--tekst); -webkit-font-smoothing: antialiased; }
+  .blad { width: 210mm; height: 297mm; margin: 10mm auto; background: #fff; overflow: hidden; position: relative; display: flex; flex-direction: column; }
+  @media print { html, body { background: #fff; } .blad { margin: 0; } }
+
+  /* Grote foto met kop */
+  .foto { height: 168mm; flex: none; position: relative; background: url('../public/marketing/baan-ochtend.jpg') 72% 50% / cover; }
+  .foto::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(20,28,14,.55) 0%, rgba(20,28,14,.05) 42%, rgba(20,28,14,0) 60%, rgba(20,28,14,.35) 100%); }
+  .foto h1 { position: absolute; right: 14mm; top: 16mm; text-align: right; z-index: 1; margin: 0; color: #fff; font: 600 44pt/.98 var(--kop); letter-spacing: -.005em; }
+  .foto h1 span { display: block; color: var(--groen); }
+
+  /* Beeld van de app, half over de foto */
+  .app { position: relative; z-index: 2; width: 200mm; margin: -76mm auto -10mm; }
+  .app img { width: 100%; display: block; }
+
+  /* Onderband: logo, één zin, QR */
+  .band { margin-top: auto; display: grid; grid-template-columns: 1fr auto; gap: 8mm; align-items: center; padding: 0 14mm 12mm; }
+  .band img.logo { height: 20mm; display: block; margin-bottom: 4mm; }
+  .band p { margin: 0; font: 600 21pt/1.1 var(--kop); color: var(--primair); }
+  .band p small { display: block; margin-top: 2mm; font: 400 10pt/1.4 var(--sans); color: var(--zacht); }
+  .qr { text-align: center; }
+  .qr div { width: 42mm; height: 42mm; padding: 5mm; border: 2.5px solid var(--groen); border-radius: 3mm; background: #fff; }
+  .qr div img { width: 100%; height: 100%; display: block; }
+  .qr span { display: block; margin-top: 2mm; font: 600 8pt var(--sans); letter-spacing: .16em; text-transform: uppercase; color: var(--primair); }
+</style>
+</head>
+<body>
+<section class="blad">
+  <div class="foto">
+    <h1>Elke green.<br>Elke sprinkler.<span>Op één kaart.</span></h1>
+  </div>
+  <div class="app"><img src="../public/marketing/duo.png" alt="HGM Golf Onderhoud op de computer en de telefoon"></div>
+  <div class="band">
+    <div>
+      <img class="logo" src="../public/hgm-logo.png" alt="Hollandsche Greenkeeping Maatschappij">
+      <p>HGM Golf Onderhoud<small>Storingen, onderhoud en werk van uw baan: vastgelegd, gepland en altijd in beeld.</small></p>
+    </div>
+    <div class="qr"><div><img src="../public/marketing/qr-app.svg" alt="QR-code naar HGM Golf Onderhoud"></div><span>Scan en kijk</span></div>
+  </div>
+</section>
+</body>
+</html>
