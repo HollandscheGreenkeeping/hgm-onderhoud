@@ -40,6 +40,7 @@ import Producten from './pages/Producten'
 import Leveranciers from './pages/Leveranciers'
 import Budget from './pages/Budget'
 import Posters from './pages/Posters'
+import Bestanden, { AlleenHgm, BestandDetail } from './pages/Bestanden'
 
 // De kaartbibliotheek is groot; pas laden als de kaart echt nodig is (sneller inlogscherm).
 const Kaart = lazy(() => import('./pages/Kaart'))
@@ -91,6 +92,8 @@ export default function App() {
             <Route path="budget" element={<Budget />} />
           </Route>
           <Route path="posters" element={<Posters />} />
+          <Route path="bestanden" element={<AlleenHgm><Bestanden /></AlleenHgm>} />
+          <Route path="bestanden/:bestandId" element={<AlleenHgm><BestandDetail /></AlleenHgm>} />
           <Route path="beheer" element={<Beheer />}>
             <Route index element={<Navigate to="gebruikers" replace />} />
             <Route path="gebruikers" element={<BeheerGebruikers />} />

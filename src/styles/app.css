@@ -1030,12 +1030,9 @@ html::before {
 /* Sjablonen foto en tekst: olijf fond, Garamond-kop, limoenlijn */
 .sjabloon-foto, .sjabloon-tekst { background: var(--poster-olijf-diep); color: var(--poster-papier); }
 .sjabloon-tekst { background: var(--poster-olijf); }
-.poster-foto { position: absolute; inset: 0 0 auto; height: 74%; background: center / cover; }
-.poster-foto::after {
-  content: ''; position: absolute; inset: 0;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--poster-olijf-diep) 30%, transparent) 0%, transparent 18%, transparent 48%,
-    color-mix(in srgb, var(--poster-olijf-diep) 82%, transparent) 80%, var(--poster-olijf-diep) 97%);
-}
+.poster-foto { position: absolute; inset: 0 0 auto; height: 74%; overflow: hidden; }
+.poster-foto img { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover; }
+.poster-foto img + img { object-fit: fill; height: calc(100% + 2px); }   /* verloop over de foto, iets over de rand (geen haarlijn in Safari) */
 .poster-inhoud { position: relative; margin-top: auto; }
 .sjabloon-tekst .poster-inhoud { margin-block: auto; }
 .sjabloon-tekst .poster-inhoud::before { content: ''; display: block; width: calc(var(--e) * 24); height: calc(var(--e) * 1.2); margin-bottom: calc(var(--e) * 12); background: var(--poster-limoen); }
@@ -1057,7 +1054,6 @@ html::before {
 .sjabloon-foto .poster-voet, .sjabloon-tekst .poster-voet { border-top: 0; padding-top: 0; }
 .poster-merk { display: flex; align-items: flex-end; gap: calc(var(--e) * 5); min-width: 0; }
 .poster-merk img { display: block; height: calc(var(--e) * 15); }
-.sjabloon-foto .poster-merk img, .sjabloon-tekst .poster-merk img { filter: brightness(0) invert(1); }
 .poster-merk span {
   padding-bottom: calc(var(--e) * 1); font-size: calc(var(--e) * 3.6); font-weight: 500; letter-spacing: .16em; text-transform: uppercase;
   color: var(--poster-olijf);
@@ -1072,12 +1068,50 @@ html::before {
 }
 .poster-qr img { display: block; width: 100%; height: 100%; }
 
+/* Huisstijl Hollandsche Golfclub: dezelfde sjablonen met de clubtokens (blauw, Montserrat, kapitalen) */
+.poster-blad.merk-hgc {
+  --poster-olijf: var(--hgc-blauw); --poster-olijf-diep: var(--hgc-blauw); --poster-limoen: var(--hgc-limoen);
+  --poster-tekst: var(--hgc-tekst); --poster-zacht: var(--hgc-zacht);
+  --poster-lettertype: var(--hgc-lettertype); --poster-lettertype-kop: var(--hgc-lettertype);
+}
+.merk-hgc .poster-inhoud h1 { font-weight: 700; text-transform: uppercase; letter-spacing: .01em; line-height: 1.04; font-size: calc(var(--e) * 21); }
+.merk-hgc.kop-middel .poster-inhoud h1 { font-size: calc(var(--e) * 15.5); }
+.merk-hgc.kop-klein .poster-inhoud h1 { font-size: calc(var(--e) * 12); }
+.merk-hgc.kop-mini .poster-inhoud h1 { font-size: calc(var(--e) * 10); }
+.merk-hgc.sjabloon-tekst.kop-groot .poster-inhoud h1 { font-size: calc(var(--e) * 25); }
+.merk-hgc.sjabloon-tekst.kop-middel .poster-inhoud h1 { font-size: calc(var(--e) * 19); }
+.merk-hgc.sjabloon-tekst.kop-klein .poster-inhoud h1 { font-size: calc(var(--e) * 15); }
+.merk-hgc.sjabloon-tekst .poster-inhoud .poster-tekst { font-size: calc(var(--e) * 7); }
+.merk-hgc .poster-bord { letter-spacing: 0; }
+.merk-hgc.sjabloon-tekst .poster-inhoud { text-align: center; }
+.merk-hgc.sjabloon-tekst .poster-inhoud::before { margin-inline: auto; }
+.merk-hgc.sjabloon-tekst .poster-inhoud .poster-pictos { justify-content: center; }
+.merk-hgc.sjabloon-tekst .poster-inhoud .poster-tekst { margin-inline: auto; }
+.merk-hgc .poster-merk img { height: calc(var(--e) * 21); }
+.poster-merk img.op-vlak { height: calc(var(--e) * 25); padding: calc(var(--e) * 2.5) calc(var(--e) * 3.5); border-radius: calc(var(--e) * 1.5); background: var(--poster-papier); }
+.merk-hgc .poster-merk span { line-height: 1.6; }
+
 /* Afdrukken: alleen de kopie in <body>, zonder app eromheen (@page zet Posters.tsx per formaat) */
 .poster-druk { display: none; }
 @media print {
+  /* Precies één pagina: Safari voegt anders een lege tweede pagina toe */
+  html.posterdruk, html.posterdruk body { height: 100%; overflow: hidden; padding: 0; }
   html.posterdruk body { margin: 0; background: var(--poster-papier); }
   html.posterdruk #root { display: none !important; }
   html.posterdruk .poster-druk { display: block; --e: 1mm; }
   html.posterdruk.a3 .poster-druk { --e: 1.41421mm; }
   .poster-druk .poster-blad { break-after: avoid; height: calc(var(--e) * 297 - .2mm); }
 }
+
+/* ══ HGM → Bestanden ══ */
+.bestanden-tegels { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 18px; }
+.bestanden-tegel { display: grid; gap: 4px; justify-items: start; color: var(--kleur-tekst); text-decoration: none; }
+.bestanden-tegel .poster-blad { box-shadow: var(--schaduw-klein); border: 1px solid var(--kleur-rand); transition: box-shadow .15s; }
+.bestanden-tegel:hover .poster-blad { box-shadow: var(--schaduw-zwevend); }
+.bestanden-tegel strong { margin-top: 6px; font-size: 15px; }
+.bestanden-tegel span { font-size: 13px; }
+.bestanden-detail { margin-top: var(--ruimte); max-width: 100%; overflow-x: auto; }
+.bestanden-detail .poster-blad { box-shadow: var(--schaduw-tegel); }
+.bestanden-detail img { max-width: min(100%, 900px); border-radius: var(--radius-klein); border: 1px solid var(--kleur-rand); }
+.bestanden-detail iframe { width: 100%; height: 80vh; border: 1px solid var(--kleur-rand); border-radius: var(--radius-klein); }
+.posters-opgeslagen { font-size: 14px; }

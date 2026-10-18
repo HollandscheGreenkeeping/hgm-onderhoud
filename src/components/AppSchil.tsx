@@ -2,6 +2,7 @@ import { useEffect, type ReactNode } from 'react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router'
 import { rolNamen, supabase } from '../lib/supabase'
 import { useSessie } from '../lib/sessie'
+import { useMagBestanden } from '../lib/bestanden'
 
 // App-schil voor alle schermen (Freshservice-stijl): links een vaste zijbalk in HGM-olijf met de
 // baan en de HGM-onderdelen, rechts een smalle kopregel met kruimelpad en de inhoud.
@@ -27,7 +28,7 @@ const namen: Record<string, string> = {
   voorstellen: 'Voorstellen', overzicht: 'Dashboard', rapportage: 'Rapportage', meer: 'Meer',
   banen: 'Banen', werkplaats: 'Werkplaats', werkorders: 'Werkorders', planning: 'Planning', keuringen: 'Keuringen',
   kosten: 'Kosten', inkoop: 'Inkoop', bestellingen: 'Bestellingen', voorraad: 'Voorraad', producten: 'Producten',
-  leveranciers: 'Leveranciers', budget: 'Budget', beheer: 'Beheer', gebruikers: 'Gebruikers', keuzelijsten: 'Keuzelijsten', posters: 'Posters',
+  leveranciers: 'Leveranciers', budget: 'Budget', beheer: 'Beheer', gebruikers: 'Gebruikers', keuzelijsten: 'Keuzelijsten', posters: 'Posters', bestanden: 'Bestanden',
   nieuw: 'Nieuw', schemas: "Schema's", kalender: 'Kalender', verlopen: 'Verlopen',
 }
 
@@ -45,6 +46,7 @@ export default function AppSchil({ baan, magInkoop, mobielKop, mobielMenu, child
   const isGlobaal = rol === 'beheer' || rol === 'onderhoudsmanager'
   const isBeheer = rol === 'beheer'
   const magWerkplaats = isGlobaal || rol === 'monteur'
+  const magBestanden = useMagBestanden() === true
   const b = baan ?? laatsteBaan()
 
   useEffect(() => { if (baan) onthoudBaan(baan) }, [baan])
@@ -122,6 +124,7 @@ export default function AppSchil({ baan, magInkoop, mobielKop, mobielMenu, child
             </div>
           )}
           <NavLink to="/posters">Posters</NavLink>
+          {magBestanden && <NavLink to="/bestanden">Bestanden</NavLink>}
           {isGlobaal && <NavLink to="/beheer">Beheer</NavLink>}
           {isGlobaal && onder('/beheer') && (
             <div className="zijbalk-sub">

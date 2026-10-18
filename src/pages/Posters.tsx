@@ -1,8 +1,12 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { createPortal } from 'react-dom'
-import { PaginaKop } from '../components/tabel'
+import { Link } from 'react-router'
+import { PaginaKop, useUrlParam } from '../components/tabel'
+import { supabase } from '../lib/supabase'
+import { useSessie } from '../lib/sessie'
+import { bankLink, opslagVoorvoegsel, uploadNaarBank, useMagBestanden } from '../lib/bestanden'
 import {
-  boodschappen, pictogramUrl, pictogrammen, soortNamen, zoekPictogram, type Boodschap, type Soort,
+  boodschappen, pictogramUrl, pictogrammen, soortNamen, zoekPictogram, type Boodschap, type Merk, type Soort,
 } from '../lib/pictogrammen'
 
 // HGM → Posters: borden en posters voor de werkplaats en de baan, af te drukken als PDF (A4 of A3).
@@ -24,26 +28,95 @@ const soorten = Object.keys(soortNamen) as Soort[]
 const maxPictos = 3
 const lettersSleutel = 'hgm-poster-letters'
 
+// Huisstijlen. Logo's ongewijzigd: HGM heeft een witte versie, de Hollandsche Golfclub niet
+// (daar staat het kleurenlogo op een wit vlak op donkere posters).
+const merken: Record<Merk, { naam: string; logo: string; logoWit: string | null; logoAlt: string; verloop: string; website?: string }> = {
+  hgm: { naam: 'HGM Golf', logo: '/hgm-logo.png', logoWit: '/hgm-logo-wit.png', logoAlt: 'Hollandsche Greenkeeping Maatschappij', verloop: '/posters/verloop.png' },
+  hgc: { naam: 'Hollandsche Golfclub', logo: '/merken/hollandsche-golfclub.png', logoWit: null, logoAlt: 'Hollandsche Golfclub',
+         verloop: '/merken/verloop-hgc.png', website: 'hollandschegolfclub.nl' },
+}
+
 export type Poster = {
   sjabloon: Sjabloon; formaat: Formaat; kop: string; tekst: string; plek: string
   pictos: string[]; foto: string; qr: boolean
+  merk?: Merk   // ontbreekt bij oudere opgeslagen posters: HGM
 }
 
 export default function Posters() {
   const eerste = boodschappen[0]
   const [p, setP] = useState<Poster>({
     sjabloon: eerste.sjabloon, formaat: 'A4', kop: eerste.kop, tekst: eerste.tekst, plek: '',
-    pictos: eerste.pictos, foto: fotos[0].url, qr: false,
+    pictos: eerste.pictos, foto: fotos[0].url, qr: false, merk: 'hgm',
   })
-  const [eigenFoto, setEigenFoto] = useState<string | null>(null)
+  // Eigen foto: nieuw gekozen (bestand, nog niet in de opslag) of uit de bestandenbank (pad).
+  const [eigenFoto, setEigenFoto] = useState<{ url: string; bestand?: File; pad?: string } | null>(null)
   const zet = <K extends keyof Poster>(k: K, v: Poster[K]) => setP((oud) => ({ ...oud, [k]: v }))
+  const { profiel } = useSessie()
+  const magBewaren = useMagBestanden()
+  const [id, zetId] = useUrlParam('id')
+  const [eigenaar, setEigenaar] = useState<string | null>(null)
+  const [bewaren, setBewaren] = useState<'bezig' | 'klaar' | string | null>(null)
+  const netBewaard = useRef<string | null>(null)   // eigen insert: niet opnieuw laden
+
+  // Poster uit de bestandenbank openen (/posters?id=…).
+  useEffect(() => {
+    if (!id || id === netBewaard.current) return
+    let actief = true
+    supabase.from('bestanden').select('poster, aangemaakt_door').eq('id', id).eq('soort', 'poster').maybeSingle()
+      .then(async ({ data }) => {
+        if (!actief || !data?.poster) return
+        const opgeslagen = data.poster as Poster
+        setEigenaar(data.aangemaakt_door)
+        if (opgeslagen.foto?.startsWith(opslagVoorvoegsel)) {
+          const pad = opgeslagen.foto.slice(opslagVoorvoegsel.length)
+          const url = (await bankLink(pad)) ?? ''
+          if (!actief) return
+          setEigenFoto({ url, pad })
+          setP({ ...opgeslagen, foto: url })
+        } else setP(opgeslagen)
+      })
+    return () => { actief = false }
+  }, [id])
+
+  const isGlobaal = profiel?.globale_rol === 'beheer' || profiel?.globale_rol === 'onderhoudsmanager'
+  const magOverschrijven = !!id && (eigenaar === profiel?.id || isGlobaal)
+
+  async function bewaar(alsNieuw: boolean) {
+    setBewaren('bezig')
+    try {
+      let foto = p.foto
+      if (eigenFoto && p.foto === eigenFoto.url) {
+        let pad = eigenFoto.pad
+        if (!pad && eigenFoto.bestand) {
+          pad = await uploadNaarBank(eigenFoto.bestand, eigenFoto.bestand.name)
+          setEigenFoto({ ...eigenFoto, pad })
+        }
+        foto = `${opslagVoorvoegsel}${pad}`
+      }
+      const poster = { ...p, foto }
+      if (!alsNieuw && magOverschrijven) {
+        const { error } = await supabase.from('bestanden').update({ poster, titel: p.kop || 'Poster' }).eq('id', id)
+        if (error) throw error
+      } else {
+        const { data, error } = await supabase.from('bestanden')
+          .insert({ soort: 'poster', titel: p.kop || 'Poster', map: 'Posters', poster }).select('id').single()
+        if (error) throw error
+        setEigenaar(profiel?.id ?? null)
+        netBewaard.current = data.id
+        zetId(data.id)
+      }
+      setBewaren('klaar')
+    } catch (x) {
+      setBewaren(x instanceof Error ? x.message : 'Bewaren lukte niet.')
+    }
+  }
 
   // Lettertypes van hgmgolf.nl alleen op deze pagina laden.
   useEffect(() => {
     if (document.getElementById(lettersSleutel)) return
     const l = document.createElement('link')
     l.id = lettersSleutel; l.rel = 'stylesheet'
-    l.href = 'https://fonts.googleapis.com/css2?family=EB+Garamond:wght@500;600&family=Poppins:wght@400;500;600;700&display=swap'
+    l.href = 'https://fonts.googleapis.com/css2?family=EB+Garamond:wght@500;600&family=Poppins:wght@400;500;600;700&family=Montserrat:wght@500;600;700&display=swap'
     document.head.appendChild(l)
   }, [])
 
@@ -58,7 +131,8 @@ export default function Posters() {
     return () => { html.classList.remove('posterdruk', 'a3'); pagina.remove() }
   }, [p.formaat])
 
-  useEffect(() => () => { if (eigenFoto) URL.revokeObjectURL(eigenFoto) }, [eigenFoto])
+  useEffect(() => () => { if (eigenFoto?.bestand) URL.revokeObjectURL(eigenFoto.url) }, [eigenFoto])
+  useEffect(() => { if (bewaren === 'klaar') setBewaren(null) }, [p])  // na een wijziging weer 'bewaren'
 
   function kiesBoodschap(naam: string) {
     const b = boodschappen.find((x) => x.naam === naam)
@@ -81,23 +155,43 @@ export default function Posters() {
     document.title = titel
   }
 
-  const groepen = [...new Set(boodschappen.map((b) => b.groep))]
+  const merk = p.merk ?? 'hgm'
+  const lijst = boodschappen.filter((b) => (b.merken ?? ['hgm']).includes(merk))
+  const groepen = [...new Set(lijst.map((b) => b.groep))]
 
   return (
     <>
       <PaginaKop titel="Posters" sub="Borden voor de werkplaats en de baan. Kies een boodschap, pas de tekst aan en druk af of bewaar als PDF.">
+        {magBewaren && (magOverschrijven
+          ? <>
+              <button className="knop tweede" onClick={() => bewaar(false)} disabled={bewaren === 'bezig'}>Wijzigingen bewaren</button>
+              <button className="knop tweede" onClick={() => bewaar(true)} disabled={bewaren === 'bezig'}>Als nieuwe bewaren</button>
+            </>
+          : <button className="knop tweede" onClick={() => bewaar(true)} disabled={bewaren === 'bezig'}>Bewaren in Bestanden</button>)}
         <button className="knop" onClick={afdrukken}>Afdrukken of PDF ({p.formaat})</button>
       </PaginaKop>
+      {bewaren === 'klaar' && <p className="posters-opgeslagen zacht">Bewaard. Terug te vinden in <Link to="/bestanden?weergave=posters">Bestanden</Link>.</p>}
+      {bewaren && bewaren !== 'klaar' && bewaren !== 'bezig' && <div className="melding fout">{bewaren}</div>}
 
       <div className="posters">
         <div className="posters-bediening">
+          <div>
+            <span className="veldlabel">Huisstijl</span>
+            <div className="posters-keuze" role="group" aria-label="Huisstijl">
+              {(Object.keys(merken) as Merk[]).map((m) => (
+                <button key={m} type="button" aria-pressed={merk === m}
+                        onClick={() => setP((oud) => ({ ...oud, merk: m, qr: m === 'hgc' ? false : oud.qr }))}>{merken[m].naam}</button>
+              ))}
+            </div>
+          </div>
+
           <label>
             Boodschap
             <select value="" onChange={(e) => kiesBoodschap(e.target.value)}>
               <option value="" disabled>Kies een kant-en-klare boodschap…</option>
               {groepen.map((g) => (
                 <optgroup key={g} label={g}>
-                  {boodschappen.filter((b) => b.groep === g).map((b) => <option key={b.naam} value={b.naam}>{b.naam}</option>)}
+                  {lijst.filter((b) => b.groep === g).map((b) => <option key={b.naam} value={b.naam}>{b.naam}</option>)}
                 </optgroup>
               ))}
             </select>
@@ -123,7 +217,7 @@ export default function Posters() {
 
           <label>Kop<input value={p.kop} onChange={(e) => zet('kop', e.target.value)} maxLength={60} /></label>
           <label>Tekst<textarea rows={3} value={p.tekst} onChange={(e) => zet('tekst', e.target.value)} maxLength={180} /></label>
-          <label>Onderregel<input value={p.plek} onChange={(e) => zet('plek', e.target.value)} placeholder="bijv. Werkplaats Golfpark Almkreek" maxLength={60} /></label>
+          <label>Onderregel<input value={p.plek} onChange={(e) => zet('plek', e.target.value)} placeholder={merk === 'hgc' ? 'bijv. Golfpark Almkreek' : 'bijv. Werkplaats Golfpark Almkreek'} maxLength={60} /></label>
 
           {p.sjabloon === 'foto' && (
             <div>
@@ -134,8 +228,8 @@ export default function Posters() {
                           style={{ backgroundImage: `url('${f.url}')` }} title={f.naam}><span>{f.naam}</span></button>
                 ))}
                 {eigenFoto && (
-                  <button type="button" aria-pressed={p.foto === eigenFoto} onClick={() => zet('foto', eigenFoto)}
-                          style={{ backgroundImage: `url('${eigenFoto}')` }}><span>Eigen</span></button>
+                  <button type="button" aria-pressed={p.foto === eigenFoto.url} onClick={() => zet('foto', eigenFoto.url)}
+                          style={{ backgroundImage: `url('${eigenFoto.url}')` }}><span>Eigen</span></button>
                 )}
               </div>
               <label className="posters-upload knop tweede klein">
@@ -144,16 +238,16 @@ export default function Posters() {
                   const f = e.target.files?.[0]
                   if (!f) return
                   const url = URL.createObjectURL(f)
-                  setEigenFoto(url); zet('foto', url)
+                  setEigenFoto({ url, bestand: f }); zet('foto', url)
                 }} />
               </label>
             </div>
           )}
 
-          <label className="posters-vink">
+          {merk === 'hgm' && <label className="posters-vink">
             <input type="checkbox" checked={p.qr} onChange={(e) => zet('qr', e.target.checked)} />
             QR-code naar de app (om te melden)
-          </label>
+          </label>}
 
           <div>
             <span className="veldlabel">Pictogrammen <span className="zacht">({p.pictos.length}/{maxPictos}, ISO 7010)</span></span>
@@ -214,6 +308,8 @@ function kopMaat(kop: string) {
 }
 
 export function PosterBlad({ poster: p, stijl }: { poster: Poster; stijl?: CSSProperties }) {
+  const m = merken[p.merk ?? 'hgm']
+  const donker = p.sjabloon !== 'pictogram'
   const soort = zoekPictogram(p.pictos[0] ?? '')?.soort
   const pictos = p.pictos.length > 0 && (
     <div className={`poster-pictos aantal-${p.pictos.length}`}>
@@ -223,15 +319,15 @@ export function PosterBlad({ poster: p, stijl }: { poster: Poster; stijl?: CSSPr
   const voet = (
     <div className="poster-voet">
       <div className="poster-merk">
-        <img src="/hgm-logo.png" alt="Hollandsche Greenkeeping Maatschappij" />
-        {p.plek && <span>{p.plek}</span>}
+        <img src={donker && m.logoWit ? m.logoWit : m.logo} alt={m.logoAlt} className={donker && !m.logoWit ? 'op-vlak' : undefined} />
+        {(p.plek || m.website) && <span>{p.plek}{p.plek && m.website && <br />}{m.website}</span>}
       </div>
       {p.qr && <div className="poster-qr"><span>Meld het<br />in de app</span><div><img src="/marketing/qr-app.svg" alt="QR-code naar HGM Golf Onderhoud" /></div></div>}
     </div>
   )
 
   return (
-    <div className={`poster-blad sjabloon-${p.sjabloon} kop-${kopMaat(p.kop)}`} style={stijl} data-soort={soort}>
+    <div className={`poster-blad merk-${p.merk ?? 'hgm'} sjabloon-${p.sjabloon} kop-${kopMaat(p.kop)}`} style={stijl} data-soort={soort}>
       {p.sjabloon === 'pictogram' && (
         <>
           <div className="poster-pictovlak">{pictos}</div>
@@ -241,7 +337,9 @@ export function PosterBlad({ poster: p, stijl }: { poster: Poster; stijl?: CSSPr
       )}
       {p.sjabloon === 'foto' && (
         <>
-          <div className="poster-foto" style={{ backgroundImage: `url('${p.foto}')` }} />
+          {/* Foto en verloop als echte afbeeldingen: Safari drukt CSS-achtergronden, filters en
+              verlopen met transparantie niet goed af (verloop wordt zwart). Verloop-PNG = merkkleur met alpha. */}
+          <div className="poster-foto">{p.foto && <img src={p.foto} alt="" />}<img src={m.verloop} alt="" /></div>
           <div className="poster-inhoud">
             {pictos}
             <h1>{p.kop}</h1>

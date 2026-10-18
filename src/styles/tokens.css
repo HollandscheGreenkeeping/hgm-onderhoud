@@ -79,6 +79,13 @@
   --poster-lettertype-kop: 'EB Garamond', Georgia, serif;
   --poster-lettertype: 'Poppins', Arial, sans-serif;
 
+  /* Posters in de huisstijl van de Hollandsche Golfclub (hollandschegolfclub.nl) */
+  --hgc-blauw: #1c3158;            /* vlak op de eigen HGC-posters */
+  --hgc-tekst: #363636;
+  --hgc-limoen: #95c120;
+  --hgc-zacht: #dfe5ef;            /* tekst op blauw */
+  --hgc-lettertype: 'Montserrat', Arial, sans-serif;
+
   /* Veiligheidskleuren (ISO 7010 / ISO 3864), gelijk aan de kleuren in public/pictogrammen/iso7010 */
   --veilig-verbod: #b71f2e;
   --veilig-gebod: #005387;

@@ -22,7 +22,7 @@ export default function HoofdLayout() {
   if (!banen || !profiel) return <main className="zacht">Laden…</main>
   // Inkoop: ook voor de hoofd-greenkeeper (eigen baan).
   const magInkoop = magWerkplaats || banen.some((b) => b.rol === 'hoofdgreenkeeper')
-  if (!magWerkplaats && banen.length === 1 && !pathname.startsWith('/beheer') && !pathname.startsWith('/inkoop') && pathname !== '/posters') {
+  if (!magWerkplaats && banen.length === 1 && !pathname.startsWith('/beheer') && !pathname.startsWith('/inkoop') && pathname !== '/posters' && !pathname.startsWith('/bestanden')) {
     return <Navigate to={`/locatie/${banen[0].locatie_id}`} replace />
   }
 

@@ -564,6 +564,47 @@ select tests.is('bm.a ziet geen budget', (select count(*) from budgetten), 0::bi
 select tests.is('bm.a ziet geen leveranciers', (select count(*) from leveranciers), 0::bigint);
 reset role;
 
+-- ── Bestandenbank: HGM-medewerkers wel, baanmanager niet ───────────────────
+
+select tests.als('gk.a@test.nl');
+insert into bestanden (id, soort, titel, map, poster) values
+  ('b5000000-0000-0000-0000-000000000001', 'poster', 'Niet roken', 'Veiligheid', '{"kop": "Niet roken"}');
+select tests.fout('bestand zonder opslagpad kan niet',
+  $$insert into bestanden (soort, titel) values ('bestand', 'Leeg')$$);
+select tests.fout('gk.a kan niet namens een ander opslaan',
+  $$insert into bestanden (soort, titel, poster, aangemaakt_door)
+    values ('poster', 'X', '{}', '00000000-0000-0000-0000-000000000003')$$);
+select tests.is('gk.a mag uploaden in eigen map', tests.rijen($$insert into storage.objects (bucket_id, name)
+  values ('bestanden', '00000000-0000-0000-0000-000000000004/flyer.pdf')$$), 1);
+select tests.fout('gk.a mag niet in andermans map uploaden',
+  $$insert into storage.objects (bucket_id, name) values ('bestanden', '00000000-0000-0000-0000-000000000003/x.pdf')$$);
+reset role;
+
+select tests.als('gk.a2@test.nl');
+select tests.is('collega ziet de poster', (select count(*) from bestanden), 1::bigint);
+select tests.is('collega kan andermans poster niet wijzigen',
+  tests.rijen($$update bestanden set titel = 'Weg' where id = 'b5000000-0000-0000-0000-000000000001'$$), 0);
+select tests.is('niemand kan bestanden echt verwijderen',
+  tests.rijen($$delete from bestanden$$), 0);
+reset role;
+
+select tests.als('monteur@test.nl');
+select tests.is('monteur ziet de bestandenbank', (select count(*) from bestanden), 1::bigint);
+reset role;
+
+select tests.als('om@test.nl');
+select tests.is('onderhoudsmanager kan archiveren',
+  tests.rijen($$update bestanden set gearchiveerd_op = now() where id = 'b5000000-0000-0000-0000-000000000001'$$), 1);
+reset role;
+
+select tests.als('bm.a@test.nl');
+select tests.is('baanmanager ziet de bestandenbank niet', (select count(*) from bestanden), 0::bigint);
+select tests.fout('baanmanager kan geen poster opslaan',
+  $$insert into bestanden (soort, titel, poster) values ('poster', 'X', '{}')$$);
+select tests.is('baanmanager ziet geen bestanden in opslag',
+  (select count(*) from storage.objects where bucket_id = 'bestanden'), 0::bigint);
+reset role;
+
 -- ── Beheer: alles, en tweestapsverificatie als die verplicht is ────────────
 
 select tests.als('beheer@test.nl');

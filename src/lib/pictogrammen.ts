@@ -51,15 +51,19 @@ export const pictogrammen: Pictogram[] = [
 export const pictogramUrl = (code: string) => `/pictogrammen/iso7010/${code}.svg`
 export const zoekPictogram = (code: string) => pictogrammen.find((p) => p.code === code)
 
+// Huisstijlen: HGM Golf (onderhoud, werkvloer) en de Hollandsche Golfclub (golfers op de baan).
+export type Merk = 'hgm' | 'hgc'
+
 // Kant-en-klare boodschappen: tekst en pictogrammen, daarna vrij aan te passen.
+// merken: bij welke huisstijl ze in de lijst staan (standaard alleen HGM).
 export type Boodschap = {
-  naam: string; groep: string
+  naam: string; groep: string; merken?: Merk[]
   sjabloon: 'pictogram' | 'foto' | 'tekst'
   kop: string; tekst: string; pictos: string[]; foto?: string; qr?: boolean
 }
 
 export const boodschappen: Boodschap[] = [
-  { groep: 'Veiligheid', naam: 'Niet roken', sjabloon: 'pictogram', pictos: ['P002'],
+  { groep: 'Veiligheid', naam: 'Niet roken', merken: ['hgm', 'hgc'], sjabloon: 'pictogram', pictos: ['P002'],
     kop: 'Niet roken', tekst: 'Ook geen e-sigaret. Roken mag alleen op de rookplek buiten.' },
   { groep: 'Veiligheid', naam: 'Geen open vuur', sjabloon: 'pictogram', pictos: ['P003'],
     kop: 'Geen open vuur', tekst: 'Hier staan brandstof en middelen opgeslagen. Niet roken, niet lassen zonder vergunning.' },
@@ -87,13 +91,13 @@ export const boodschappen: Boodschap[] = [
     kop: 'Brandstofopslag', tekst: 'Niet roken, geen open vuur. Lekbak gebruiken bij het tanken.' },
   { groep: 'Middelen en brandstof', naam: 'Bijtende stoffen', sjabloon: 'pictogram', pictos: ['W023', 'M004'],
     kop: 'Bijtende stoffen', tekst: 'Draag een veiligheidsbril. Oogdouche staat bij de wasplaats.' },
-  { groep: 'Nood en EHBO', naam: 'EHBO', sjabloon: 'pictogram', pictos: ['E003'],
+  { groep: 'Nood en EHBO', naam: 'EHBO', merken: ['hgm', 'hgc'], sjabloon: 'pictogram', pictos: ['E003'],
     kop: 'EHBO', tekst: 'Hier hangt de verbandtrommel. Bij nood: bel 112.' },
-  { groep: 'Nood en EHBO', naam: 'AED', sjabloon: 'pictogram', pictos: ['E010'],
+  { groep: 'Nood en EHBO', naam: 'AED', merken: ['hgm', 'hgc'], sjabloon: 'pictogram', pictos: ['E010'],
     kop: 'AED', tekst: 'Bij een hartstilstand: bel 112, start reanimatie en laat de AED halen.' },
-  { groep: 'Nood en EHBO', naam: 'Brandblusser', sjabloon: 'pictogram', pictos: ['F001'],
+  { groep: 'Nood en EHBO', naam: 'Brandblusser', merken: ['hgm', 'hgc'], sjabloon: 'pictogram', pictos: ['F001'],
     kop: 'Brandblusser', tekst: 'Houd de blusser vrij. Gebruikt? Meld het, dan wordt hij gevuld.' },
-  { groep: 'Nood en EHBO', naam: 'Nooduitgang', sjabloon: 'pictogram', pictos: ['E002'],
+  { groep: 'Nood en EHBO', naam: 'Nooduitgang', merken: ['hgm', 'hgc'], sjabloon: 'pictogram', pictos: ['E002'],
     kop: 'Nooduitgang', tekst: 'Altijd vrijhouden.' },
   { groep: 'Werkplaats', naam: 'Machine schoon terug', sjabloon: 'foto', pictos: [], foto: '/posters/nacht.jpg', qr: true,
     kop: 'Machine schoon terug', tekst: 'Na gebruik afspuiten, tanken en terugzetten. Defect? Meld het in de app.' },
@@ -101,4 +105,22 @@ export const boodschappen: Boodschap[] = [
     kop: 'Zie je iets kapot? Meld het.', tekst: 'Waar, wat en hoe dringend, met een foto. Meteen bij de juiste persoon.' },
   { groep: 'Werkplaats', naam: 'Deur dicht', sjabloon: 'tekst', pictos: [],
     kop: 'Deur dicht houden', tekst: 'Ook overdag. Er staan machines en middelen binnen.' },
+  { groep: 'Op de baan', naam: 'Pitchmarks', merken: ['hgc'], sjabloon: 'foto', pictos: [], foto: '/marketing/baan-ochtend.jpg',
+    kop: 'Herstel je pitchmark', tekst: 'En nog één erbij. Zo blijft de green mooi voor iedereen.' },
+  { groep: 'Op de baan', naam: 'Bunker harken', merken: ['hgc'], sjabloon: 'tekst', pictos: [],
+    kop: 'Hark de bunker', tekst: 'Laat de bunker achter zoals je hem zelf zou willen aantreffen.' },
+  { groep: 'Op de baan', naam: 'Trolleys en buggy’s', merken: ['hgc'], sjabloon: 'tekst', pictos: [],
+    kop: 'Trolleys niet op tee en green', tekst: 'Ook niet tussen green en bunker. Volg de paden en de paaltjes.' },
+  { groep: 'Op de baan', naam: 'Greenkeepers aan het werk', merken: ['hgc'], sjabloon: 'pictogram', pictos: ['W001'],
+    kop: 'Greenkeepers aan het werk', tekst: 'Wacht op een teken van de greenkeeper voordat je slaat.' },
+  { groep: 'Op de baan', naam: 'Onweer', merken: ['hgc'], sjabloon: 'pictogram', pictos: ['W001'],
+    kop: 'Onweer? Verlaat de baan', tekst: 'Ga naar het clubhuis of een schuilhut. Niet schuilen onder bomen.' },
+  { groep: 'Op de baan', naam: 'Paddestoelen', merken: ['hgc'], sjabloon: 'foto', pictos: [], foto: '/posters/schemer.jpg',
+    kop: 'Paddestoelen op de baan', tekst: 'Mooi om te zien, niet om te plukken of te eten. Sommige soorten zijn giftig.' },
+  { groep: 'Baanstatus', naam: 'Baan gesloten', merken: ['hgc'], sjabloon: 'tekst', pictos: [],
+    kop: 'Baan gesloten', tekst: 'Vanwege de weersomstandigheden is de baan vandaag gesloten. Kijk voor actuele informatie op de website.' },
+  { groep: 'Baanstatus', naam: 'Wintergreens', merken: ['hgc'], sjabloon: 'tekst', pictos: [],
+    kop: 'Vandaag wintergreens', tekst: 'De zomergreens zijn gesloten. Speel naar de wintergreens.' },
+  { groep: 'Baanstatus', naam: 'Onderhoud greens', merken: ['hgc'], sjabloon: 'foto', pictos: [], foto: '/posters/ochtend.jpg',
+    kop: 'Greens in onderhoud', tekst: 'De greens zijn gestoken en bezand. De komende weken rollen ze iets langzamer. Dank voor je begrip.' },
 ]

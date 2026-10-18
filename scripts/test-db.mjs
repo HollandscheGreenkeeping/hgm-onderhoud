@@ -34,6 +34,7 @@ const supabaseNabootsing = `
     id uuid primary key default gen_random_uuid(), bucket_id text, name text
   );
   alter table storage.objects enable row level security;
+  grant select, insert, update, delete on storage.objects to anon, authenticated;
   grant usage on schema public, auth, extensions, storage to anon, authenticated;
   grant execute on all functions in schema auth to anon, authenticated;
   alter default privileges in schema public grant all on tables to anon, authenticated;
