@@ -34,7 +34,7 @@ type Status = { storing: boolean; onderhoud: boolean }
 // Materieel van de baan als tabel (eigen machines plus vervangend materieel dat hier staat).
 // Weergave en zoekterm in de URL; elke machine opent /materieel/:id.
 export default function Materieel() {
-  const { locatie, magPlannen } = useLocatie()
+  const { locatie, magPlannen, rol } = useLocatie()
   const [weergave] = useUrlParam('weergave', 'gebruik')
   const [machines, setMachines] = useState<Machine[] | null>(null)
   const [status, setStatus] = useState<Record<string, Status>>({})
@@ -80,6 +80,7 @@ export default function Materieel() {
   return (
     <main className="breed">
       <PaginaKop titel="Materieel" telling={rijen?.length}>
+        {(magPlannen || rol === 'monteur') && <Link className="knop tweede" to={`${basis}/stickers?weergave=machines`}>QR-stickers</Link>}
         {magPlannen && <Link className="knop" to={`${basis}/materieel/nieuw`}>Machine toevoegen</Link>}
       </PaginaKop>
       <Werkbalk>

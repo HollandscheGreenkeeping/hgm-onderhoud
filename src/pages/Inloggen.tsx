@@ -3,6 +3,7 @@ import { Capacitor } from '@capacitor/core'
 import { Navigate } from 'react-router'
 import { supabase } from '../lib/supabase'
 import { useSessie } from '../lib/sessie'
+import { doelNaInloggen } from '../lib/naInloggen'
 import InlogFilm from '../components/InlogFilm'
 
 // Huisstijl 2a – inlogscherm. Ontwerp: Inloggen.dc.html. Klassen staan onderaan app.css (".inlog-…").
@@ -16,7 +17,7 @@ export default function Inloggen() {
   const [fout, setFout] = useState<string | null>(null)
   const [verstuurd, setVerstuurd] = useState(false)
 
-  if (sessie) return <Navigate to="/" replace />
+  if (sessie) return <Navigate to={doelNaInloggen()} replace />
 
   function kies(m: 'ww' | 'link') { setModus(m); setFout(null); setVerstuurd(false) }
 

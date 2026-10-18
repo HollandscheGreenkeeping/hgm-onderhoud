@@ -6,10 +6,11 @@ import { supabase } from '../lib/supabase'
 import { useSessie } from '../lib/sessie'
 import { bankLink, opslagVoorvoegsel, uploadNaarBank, useMagBestanden } from '../lib/bestanden'
 import {
-  boodschappen, pictogramUrl, pictogrammen, soortNamen, zoekPictogram, type Merk, type Sjabloon, type Soort,
+  boodschappen, pictogramUrl, pictogrammen, soortNamen, zoekPictogram, type Merk, type Regel, type Sjabloon, type Soort,
 } from '../lib/pictogrammen'
 import { fotoGroepen, posterFotos } from '../lib/posterfotos'
 import { isSymbool, symboolGroepen, symbolen, zoekSymbool } from '../lib/symbolen'
+import QrCode, { appAdres } from '../components/QrCode'
 
 // HGM → Posters: borden en posters voor de werkplaats en de baan, af te drukken als PDF (A4 of A3).
 // Pictogrammen zijn de officiële ISO 7010-tekens, ongewijzigd. Verder alleen tekst, foto en het HGM-logo.
@@ -24,6 +25,7 @@ const sjablonen: { waarde: Sjabloon; naam: string; uitleg: string }[] = [
   { waarde: 'kader', naam: 'Kader', uitleg: 'Foto in een witte lijst met een tekstlabel' },
   { waarde: 'kaart', naam: 'Kaart', uitleg: 'Kleurvlak met gecentreerde tekst, witte voet' },
   { waarde: 'tekst', naam: 'Tekst', uitleg: 'Alleen tekst op een kleurvlak' },
+  { waarde: 'lijst', naam: 'Lijst', uitleg: 'Huisregels of een ingangsbord met veel pictogrammen' },
 ]
 const metFoto: Sjabloon[] = ['foto', 'split', 'kader']
 const soorten = Object.keys(soortNamen) as Soort[]
@@ -70,6 +72,8 @@ const parken: { sleutel: string; naam: string; logo: string }[] = [
   logo: `/merken/parken/${sleutel}.png`,
 }))
 
+const leegInfo = [{ label: 'Datum', waarde: '' }, { label: 'Tijd', waarde: '' }, { label: 'Prijs', waarde: '' }]
+
 const kleurVan = (merk: Merk, sleutel?: string) => merken[merk].kleuren.find((k) => k.sleutel === sleutel) ?? merken[merk].kleuren[0]
 
 export type Poster = {
@@ -78,6 +82,10 @@ export type Poster = {
   merk?: Merk     // ontbreekt bij oudere opgeslagen posters: HGM
   kleur?: string  // sleutel uit merken[merk].kleuren; leeg = eerste kleur
   park?: string   // alleen Hollandsche Golfclub: sleutel uit parken (eigen parklogo in de voet)
+  qrLink?: string; qrTekst?: string               // QR-code naar een eigen link (inschrijving, menukaart, website)
+  info?: { label: string; waarde: string }[]      // blok met datum, tijd, prijs ('Vanaf' · 'EUR 500,00')
+  serie?: boolean                                 // Hollandsche Golfclub: één pagina per park in één PDF
+  regels?: Regel[]; lijstStijl?: 'lijst' | 'raster' // sjabloon lijst: huisregels of ingangsbord
 }
 
 export default function Posters() {
@@ -175,7 +183,8 @@ export default function Posters() {
   function kiesBoodschap(naam: string) {
     const b = boodschappen.find((x) => x.naam === naam)
     if (!b) return
-    setP((oud) => ({ ...oud, sjabloon: b.sjabloon, kop: b.kop, tekst: b.tekst, pictos: b.pictos, foto: b.foto ?? oud.foto, qr: b.qr ?? false, kleur: b.kleur }))
+    setP((oud) => ({ ...oud, sjabloon: b.sjabloon, kop: b.kop, tekst: b.tekst, pictos: b.pictos, foto: b.foto ?? oud.foto, qr: b.qr ?? false, kleur: b.kleur,
+      info: b.info, qrLink: b.qrLink, qrTekst: b.qrTekst, regels: b.regels, lijstStijl: b.lijstStijl }))
   }
 
   function wisselPicto(code: string) {
@@ -188,12 +197,15 @@ export default function Posters() {
 
   function afdrukken() {
     const titel = document.title
-    document.title = `Poster ${p.kop || 'HGM'} (${p.formaat})`
+    document.title = `Poster ${p.kop || 'HGM'}${serie ? ' – alle parken' : ''} (${p.formaat})`
     window.print()
     document.title = titel
   }
 
   const merk = p.merk ?? 'hgm'
+  const serie = merk === 'hgc' && !!p.serie
+  const info = p.info?.length ? p.info : leegInfo
+  const qrKeuze = p.qrLink !== undefined ? 'link' : p.qr ? 'app' : 'geen'
   const lijst = boodschappen.filter((b) => (b.merken ?? ['hgm']).includes(merk))
   const groepen = [...new Set(lijst.map((b) => b.groep))]
 
@@ -206,7 +218,7 @@ export default function Posters() {
               <button className="knop tweede" onClick={() => bewaar(true)} disabled={bewaren === 'bezig'}>Als nieuwe bewaren</button>
             </>
           : <button className="knop tweede" onClick={() => bewaar(true)} disabled={bewaren === 'bezig'}>Bewaren in Bestanden</button>)}
-        <button className="knop" onClick={afdrukken}>Afdrukken of PDF ({p.formaat})</button>
+        <button className="knop" onClick={afdrukken}>Afdrukken of PDF ({serie ? `${parken.length} pagina's, ` : ''}{p.formaat})</button>
       </PaginaKop>
       {bewaren === 'klaar' && <p className="posters-opgeslagen zacht">Bewaard. Terug te vinden in <Link to="/bestanden?weergave=posters">Bestanden</Link>.</p>}
       {bewaren && bewaren !== 'klaar' && bewaren !== 'bezig' && <div className="melding fout">{bewaren}</div>}
@@ -237,6 +249,12 @@ export default function Posters() {
               </select>
             </label>
           )}
+          {merk === 'hgc' && (
+            <label className="posters-vink">
+              <input type="checkbox" checked={serie} onChange={(e) => zet('serie', e.target.checked)} />
+              Serie: één pagina per park ({parken.length} in één PDF)
+            </label>
+          )}
 
           <label>
             Boodschap
@@ -256,7 +274,8 @@ export default function Posters() {
               {sjablonen.map((s) => (
                 <button key={s.waarde} type="button" aria-pressed={p.sjabloon === s.waarde} title={s.uitleg}
                         onClick={() => setP((oud) => ({ ...oud, sjabloon: s.waarde,
-                          foto: metFoto.includes(s.waarde) && !oud.foto ? merken[merk].standaardFoto : oud.foto }))}>{s.naam}</button>
+                          foto: metFoto.includes(s.waarde) && !oud.foto ? merken[merk].standaardFoto : oud.foto,
+                          regels: s.waarde === 'lijst' && !oud.regels?.length ? [{ tekst: '' }, { tekst: '' }, { tekst: '' }] : oud.regels }))}>{s.naam}</button>
               ))}
             </div>
           </div>
@@ -284,6 +303,10 @@ export default function Posters() {
 
           <label>Kop<input value={p.kop} onChange={(e) => zet('kop', e.target.value)} maxLength={60} /></label>
           <label>Tekst<textarea rows={3} value={p.tekst} onChange={(e) => zet('tekst', e.target.value)} maxLength={180} /></label>
+          {p.sjabloon === 'lijst' && (
+            <RegelsBewerken regels={p.regels ?? []} stijl={p.lijstStijl ?? 'lijst'}
+                            zetRegels={(r) => zet('regels', r)} zetStijl={(s) => zet('lijstStijl', s)} />
+          )}
           <label>Onderregel<input value={p.plek} onChange={(e) => zet('plek', e.target.value)} placeholder={merk === 'hgc' ? 'bijv. Golfpark Almkreek' : 'bijv. Werkplaats Golfpark Almkreek'} maxLength={60} /></label>
 
           {metFoto.includes(p.sjabloon) && (
@@ -320,10 +343,37 @@ export default function Posters() {
             </div>
           )}
 
-          {merk === 'hgm' && <label className="posters-vink">
-            <input type="checkbox" checked={p.qr} onChange={(e) => zet('qr', e.target.checked)} />
-            QR-code naar de app (om te melden)
-          </label>}
+          <div>
+            <span className="veldlabel">Datum, tijd en prijs <span className="zacht">(leeg = niet tonen)</span></span>
+            {info.map((r, i) => (
+              <div key={i} className="posters-info-rij">
+                <input aria-label={`Label ${i + 1}`} value={r.label} maxLength={16}
+                       onChange={(e) => zet('info', info.map((x, j) => (j === i ? { ...x, label: e.target.value } : x)))} />
+                <input aria-label={r.label || `Waarde ${i + 1}`} value={r.waarde} maxLength={40}
+                       placeholder={['za 14 november', '10.00 – 12.00 uur', 'EUR 25,00'][i]}
+                       onChange={(e) => zet('info', info.map((x, j) => (j === i ? { ...x, waarde: e.target.value } : x)))} />
+              </div>
+            ))}
+          </div>
+
+          <label>
+            QR-code
+            <select value={qrKeuze} onChange={(e) => {
+              const v = e.target.value
+              setP((oud) => ({ ...oud, qr: v === 'app', qrLink: v === 'link' ? oud.qrLink ?? '' : undefined,
+                qrTekst: v === 'link' ? oud.qrTekst ?? 'Scan voor meer info' : undefined }))
+            }}>
+              <option value="geen">Geen</option>
+              {merk === 'hgm' && <option value="app">Melden in de app</option>}
+              <option value="link">Eigen link (inschrijving, menukaart, website)</option>
+            </select>
+          </label>
+          {qrKeuze === 'link' && (
+            <div className="twee-kolommen">
+              <label>Link<input type="url" value={p.qrLink ?? ''} placeholder="https://hollandschegolfclub.nl/…" onChange={(e) => zet('qrLink', e.target.value)} /></label>
+              <label>Tekst bij de QR<input value={p.qrTekst ?? ''} maxLength={30} onChange={(e) => zet('qrTekst', e.target.value)} /></label>
+            </div>
+          )}
 
           <div>
             <span className="veldlabel">Pictogrammen en symbolen <span className="zacht">({p.pictos.length}/{maxPictos})</span></span>
@@ -366,7 +416,12 @@ export default function Posters() {
         <Voorbeeld poster={p} />
       </div>
 
-      {createPortal(<div className="poster-druk"><PosterBlad poster={p} /></div>, document.body)}
+      {createPortal(
+        serie
+          ? <>{parken.map((x) => <div key={x.sleutel} className="poster-druk"><PosterBlad poster={{ ...p, park: x.sleutel, plek: x.naam }} /></div>)}</>
+          : <div className="poster-druk"><PosterBlad poster={p} /></div>,
+        document.body,
+      )}
     </>
   )
 }
@@ -414,17 +469,22 @@ export function PosterBlad({ poster: p, stijl }: { poster: Poster; stijl?: CSSPr
 
   const pictos = p.pictos.length > 0 && (
     <div className={`poster-pictos aantal-${p.pictos.length}`}>
-      {p.pictos.map((c) => isSymbool(c)
-        ? <span key={c} className="poster-symbool" role="img" aria-label={zoekSymbool(c)?.naam}><SymboolSvg code={c} /></span>
-        : <img key={c} src={pictogramUrl(c)} alt={zoekPictogram(c)?.naam ?? c} />)}
+      {p.pictos.map((c) => <Picto key={c} code={c} />)}
     </div>
   )
   const park = merk === 'hgc' ? parken.find((x) => x.sleutel === p.park) : undefined
+  const regels = (p.info ?? []).filter((r) => r.waarde.trim())
+  const info = regels.length > 0 && (
+    <dl className={`poster-info aantal-${regels.length}`}>
+      {regels.map((r, i) => <div key={i}><dt>{r.label}</dt><dd>{r.waarde}</dd></div>)}
+    </dl>
+  )
   const inhoud = (
     <div className="poster-inhoud">
       {pictos}
       <h1>{p.kop}</h1>
       {p.tekst && <p className="poster-tekst">{p.tekst}</p>}
+      {p.sjabloon !== 'kaart' && info}
     </div>
   )
   // Foto als echte afbeelding: Safari drukt CSS-achtergronden niet goed af.
@@ -436,7 +496,9 @@ export function PosterBlad({ poster: p, stijl }: { poster: Poster; stijl?: CSSPr
         <img src={logo} alt={m.logoAlt} className={logoOpVlak ? 'op-vlak' : undefined} />
         {(p.plek || m.website) && <span>{p.plek}{p.plek && m.website && <br />}{m.website}</span>}
       </div>
-      {p.qr && <div className="poster-qr"><span>Meld het<br />in de app</span><div><img src="/marketing/qr-app.svg" alt="QR-code naar HGM Golf Onderhoud" /></div></div>}
+      {p.qrLink?.trim()
+        ? <div className="poster-qr"><span>{p.qrTekst}</span><div><QrCode tekst={p.qrLink.trim()} /></div></div>
+        : p.qr && <div className="poster-qr"><span>Meld het<br />in de app</span><div><QrCode tekst={appAdres} /></div></div>}
     </div>
   )
 
@@ -448,6 +510,7 @@ export function PosterBlad({ poster: p, stijl }: { poster: Poster; stijl?: CSSPr
           <div className="poster-pictovlak">{pictos}</div>
           <div className="poster-bord">{p.kop}</div>
           {p.tekst && <p className="poster-tekst">{p.tekst}</p>}
+          {info}
           {voet}
         </>
       )}
@@ -474,10 +537,21 @@ export function PosterBlad({ poster: p, stijl }: { poster: Poster; stijl?: CSSPr
       {p.sjabloon === 'kaart' && (
         <>
           <div className="kaart-vlak">{inhoud}</div>
-          <div className="kaart-voet">{voet}</div>
+          <div className="kaart-voet">{info}{voet}</div>
         </>
       )}
       {p.sjabloon === 'tekst' && <>{inhoud}{voet}</>}
+      {p.sjabloon === 'lijst' && (
+        <>
+          <div className="lijst-kop">
+            <h1>{p.kop}</h1>
+            {p.tekst && <p className="poster-tekst">{p.tekst}</p>}
+          </div>
+          <Regels regels={p.regels ?? []} stijl={p.lijstStijl ?? 'lijst'} />
+          {info}
+          {voet}
+        </>
+      )}
     </div>
   )
 }
@@ -487,3 +561,85 @@ function SymboolSvg({ code }: { code: string }) {
   const s = zoekSymbool(code)
   return s ? <svg viewBox="0 0 24 24" aria-hidden dangerouslySetInnerHTML={{ __html: s.body }} /> : null
 }
+
+// ISO-teken of symbool.
+function Picto({ code }: { code: string }) {
+  return isSymbool(code)
+    ? <span className="poster-symbool" role="img" aria-label={zoekSymbool(code)?.naam}><SymboolSvg code={code} /></span>
+    : <img src={pictogramUrl(code)} alt={zoekPictogram(code)?.naam ?? code} />
+}
+
+// Sjabloon lijst: hoe meer regels, hoe kleiner tekst en pictogrammen (alles past op één vel).
+function Regels({ regels, stijl }: { regels: Regel[]; stijl: 'lijst' | 'raster' }) {
+  const r = regels.filter((x) => x.tekst.trim() || x.picto)
+  const n = r.length
+  if (!n) return <div className="poster-regels leeg" />
+  const maat = stijl === 'raster'
+    ? (() => {
+        const kol = n <= 4 ? 2 : n <= 9 ? 3 : n <= 16 ? 4 : 5
+        // Langste woord liefst in één vak (vakbreedte in --e; vet ≈ 0,6 em per letter), maar niet kleiner dan 80%.
+        const basis = { 2: 6.5, 3: 5.4, 4: 4.6, 5: 3.9 }[kol]!
+        const vak = (178 - (kol - 1) * 5) / kol
+        const woord = Math.max(1, ...r.flatMap((x) => x.tekst.split(/\s+/)).map((w) => w.length))
+        return { kol, ico: 0, tekst: Math.max(basis * .8, Math.min(basis, vak / (woord * .6))) }
+      })()
+    : { kol: n > 10 ? 2 : 1, ico: n <= 6 ? 20 : n <= 10 ? 15 : n <= 16 ? 12 : 10, tekst: n <= 6 ? 7.2 : n <= 10 ? 6 : n <= 16 ? 5 : 4.3 }
+  const stijlVars = { '--kol': maat.kol, '--ico': maat.ico, '--lt': maat.tekst } as CSSProperties
+  return (
+    <ol className={`poster-regels stijl-${stijl}`} style={stijlVars}>
+      {r.map((x, i) => (
+        <li key={i}>
+          {x.picto ? <Picto code={x.picto} /> : <span className="regel-nr">{i + 1}</span>}
+          <span className="regel-tekst">{x.tekst}</span>
+        </li>
+      ))}
+    </ol>
+  )
+}
+
+// Regels bewerken: per regel een pictogram (of nummer) en tekst; volgorde aanpassen.
+function RegelsBewerken({ regels, stijl, zetRegels, zetStijl }: {
+  regels: Regel[]; stijl: 'lijst' | 'raster'; zetRegels: (r: Regel[]) => void; zetStijl: (s: 'lijst' | 'raster') => void
+}) {
+  const max = 24
+  const wijzig = (i: number, r: Partial<Regel>) => zetRegels(regels.map((x, j) => (j === i ? { ...x, ...r } : x)))
+  const verplaats = (i: number, d: number) => {
+    const n = [...regels]; const [x] = n.splice(i, 1); n.splice(i + d, 0, x); zetRegels(n)
+  }
+  return (
+    <div className="posters-regels">
+      <span className="veldlabel">Regels <span className="zacht">({regels.length}/{max})</span></span>
+      <div className="posters-keuze" role="group" aria-label="Weergave">
+        <button type="button" aria-pressed={stijl === 'lijst'} onClick={() => zetStijl('lijst')}>Lijst (huisregels)</button>
+        <button type="button" aria-pressed={stijl === 'raster'} onClick={() => zetStijl('raster')}>Raster (ingangsbord)</button>
+      </div>
+      {regels.map((r, i) => (
+        <div key={i} className="posters-regel">
+          <span className="posters-regel-picto">{r.picto ? <Picto code={r.picto} /> : <b>{i + 1}</b>}</span>
+          <select aria-label={`Pictogram regel ${i + 1}`} value={r.picto ?? ''} onChange={(e) => wijzig(i, { picto: e.target.value || undefined })}>
+            <option value="">Nummer</option>
+            {symboolGroepen.map((g) => (
+              <optgroup key={g} label={`Symbolen: ${g}`}>
+                {symbolen.filter((x) => x.groep === g).map((x) => <option key={x.code} value={x.code}>{x.naam}</option>)}
+              </optgroup>
+            ))}
+            {soorten.map((s) => (
+              <optgroup key={s} label={`ISO 7010: ${soortNamen[s]}`}>
+                {pictogrammen.filter((x) => x.soort === s).map((x) => <option key={x.code} value={x.code}>{x.code} {x.naam}</option>)}
+              </optgroup>
+            ))}
+          </select>
+          <input aria-label={`Tekst regel ${i + 1}`} value={r.tekst} maxLength={90} onChange={(e) => wijzig(i, { tekst: e.target.value })} />
+          <span className="posters-regel-knoppen">
+            <button type="button" title="Omhoog" disabled={i === 0} onClick={() => verplaats(i, -1)}>↑</button>
+            <button type="button" title="Omlaag" disabled={i === regels.length - 1} onClick={() => verplaats(i, 1)}>↓</button>
+            <button type="button" title="Verwijderen" onClick={() => zetRegels(regels.filter((_, j) => j !== i))}>✕</button>
+          </span>
+        </div>
+      ))}
+      <button type="button" className="knop tweede klein" disabled={regels.length >= max}
+              onClick={() => zetRegels([...regels, { tekst: '' }])}>Regel toevoegen</button>
+    </div>
+  )
+}
+

@@ -986,6 +986,28 @@ html::before {
 .posters-upload { position: relative; cursor: pointer; margin: 0; }
 .posters-upload input { display: none; }
 .posters-vink { display: flex; align-items: center; gap: 10px; min-height: 40px; margin-bottom: var(--ruimte); cursor: pointer; }
+.posters-regels { display: grid; gap: 8px; margin-bottom: var(--ruimte); }
+.posters-regel { display: grid; grid-template-columns: 34px 140px minmax(0, 1fr) auto; gap: 6px; align-items: center; }
+.posters-regel select, .posters-regel input { margin: 0; min-height: 40px; padding: 6px 10px; }
+.posters-regel-picto { display: grid; place-items: center; width: 32px; height: 32px; }
+.posters-regel-picto img { width: 32px; height: 32px; object-fit: contain; }
+.posters-regel-picto .poster-symbool, .posters-regel-picto b {
+  display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%;
+  background: var(--kleur-primair); color: var(--kleur-primair-tekst); font-size: 13px;
+}
+.posters-regel-picto svg { width: 20px; height: 20px; }
+.posters-regel-knoppen { display: flex; gap: 2px; }
+.posters-regel-knoppen button {
+  width: 30px; min-height: 40px; border: 1px solid var(--kleur-rand); border-radius: 6px; background: var(--kleur-vlak); cursor: pointer; color: var(--kleur-tekst);
+}
+.posters-regel-knoppen button:disabled { opacity: .35; cursor: default; }
+@media (max-width: 700px) {
+  .posters-regel { grid-template-columns: 34px minmax(0, 1fr); }
+  .posters-regel input, .posters-regel-knoppen { grid-column: 1 / -1; }
+  .posters-regel-knoppen button { width: var(--raakvlak-min); min-height: var(--raakvlak-min); }
+}
+.posters-info-rij { display: grid; grid-template-columns: 110px 1fr; gap: 6px; }
+.posters-info-rij input { margin-bottom: 6px; }
 .posters-vink input { width: 22px; height: 22px; min-height: 0; margin: 0; accent-color: var(--kleur-secundair); }
 .posters-pictogroep { margin-top: 10px; }
 .posters-pictos { display: grid; grid-template-columns: repeat(auto-fill, minmax(52px, 1fr)); gap: 6px; margin-top: 6px; }
@@ -1072,6 +1094,59 @@ html::before {
 .sjabloon-tekst.kop-groot .poster-inhoud h1 { font-size: calc(var(--e) * 36); }
 .poster-inhoud .poster-tekst { max-width: calc(var(--e) * 150); margin-top: calc(var(--e) * 7); font-size: calc(var(--e) * 6.2); line-height: 1.45; color: var(--op-kleur-zacht); }
 .sjabloon-foto .poster-inhoud .poster-tekst::before { content: ''; display: block; width: calc(var(--e) * 16); height: calc(var(--e) * .6); margin-bottom: calc(var(--e) * 5); background: var(--poster-limoen); }
+
+/* Blok met datum, tijd en prijs (zoals 'VANAF · EUR 500,00' op de kaarten van de club) */
+.poster-info { display: flex; flex-wrap: wrap; gap: calc(var(--e) * 5) calc(var(--e) * 11); margin: calc(var(--e) * 8) 0 0; }
+.poster-info div { display: grid; gap: calc(var(--e) * 1.2); }
+.poster-info dt { font-size: calc(var(--e) * 3.6); font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--op-kleur-zacht); }
+.poster-info dd { margin: 0; font-size: calc(var(--e) * 7); font-weight: 700; line-height: 1.15; color: var(--op-kleur); }
+.sjabloon-pictogram .poster-info, .kaart-voet .poster-info, .merk-hgc.sjabloon-tekst .poster-info { justify-content: center; text-align: center; }
+.sjabloon-pictogram .poster-info dt, .kader-label .poster-info dt, .kaart-voet .poster-info dt { color: var(--poster-olijf-diep); }
+.sjabloon-pictogram .poster-info dd, .kader-label .poster-info dd, .kaart-voet .poster-info dd { color: var(--poster-tekst); }
+.poster-blad[data-licht] .poster-info dt { color: var(--poster-donker); }
+.kaart-voet .poster-info { margin: 0 0 calc(var(--e) * 8); }
+.kaart-voet .poster-info dd { font-size: calc(var(--e) * 11); font-weight: 600; }
+.kaart-voet .poster-info:not(.aantal-1) { flex-wrap: nowrap; gap: calc(var(--e) * 9); }
+.kaart-voet .poster-info:not(.aantal-1) dd { font-size: calc(var(--e) * 6.5); }
+.kader-label .poster-info { margin-top: calc(var(--e) * 6); }
+.poster-qr svg { display: block; width: 100%; height: 100%; color: var(--veilig-zwart); }
+
+/* Sjabloon lijst: kopband in de posterkleur, daaronder regels (lijst) of een raster van pictogrammen.
+   --kol, --ico en --lt (tekstmaat) zet Posters.tsx naar het aantal regels. */
+.sjabloon-lijst { padding: 0; }
+.lijst-kop {
+  padding: calc(var(--e) * 15) calc(var(--e) * 16) calc(var(--e) * 11); background: var(--poster-olijf-diep); color: var(--op-kleur);
+  border-bottom: calc(var(--e) * 1.6) solid var(--poster-limoen);
+}
+.lijst-kop h1 { font: 600 calc(var(--e) * 20)/1 var(--poster-lettertype-kop); letter-spacing: -.01em; text-wrap: balance; }
+.sjabloon-lijst.kop-middel .lijst-kop h1 { font-size: calc(var(--e) * 16); }
+.sjabloon-lijst.kop-klein .lijst-kop h1 { font-size: calc(var(--e) * 12.5); }
+.sjabloon-lijst.kop-mini .lijst-kop h1 { font-size: calc(var(--e) * 10); }
+.merk-hgc .lijst-kop h1 { font-weight: 700; text-transform: uppercase; letter-spacing: .01em; line-height: 1.04; }
+.lijst-kop .poster-tekst { margin-top: calc(var(--e) * 4); font-size: calc(var(--e) * 5.8); line-height: 1.4; color: var(--op-kleur-zacht); }
+.poster-regels {
+  flex: 1; min-height: 0; list-style: none; margin: 0; padding: calc(var(--e) * 11) calc(var(--e) * 16) 0;
+  display: grid; grid-template-columns: repeat(var(--kol), minmax(0, 1fr)); align-content: start;
+  gap: calc(var(--e) * 4.5) calc(var(--e) * 9); color: var(--poster-tekst);
+}
+.poster-regels li > img, .poster-regels .poster-symbool, .regel-nr { display: grid; place-items: center; object-fit: contain; }
+.regel-nr { border-radius: 50%; background: var(--poster-olijf-diep); color: var(--op-kleur); font-weight: 700; }
+.stijl-lijst li {
+  display: grid; grid-template-columns: calc(var(--e) * var(--ico)) minmax(0, 1fr); gap: calc(var(--e) * 5); align-items: center;
+  font-size: calc(var(--e) * var(--lt)); line-height: 1.3;
+}
+.stijl-lijst li > img, .stijl-lijst .poster-symbool, .stijl-lijst .regel-nr { width: calc(var(--e) * var(--ico)); height: calc(var(--e) * var(--ico)); }
+.stijl-lijst .regel-nr { font-size: calc(var(--e) * var(--ico) * .45); }
+.stijl-raster { gap: calc(var(--e) * 7) calc(var(--e) * 5); align-content: space-evenly; padding-bottom: calc(var(--e) * 6); }
+.poster-regels li { min-width: 0; }
+.poster-regels .regel-tekst { min-width: 0; overflow-wrap: anywhere; hyphens: auto; }
+.stijl-raster li { display: grid; justify-items: center; align-content: start; gap: calc(var(--e) * 3); text-align: center; font-size: calc(var(--e) * var(--lt)); font-weight: 600; line-height: 1.2; }
+.stijl-raster li > img, .stijl-raster .poster-symbool, .stijl-raster .regel-nr { width: 70%; height: auto; aspect-ratio: 1; }
+.stijl-raster .regel-nr { font-size: calc(var(--e) * var(--lt) * 2.4); }
+.sjabloon-lijst .poster-info { margin: calc(var(--e) * 6) calc(var(--e) * 16) 0; }
+.sjabloon-lijst .poster-info dt { color: var(--poster-olijf-diep); }
+.sjabloon-lijst .poster-info dd { color: var(--poster-tekst); }
+.sjabloon-lijst .poster-voet { margin: calc(var(--e) * 8) calc(var(--e) * 16) calc(var(--e) * 12); }
 
 /* Voet: HGM-logo, onderregel, QR-code */
 .poster-voet {
@@ -1176,19 +1251,21 @@ html::before {
 /* Afdrukken: alleen de kopie in <body>, zonder app eromheen (@page zet Posters.tsx per formaat) */
 .poster-druk { display: none; }
 @media print {
-  /* Precies één pagina: Safari voegt anders een lege tweede pagina toe */
-  html.posterdruk, html.posterdruk body { height: 100%; overflow: hidden; padding: 0; }
+  /* Elke .poster-druk is precies één pagina (een serie = meerdere); html en body zijn één paginahoogte,
+     zodat 100% hieronder de pagina meet. Laatste pagina zonder pagina-einde: geen lege extra pagina. */
+  html.posterdruk, html.posterdruk body { height: 100%; padding: 0; }
   html.posterdruk body { margin: 0; background: var(--poster-papier); }
   html.posterdruk #root { display: none !important; }
   /* Past altijd op de pagina. Safari negeert @page size (drukt bijv. af op US Letter) en browsers kunnen
      marges toevoegen: de poster schaalt mee met de printbare ruimte (container-eenheden meten de pagina;
      vw/vh zijn in Safari het venster) in plaats van af te kappen. */
   html.posterdruk .poster-druk {
-    display: flex; justify-content: center; align-items: center; width: 100%; height: 100%; overflow: hidden;
-    container-type: size;
+    display: flex; justify-content: center; align-items: center; width: 100%; height: calc(100% - .2mm); overflow: hidden;
+    container-type: size; break-after: page; break-inside: avoid;
   }
   .poster-druk > .poster-blad { --e: min(1mm, 100cqw / 210, (100cqh - .3mm) / 297); break-after: avoid; flex: none; }
   html.posterdruk.a3 .poster-druk > .poster-blad { --e: min(1.41421mm, 100cqw / 210, (100cqh - .3mm) / 297); }
+  html.posterdruk .poster-druk:last-of-type { break-after: auto; }
 }
 
 /* ══ HGM → Bestanden ══ */
@@ -1203,3 +1280,52 @@ html::before {
 .bestanden-detail img { max-width: min(100%, 900px); border-radius: var(--radius-klein); border: 1px solid var(--kleur-rand); }
 .bestanden-detail iframe { width: 100%; height: 80vh; border: 1px solid var(--kleur-rand); border-radius: var(--radius-klein); }
 .posters-opgeslagen { font-size: 14px; }
+
+/* ══ QR-stickers (baan → QR-stickers): lijst links, instellingen en voorbeeld rechts ══ */
+.stickers { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 28px; align-items: start; }
+@media (max-width: 1000px) { .stickers { grid-template-columns: 1fr; } }
+.stickers-type { width: auto; min-height: 40px; margin: 0; }
+.stickers-tabel { border: 1px solid var(--kleur-rand); border-radius: var(--radius-klein); max-height: 70vh; overflow-y: auto; }
+.stickers-rij {
+  display: grid; grid-template-columns: 24px minmax(90px, auto) 1fr; gap: 12px; align-items: center;
+  min-height: 44px; padding: 4px 14px; margin: 0; border-bottom: 1px solid var(--kleur-rand); font-weight: 400; cursor: pointer;
+}
+.stickers-rij.kop { grid-template-columns: 24px 1fr; background: var(--kleur-vlak-zacht); font-weight: 600; position: sticky; top: 0; }
+.stickers-rij input { width: 20px; height: 20px; min-height: 0; margin: 0; accent-color: var(--kleur-secundair); }
+.stickers-rij:hover { background: var(--kleur-zijbalk-hover); }
+.stickers-instellingen { position: sticky; top: 16px; }
+.stickers-voorbeeld { zoom: .42; border: 1px solid var(--kleur-rand-sterk); box-shadow: var(--schaduw-tegel); width: max-content; }
+.stickers-voorbeeld .sticker { outline: .25mm dashed var(--kleur-rand); }
+
+/* Etiketvel en sticker in mm (A4); --k schaalt de tekst mee met de etikethoogte (37 mm = 1) */
+.sticker-vel { position: relative; width: 210mm; height: 297mm; background: var(--poster-papier); overflow: hidden; }
+.sticker { position: absolute; padding: calc(var(--k) * 1.3mm); font-family: var(--lettertype); color: var(--kleur-tekst); }
+/* Kaartje binnen het etiket (1,3 mm marge vangt kleine verschuivingen van de printer op) */
+.sticker-kaart {
+  display: flex; flex-direction: column; height: 100%; overflow: hidden;
+  border: .3mm solid var(--c); border-radius: calc(var(--k) * 2.2mm); background: var(--poster-papier);
+}
+.sticker-band {
+  display: flex; align-items: center; justify-content: space-between; gap: 2mm; flex: none;
+  height: calc(var(--k) * 6.4mm); padding: 0 calc(var(--k) * 2.6mm); background: var(--c); color: var(--kleur-primair-tekst);
+}
+.sticker-band span { font: 700 calc(var(--k) * 6.4pt)/1 var(--lettertype); letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
+.sticker-band img { display: block; height: calc(var(--k) * 4.2mm); width: auto; }
+.sticker-lijf { flex: 1; min-height: 0; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: calc(var(--k) * 2.6mm); align-items: center; padding: calc(var(--k) * 1.8mm) calc(var(--k) * 2.6mm); }
+.sticker-qr { height: calc(var(--q) * 22.5mm); aspect-ratio: 1; }   /* --q: met de hoogte, --k (tekst): met wat past */
+.sticker-qr svg { display: block; width: 100%; height: 100%; color: var(--veilig-zwart); }
+.sticker-tekst { display: flex; flex-direction: column; gap: calc(var(--k) * .9mm); min-width: 0; }
+.sticker-code { font-size: calc(var(--k) * 10.5pt); line-height: 1.08; color: var(--kleur-tekst); overflow-wrap: break-word; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.sticker-code.mono { font-family: var(--lettertype-mono); font-size: calc(var(--k) * 15pt); font-weight: 600; letter-spacing: -.02em; }
+.sticker-sub { font-size: calc(var(--k) * 6.8pt); line-height: 1.2; color: var(--kleur-tekst-zacht); }
+.sticker-baan { margin-top: calc(var(--k) * .6mm); padding-top: calc(var(--k) * .9mm); border-top: .25mm solid var(--kleur-rand); font-size: calc(var(--k) * 5.8pt); color: var(--kleur-tekst-label); }
+
+.sticker-druk { display: none; }
+@media print {
+  html.stickerdruk body { margin: 0; background: var(--poster-papier); }
+  html.stickerdruk #root { display: none !important; }
+  html.stickerdruk .sticker-druk { display: block; }
+  .sticker-druk .sticker-vel { break-after: page; height: calc(297mm - .3mm); }
+  .sticker-druk .sticker-vel:last-child { break-after: auto; }
+  .sticker, .sticker * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}

@@ -53,13 +53,16 @@ export const zoekPictogram = (code: string) => pictogrammen.find((p) => p.code =
 
 // Huisstijlen: HGM Golf (onderhoud, werkvloer) en de Hollandsche Golfclub (golfers op de baan).
 export type Merk = 'hgm' | 'hgc'
-export type Sjabloon = 'pictogram' | 'foto' | 'split' | 'kaart' | 'kader' | 'tekst'
+export type Sjabloon = 'pictogram' | 'foto' | 'split' | 'kaart' | 'kader' | 'tekst' | 'lijst'
+export type Regel = { picto?: string; tekst: string }
 
 // Kant-en-klare boodschappen: tekst en pictogrammen, daarna vrij aan te passen.
 // merken: bij welke huisstijl ze in de lijst staan (standaard alleen HGM).
 export type Boodschap = {
   naam: string; groep: string; merken?: Merk[]
   sjabloon: Sjabloon; kleur?: string
+  info?: { label: string; waarde: string }[]; qrLink?: string; qrTekst?: string
+  regels?: Regel[]; lijstStijl?: 'lijst' | 'raster'
   kop: string; tekst: string; pictos: string[]; foto?: string; qr?: boolean
 }
 
@@ -146,5 +149,66 @@ export const boodschappen: Boodschap[] = [
     kop: 'Toiletten en kleedruimte', tekst: 'Met douches en kluisjes. Neem je eigen slot mee.' },
   { groep: 'Faciliteiten', naam: 'Laadplek buggy’s', sjabloon: 'pictogram', merken: ['hgm', 'hgc'], pictos: ['sym:ev-charging', 'W026'],
     kop: 'Laadplek buggy’s', tekst: 'Alleen voor elektrische buggy’s. Stekker na het laden terug in de houder.' },
+  { groep: 'Evenementen', naam: 'Clinic', merken: ['hgc'], sjabloon: 'kaart', kleur: 'lichtblauw', pictos: ['sym:golf-bat'],
+    kop: 'Clinic korte spel', tekst: 'Chippen, pitchen en putten met onze golfprofessional. Ook voor beginners.',
+    info: [{ label: 'Datum', waarde: 'za 14 november' }, { label: 'Tijd', waarde: '10.00 – 11.30 uur' }, { label: 'Prijs', waarde: 'EUR 25,00' }],
+    qrLink: 'https://www.hollandschegolfclub.nl', qrTekst: 'Schrijf je in' },
+  { groep: 'Evenementen', naam: 'Wedstrijd', merken: ['hgc'], sjabloon: 'kader', kleur: 'blauw', pictos: ['sym:trophy'], foto: '/merken/hgc-fotos/baan-22324.jpg',
+    kop: 'Najaarswedstrijd', tekst: 'Stableford over 18 holes, met na afloop een borrel en prijsuitreiking.',
+    info: [{ label: 'Datum', waarde: 'zo 22 november' }, { label: 'Start', waarde: '9.30 uur' }, { label: 'Inschrijfgeld', waarde: 'EUR 15,00' }],
+    qrLink: 'https://www.hollandschegolfclub.nl', qrTekst: 'Schrijf je in' },
+  { groep: 'Evenementen', naam: 'Speelrecht', merken: ['hgc'], sjabloon: 'kaart', pictos: [],
+    kop: 'HGC Speelrecht', tekst: 'Spelen op alle golfbanen van de Hollandsche Golfclub. Elke maand in te stappen.',
+    info: [{ label: 'Vanaf', waarde: 'EUR 500,00' }] },
+  { groep: 'Lijsten en ingangsborden', naam: 'Huisregels werkplaats', sjabloon: 'lijst', lijstStijl: 'lijst', pictos: [],
+    kop: 'Huisregels werkplaats', tekst: 'Zo houden we het veilig en netjes voor iedereen.',
+    regels: [
+      { picto: 'M008', tekst: 'Draag veiligheidsschoenen in de werkplaats.' },
+      { picto: 'M003', tekst: 'Gehoorbescherming bij slijpen, zagen en blazen.' },
+      { picto: 'W024', tekst: 'Onderhoud aan messen of cilinders: eerst motor uit en sleutel eruit.' },
+      { picto: 'P002', tekst: 'Niet roken, ook niet bij de deur.' },
+      { picto: 'F001', tekst: 'Houd blussers en nooduitgangen vrij.' },
+      { tekst: 'Gereedschap na gebruik terug op zijn plek.' },
+      { picto: 'sym:trash', tekst: 'Afval en olie gescheiden weggooien.' },
+      { picto: 'sym:information-circle', tekst: 'Defect of storing? Meld het meteen in de app.' },
+    ] },
+  { groep: 'Lijsten en ingangsborden', naam: 'Ingang werkplaats', sjabloon: 'lijst', lijstStijl: 'raster', pictos: [],
+    kop: 'Let op bij binnenkomst', tekst: 'Werkplaats: hier gelden de volgende regels.',
+    regels: [
+      { picto: 'M008', tekst: 'Veiligheidsschoenen' }, { picto: 'M009', tekst: 'Handschoenen' },
+      { picto: 'M004', tekst: 'Veiligheidsbril' }, { picto: 'M003', tekst: 'Gehoorbescherming' },
+      { picto: 'M015', tekst: 'Signaalkleding' }, { picto: 'P002', tekst: 'Niet roken' },
+      { picto: 'P003', tekst: 'Geen open vuur' }, { picto: 'W014', tekst: 'Heftrucks' },
+      { picto: 'W024', tekst: 'Handletsel' }, { picto: 'W011', tekst: 'Gladde vloer' },
+      { picto: 'W012', tekst: 'Elektrische spanning' }, { picto: 'W026', tekst: 'Accu’s laden' },
+    ] },
+  { groep: 'Lijsten en ingangsborden', naam: 'Ingang opslag middelen', sjabloon: 'lijst', lijstStijl: 'raster', pictos: [],
+    kop: 'Opslag gewasbeschermingsmiddelen', tekst: 'Alleen toegang met spuitlicentie.',
+    regels: [
+      { picto: 'W016', tekst: 'Giftige stoffen' }, { picto: 'W023', tekst: 'Bijtende stoffen' },
+      { picto: 'W021', tekst: 'Brandbare stoffen' }, { picto: 'M009', tekst: 'Handschoenen' },
+      { picto: 'M004', tekst: 'Oogbescherming' }, { picto: 'M017', tekst: 'Ademhalingsbescherming' },
+      { picto: 'P002', tekst: 'Niet roken' }, { picto: 'P003', tekst: 'Geen open vuur' },
+      { picto: 'E011', tekst: 'Oogdouche' }, { picto: 'E003', tekst: 'EHBO' },
+    ] },
+  { groep: 'Lijsten en ingangsborden', naam: 'Golfetiquette', merken: ['hgc'], sjabloon: 'lijst', lijstStijl: 'lijst', kleur: 'groen', pictos: [],
+    kop: 'Golfetiquette', tekst: 'Samen houden we de baan mooi en het spel prettig.',
+    regels: [
+      { tekst: 'Herstel je pitchmark en nog één erbij.' }, { tekst: 'Hark de bunker na je slag.' },
+      { tekst: 'Leg uitgeslagen plaggen terug.' }, { tekst: 'Speel klaar-is-klaar en houd aansluiting.' },
+      { tekst: 'Laat sneller spel door als er een hole vrij is.' }, { picto: 'sym:golf-cart', tekst: 'Trolleys en buggy’s niet op tee en green.' },
+      { tekst: 'Wees stil als een ander speler slaat.' }, { tekst: 'Roep FORE bij gevaar voor anderen.' },
+    ] },
+  { groep: 'Lijsten en ingangsborden', naam: 'Huisregels clubhuis', merken: ['hgc'], sjabloon: 'lijst', lijstStijl: 'lijst', pictos: [],
+    kop: 'Welkom in het clubhuis', tekst: 'Een paar afspraken, zodat het voor iedereen gezellig blijft.',
+    regels: [
+      { picto: 'sym:information-circle', tekst: 'Meld je bij aankomst bij de receptie.' },
+      { picto: 'sym:golf-bat', tekst: 'Golftassen en trolleys in de tassenruimte, niet in het restaurant.' },
+      { tekst: 'Geen golfschoenen met metalen spikes in het clubhuis.' },
+      { picto: 'P002', tekst: 'Roken alleen buiten op de rookplek.' },
+      { picto: 'sym:spoon-and-knife', tekst: 'Eigen eten en drinken niet in het restaurant.' },
+      { tekst: 'Telefoon op stil in het restaurant.' },
+      { picto: 'sym:trash', tekst: 'Laat je tafel netjes achter.' },
+    ] },
 ]
 

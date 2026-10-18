@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { Navigate, useNavigate } from 'react-router'
+import { doelNaInloggen } from '../lib/naInloggen'
 import { supabase } from '../lib/supabase'
 import { useSessie } from '../lib/sessie'
 import Kopbalk from '../components/Kopbalk'
@@ -30,7 +31,7 @@ export default function Wachtwoord() {
         : 'Wijzigen mislukt. Probeer het opnieuw.')
     }
     await verversen()
-    navigeer('/', { replace: true })
+    navigeer(doelNaInloggen(), { replace: true })
   }
 
   return (

@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { Navigate, useNavigate } from 'react-router'
+import { doelNaInloggen } from '../lib/naInloggen'
 import { supabase } from '../lib/supabase'
 import { useSessie } from '../lib/sessie'
 import Kopbalk from '../components/Kopbalk'
@@ -28,7 +29,7 @@ export default function Tweestaps() {
   }, [sessie])
 
   if (!sessie) return <Navigate to="/inloggen" replace />
-  if (!tweestapsNodig) return <Navigate to="/" replace />
+  if (!tweestapsNodig) return <Navigate to={doelNaInloggen()} replace />
 
   async function bevestig(e: FormEvent) {
     e.preventDefault()
@@ -36,7 +37,7 @@ export default function Tweestaps() {
     const { error } = await supabase.auth.mfa.challengeAndVerify({ factorId, code })
     if (error) return setFout('Code klopt niet. Probeer het opnieuw.')
     await verversen()
-    navigeer('/')
+    navigeer(doelNaInloggen())
   }
 
   return (

@@ -1,9 +1,11 @@
 import { lazy, Suspense, type ReactNode } from 'react'
-import { Navigate, Route, Routes, useParams } from 'react-router'
+import { Navigate, Route, Routes, useLocation, useParams } from 'react-router'
 import { useSessie } from './lib/sessie'
 import LocatieLayout from './lib/locatie'
 import HoofdLayout from './components/HoofdLayout'
 import { HorlogeKoppeling } from './lib/horloge'
+import { bewaarDoel, vergeetDoel } from './lib/naInloggen'
+import Stickers, { NaarMelden } from './pages/Stickers'
 import Inloggen from './pages/Inloggen'
 import Tweestaps from './pages/Tweestaps'
 import LocatieKiezen from './pages/LocatieKiezen'
@@ -47,11 +49,13 @@ const Kaart = lazy(() => import('./pages/Kaart'))
 
 function Beveiligd({ children }: { children: ReactNode }) {
   const { laden, sessie, tweestapsNodig } = useSessie()
+  const { pathname, search } = useLocation()
   if (laden) return <main className="zacht">Laden…</main>
-  if (!sessie) return <Navigate to="/inloggen" replace />
+  if (!sessie) { bewaarDoel(pathname + search); return <Navigate to="/inloggen" replace /> }
   if (tweestapsNodig) return <Navigate to="/tweestaps" replace />
   // Ingelogd met een tijdelijk wachtwoord van beheer: eerst een eigen wachtwoord kiezen.
   if (sessie.user.user_metadata?.wachtwoord_wijzigen) return <Navigate to="/wachtwoord" replace />
+  vergeetDoel()   // aangekomen: het bewaarde adres is gebruikt
   return children
 }
 
@@ -106,6 +110,9 @@ export default function App() {
           </Route>
         </Route>
         <Route path="/nieuwe-baan" element={<Navigate to="/beheer/banen/nieuw" replace />} />
+        {/* QR-stickers: /o/<object-id> en /m/<machine-id> openen direct de meldflow */}
+        <Route path="/o/:id" element={<Beveiligd><NaarMelden soort="object" /></Beveiligd>} />
+        <Route path="/m/:id" element={<Beveiligd><NaarMelden soort="machine" /></Beveiligd>} />
         <Route path="/locatie/:locatieId" element={<Beveiligd><LocatieLayout /></Beveiligd>}>
           <Route index element={<Suspense fallback={<main className="zacht">Kaart laden…</main>}><Kaart /></Suspense>} />
           <Route path="overzicht" element={<Overzicht />} />
@@ -124,6 +131,7 @@ export default function App() {
           <Route path="materieel" element={<Materieel />} />
           <Route path="materieel/nieuw" element={<MachineNieuw />} />
           <Route path="materieel/:machineId" element={<MachineDetail />} />
+          <Route path="stickers" element={<Stickers />} />
           <Route path="rapportage" element={<Rapportage />} />
           <Route path="gebruikers" element={<Navigate to="/beheer/gebruikers" replace />} />
           <Route path="instellingen" element={<NaarBaanInstellingen />} />

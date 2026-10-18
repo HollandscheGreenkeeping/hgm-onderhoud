@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
-import { Link, useParams } from 'react-router'
+import { Link, useParams, useSearchParams } from 'react-router'
 import { supabase } from '../lib/supabase'
 import { useLocatie } from '../lib/locatie'
 import { datum, openStoringStatussen, storingStatus, taakStatus, vandaag } from '../lib/teksten'
@@ -16,6 +16,7 @@ export default function MachineDetail() {
   const [historie, setHistorie] = useState<Gebeurtenis[]>([])
   const [schemas, setSchemas] = useState<{ id: string; omschrijving: string; interval_waarde: number; interval_eenheid: string; volgende_datum: string | null; volgende_draaiuren: number | null }[]>([])
   const [modus, setModus] = useState<'bewerken' | 'defect' | null>(null)
+  const [zoekParams, setZoekParams] = useSearchParams()
   const [stand, setStand] = useState('')
   const [melding, setMelding] = useState<{ soort: 'fout' | 'info'; tekst: string } | null>(null)
   const basis = `/locatie/${locatie.id}`
@@ -79,6 +80,13 @@ export default function MachineDetail() {
     await supabase.from('machines').update({ gearchiveerd_op: m.gearchiveerd_op ? null : new Date().toISOString() }).eq('id', m.id)
     laad()
   }
+
+  // Van een QR-sticker (?melden=1): meteen het defect-formulier.
+  useEffect(() => {
+    if (!m || !zoekParams.has('melden')) return
+    if (magRegistreren && m.locatie_id === locatie.id && !m.gearchiveerd_op) setModus('defect')
+    setZoekParams({}, { replace: true })
+  }, [m, zoekParams, setZoekParams, magRegistreren, locatie.id])
 
   if (!m) return <main>{melding ? <div className={`melding ${melding.soort}`}>{melding.tekst}</div> : <p className="zacht">Laden…</p>}</main>
 

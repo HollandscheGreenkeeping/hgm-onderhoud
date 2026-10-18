@@ -182,9 +182,13 @@ export default function Kaart() {
     const f = id && data?.objecten.features.find((o) => o.properties?.id === id)
     if (!f || !kaart) return
     kaart.jumpTo({ center: (f.geometry as Point).coordinates as [number, number], zoom: 19 })
-    setSelectie({ soort: 'object', id: id! })
+    // Van een QR-sticker (?melden=1): meteen de meldflow voor dit object.
+    if (zoekParams.has('melden') && magRegistreren) {
+      const p = f.properties ?? {}
+      setMelden({ soort: 'object', id: id!, titel: [p.type, p.code].filter(Boolean).join(' ') || 'Object' })
+    } else setSelectie({ soort: 'object', id: id! })
     setZoekParams({}, { replace: true })
-  }, [data, kaart, zoekParams, setZoekParams])
+  }, [data, kaart, zoekParams, setZoekParams, magRegistreren])
 
   // ?melding=... (melding op een plek) en ?melden=1 (vanuit de storingenlijst)
   useEffect(() => {
@@ -195,7 +199,7 @@ export default function Kaart() {
       kaart.jumpTo({ center: (f.geometry as Point).coordinates as [number, number], zoom: 19 })
       setSelectie({ soort: 'melding', id: id! })
       setZoekParams({}, { replace: true })
-    } else if (zoekParams.has('melden') && magRegistreren) {
+    } else if (zoekParams.has('melden') && !zoekParams.has('object') && magRegistreren) {
       setMelden({ soort: 'plek' })
       setZoekParams({}, { replace: true })
     }

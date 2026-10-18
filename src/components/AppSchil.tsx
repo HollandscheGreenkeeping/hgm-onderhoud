@@ -28,7 +28,7 @@ const namen: Record<string, string> = {
   voorstellen: 'Voorstellen', overzicht: 'Dashboard', rapportage: 'Rapportage', meer: 'Meer',
   banen: 'Banen', werkplaats: 'Werkplaats', werkorders: 'Werkorders', planning: 'Planning', keuringen: 'Keuringen',
   kosten: 'Kosten', inkoop: 'Inkoop', bestellingen: 'Bestellingen', voorraad: 'Voorraad', producten: 'Producten',
-  leveranciers: 'Leveranciers', budget: 'Budget', beheer: 'Beheer', gebruikers: 'Gebruikers', keuzelijsten: 'Keuzelijsten', posters: 'Posters', bestanden: 'Bestanden',
+  leveranciers: 'Leveranciers', budget: 'Budget', beheer: 'Beheer', gebruikers: 'Gebruikers', keuzelijsten: 'Keuzelijsten', posters: 'Posters', stickers: 'QR-stickers', bestanden: 'Bestanden',
   nieuw: 'Nieuw', schemas: "Schema's", kalender: 'Kalender', verlopen: 'Verlopen',
 }
 
@@ -94,6 +94,7 @@ export default function AppSchil({ baan, magInkoop, mobielKop, mobielMenu, child
             <NavLink to={`${basis}/werk`}>Werk</NavLink>
             <NavLink to={`${basis}/onderhoud`}>Onderhoud</NavLink>
             <NavLink to={`${basis}/materieel`}>Materieel</NavLink>
+            {b.magPlannen && <NavLink to={`${basis}/stickers`}>QR-stickers</NavLink>}
             {b.magPlannen && <NavLink to={`${basis}/voorstellen`}>Voorstellen</NavLink>}
             <NavLink to={`${basis}/overzicht`}>Dashboard</NavLink>
             <NavLink to={`${basis}/rapportage`}>Rapportage</NavLink>
