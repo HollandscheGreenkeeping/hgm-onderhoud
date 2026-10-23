@@ -5,7 +5,7 @@ import { LocatieProvider, useLocatie } from '../lib/locatie'
 import { logoBijsnijden } from '../lib/logo'
 import BaanfotoInstelling from '../components/BaanfotoInstelling'
 
-// Beheer → Banen → één baan: klantlogo, baanfoto, lussen en holes.
+// Beheer → Banen → één baan: klantlogo, baanfoto, eigen baan HGC, lussen en holes.
 export default function BaanInstellingen() {
   const { locatieId } = useParams()
   return (
@@ -15,6 +15,7 @@ export default function BaanInstellingen() {
         <Kop />
         <Klantlogo />
         <BaanfotoInstelling />
+        <HgcBaan />
         <Lussen />
       </LocatieProvider>
     </div>
@@ -66,6 +67,39 @@ function Klantlogo() {
       <label className="knop tweede">
         {bezig ? 'Bezig…' : locatie.klantlogo_pad ? 'Ander logo kiezen' : 'Logo kiezen'}
         <input type="file" accept="image/png,image/svg+xml" hidden disabled={bezig} onChange={upload} />
+      </label>
+    </section>
+  )
+}
+
+// Eigen baan van de Hollandsche Golfclub (zusterbedrijf): dan ziet de steward het geplande
+// onderhoud in de briefing van zijn dagrapport. Bij banen van klanten blijft dit uit.
+function HgcBaan() {
+  const { locatie } = useLocatie()
+  const [aan, setAan] = useState<boolean | null>(null)
+  const [fout, setFout] = useState<string | null>(null)
+
+  useEffect(() => {
+    supabase.from('locaties').select('hgc_baan').eq('id', locatie.id).single()
+      .then(({ data }) => setAan(!!data?.hgc_baan))
+  }, [locatie.id])
+
+  async function wissel(e: ChangeEvent<HTMLInputElement>) {
+    const nieuw = e.target.checked
+    setAan(nieuw)
+    const { error } = await supabase.from('locaties').update({ hgc_baan: nieuw }).eq('id', locatie.id)
+    if (error) { setAan(!nieuw); setFout('Opslaan mislukt.') } else setFout(null)
+  }
+
+  return (
+    <section className="kaart">
+      <h2>Eigen baan HGC</h2>
+      <p className="zacht">Zet dit aan als {locatie.naam} een baan is van de Hollandsche Golfclub (zusterbedrijf).
+        Het geplande onderhoud verschijnt dan in de briefing van de stewards. Bij klanten laat je dit uit.</p>
+      {fout && <div className="melding fout">{fout}</div>}
+      <label className="lus-rij">
+        <input type="checkbox" checked={!!aan} disabled={aan === null} onChange={wissel} />
+        Gepland onderhoud tonen in het Stewardplatform
       </label>
     </section>
   )
